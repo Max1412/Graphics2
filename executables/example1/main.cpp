@@ -11,34 +11,33 @@
 #include <string>
 #include <sstream>
 
+#include "Utils/UtilCollection.h"
+
+std::string GLubyteToString(const GLubyte* content) {
+	return std::string(reinterpret_cast<const char*>(content));
+
+}
+
 int main(int argc, char* argv[]) {
-	glfwInit();
-	GLFWwindow* window = glfwCreateWindow(1600, 980, "Example 1", NULL, NULL);
-	glfwMakeContextCurrent(window);
+	// init glfw, open window, manage context
+	GLFWwindow* window = util::setupGLFWwindow(1600, 980, "Example 1");
 	
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		std::stringstream ss;
-		ss << "Error initializing GLEW: " << glewGetErrorString(err);
-		throw std::runtime_error(ss.str());
-	}
+	// init glew and check for errors
+	util::initGLEW();
+
+	// print OpenGL info
+	util::printOpenGLInfo();
+
+	// get list of OpenGL extensions (can be searched later if needed)
+	std::vector<std::string> extensions = util::getGLExtenstions();
+
 	
-	const GLubyte *renderer = glGetString(GL_RENDERER);
-	const GLubyte *vendor = glGetString(GL_VENDOR);
-	const GLubyte *version = glGetString(GL_VERSION);
-	const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
-	
-	std::cout << renderer << std::endl;
-	std::cout << vendor << std::endl;
-	std::cout << version << std::endl;
-	std::cout << glslVersion << std::endl;
-	
+	// render loop
 	while (!glfwWindowShouldClose(window)) {
 
 
 	}
 
-
+	// close window
 	glfwDestroyWindow(window);
 }
