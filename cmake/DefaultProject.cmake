@@ -9,13 +9,12 @@ project(${ProjectId})
 include(${CMAKE_MODULE_PATH}/macros.cmake)
 
 set(CMAKE_CONFIGURATION_TYPES Debug;Release)
- 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
+find_package(OpenGL3 REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(GLFW3 REQUIRED)
 find_package(GLM REQUIRED)
-find_package(OpenGL REQUIRED)
-
-
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
 	find_package(X11)

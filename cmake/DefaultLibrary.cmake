@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 IF (${CMAKE_MAJOR_VERSION} GREATER "3")
   cmake_policy(SET CMP0038 OLD)
 ENDIF ()
@@ -8,6 +8,7 @@ string(REPLACE " " "_" ProjectId ${ProjectId})
 project(${ProjectId})
 
 include_directories(
+	${OpenGL3_INCLUDE_PATH}
     ${GLEW_INCLUDE_PATH}
     ${GLFW3_INCLUDE_PATH}
     ${GLM_INCLUDE_PATH}
@@ -22,9 +23,12 @@ add_definitions(-DSHADERS_PATH="${SHADERS_PATH}")
 add_definitions(-DRESOURCES_PATH="${RESOURCES_PATH}")
 add_definitions(-DGLFW_INCLUDE_GLCOREARB)
 add_definitions(-DGLEW_STATIC)
+# glew.h sets __gl_h_ which makes gl3.h think /gl.h (OpenGL 2) is included. Calm that warning:
+add_definitions(-DGL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED)
 # ... and really don't include GLU and GL(2)
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
+
 
 add_library(${ProjectId} ${SOURCES} ${HEADER})
 
@@ -33,4 +37,5 @@ target_link_libraries(
     ${ALL_LIBRARIES}
     ${GLFW3_LIBRARIES}
     ${GLEW_LIBRARIES}
+    ${OpenGL3_LIBRARIES}
 )

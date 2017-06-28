@@ -1,3 +1,4 @@
+#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include <GLFW/glfw3.h>
@@ -22,5 +23,22 @@ int main(int argc, char* argv[]) {
 		ss << "Error initializing GLEW: " << glewGetErrorString(err);
 		throw std::runtime_error(ss.str());
 	}
+	
+	const GLubyte *renderer = glGetString(GL_RENDERER);
+	const GLubyte *vendor = glGetString(GL_VENDOR);
+	const GLubyte *version = glGetString(GL_VERSION);
+	const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+	
+	std::cout << renderer << std::endl;
+	std::cout << vendor << std::endl;
+	std::cout << version << std::endl;
+	std::cout << glslVersion << std::endl;
+	
+	while (!glfwWindowShouldClose(window)) {
+
+
+	}
+
+
 	glfwDestroyWindow(window);
 }
