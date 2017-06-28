@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 IF (${CMAKE_MAJOR_VERSION} GREATER "3")
+  cmake_policy(SET CMP0022 OLD)
   cmake_policy(SET CMP0038 OLD)
 ENDIF ()
 

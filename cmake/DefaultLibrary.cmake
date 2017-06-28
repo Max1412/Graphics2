@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-IF (${CMAKE_MAJOR_VERSION} GREATER "2")
-  cmake_policy(SET CMP0022 OLD)
+IF (${CMAKE_MAJOR_VERSION} GREATER "3")
   cmake_policy(SET CMP0038 OLD)
 ENDIF ()
 
@@ -26,7 +25,6 @@ add_definitions(-DGLEW_STATIC)
 # ... and really don't include GLU and GL(2)
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
-
 
 add_library(${ProjectId} ${SOURCES} ${HEADER})
 
