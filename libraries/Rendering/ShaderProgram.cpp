@@ -110,7 +110,7 @@ std::string ShaderProgram::loadShaderFile(const std::string fileName) const
 		std::cout << "SUCCESS: Opened file " << fileName << std::endl;
 	}
 	else
-		std::cout << "ERROR: Unable to open file " << fileName << std::endl;
+		throw std::runtime_error("ERROR: Unable to open file " + fileName);
 
 	// return file as string
 	return fileContent;
