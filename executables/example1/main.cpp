@@ -68,6 +68,7 @@ int main(int argc, char* argv[]) {
 		glfwPollEvents();
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+
 		glfwSwapBuffers(window);
 	}
 

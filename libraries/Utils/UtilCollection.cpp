@@ -45,7 +45,8 @@ namespace util
 		if(debugmode) {
 			GLenum err;
 			while ((err = glGetError()) != GL_NO_ERROR) {
-				std::cerr << "OpenGL Error: " << err << " in function " << function << " at line " << line << std::endl;
+				std::cerr << "OpenGL Error: " << err << std::endl;
+				std::cerr << "Last error check in function " << function << " at line " << line << std::endl;
 			}
 		}
 	}
