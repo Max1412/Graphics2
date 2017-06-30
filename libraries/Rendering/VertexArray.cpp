@@ -4,6 +4,11 @@ VertexArray::VertexArray() {
 	glGenVertexArrays(1, &m_vaoHandle);
 }
 
+void VertexArray::del() {
+	glDeleteVertexArrays(1, &m_vaoHandle);
+	util::getGLerror(__LINE__, __FUNCTION__);
+}
+
 void VertexArray::bind() {
 	glBindVertexArray(m_vaoHandle);
 }

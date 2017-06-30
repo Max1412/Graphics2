@@ -22,4 +22,8 @@ namespace util
 	void initGLEW();
 
 	std::vector<std::string> getGLExtenstions();
+
+	void getGLerror(int line, std::string function);
+
+	const bool debugmode = true;
 }

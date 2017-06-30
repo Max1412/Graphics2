@@ -40,4 +40,14 @@ namespace util
 		}
 		return extenstions;
 	}
+
+	void getGLerror(int line, std::string function) {
+		if(debugmode) {
+			GLenum err;
+			while ((err = glGetError()) != GL_NO_ERROR) {
+				std::cerr << "OpenGL Error: " << err << " in function " << function << " at line " << line << std::endl;
+			}
+		}
+	}
+
 }

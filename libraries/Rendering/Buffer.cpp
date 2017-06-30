@@ -4,6 +4,11 @@ Buffer::Buffer() {
 	glGenBuffers(1, &m_bufferHandle);
 }
 
+void Buffer::del() {
+	glDeleteBuffers(1, &m_bufferHandle);
+	util::getGLerror(__LINE__, __FUNCTION__);
+}
+
 GLuint Buffer::getHandle() {
 	return m_bufferHandle;
 }

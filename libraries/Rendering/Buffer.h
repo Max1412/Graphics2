@@ -6,6 +6,8 @@
 #include <array>
 #include <vector>
 
+#include "Utils/UtilCollection.h"
+
 class Buffer
 {
 public:
@@ -14,6 +16,8 @@ public:
 	GLuint getHandle();
 
 	void bind();
+
+	void del();
 
 	template<typename T>
 	void setData(std::vector<T> &data, GLenum target,  GLenum drawType);
