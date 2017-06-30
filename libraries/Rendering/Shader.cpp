@@ -10,7 +10,7 @@ Shader::Shader(std::string path, GLuint shaderType)
 	}
 
 	// load shader file and use it
-	std::string shaderCode = loadShaderFile(SHADERS_PATH + path);
+	std::string shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + path);
 	std::array<const GLchar*, 1> codeArray{ shaderCode.c_str() };
 	glShaderSource(m_shaderHandle, 1, codeArray.data(), NULL);
 

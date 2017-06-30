@@ -35,12 +35,4 @@ private:
 	std::vector<Shader> m_shaders;
 	bool m_initWithShaders = false;
 
-	std::string ShaderProgram::loadShaderFile(const std::string fileName) const;
-
-
-
-
-
-
-
 };
