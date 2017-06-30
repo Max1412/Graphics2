@@ -4,18 +4,21 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <exception>
 #include <string>
 #include <sstream>
+#include <memory>
 
 #include "Utils/UtilCollection.h"
 #include "Rendering/Shader.h"
 #include "Rendering/ShaderProgram.h"
 #include "Rendering/Buffer.h"
 #include "Rendering/VertexArray.h"
+#include "Rendering/Uniform.h"
 
 std::string GLubyteToString(const GLubyte* content) {
 	return std::string(reinterpret_cast<const char*>(content));
@@ -38,9 +41,6 @@ int main(int argc, char* argv[]) {
 	Shader vs("basic.vert", GL_VERTEX_SHADER);
 	Shader fs("basic.frag", GL_FRAGMENT_SHADER);
 	ShaderProgram sp(vs, fs);
-	sp.use();
-
-
 
 	std::array<float, 9> positionData = {
 		-0.8f, -0.8f, 0.0f,
@@ -63,11 +63,28 @@ int main(int argc, char* argv[]) {
 	vao.connectBuffer(colorBuffer, 1, 3, GL_FLOAT, GL_FALSE);
 	vao.bind();
 
+	float angle = 0;
+
+	glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 0.0f, 1.0f));
+	
+	auto rot = std::make_shared<Uniform<glm::mat4>>("RotationMatrix", rotationMatrix);
+	
+	sp.addUniform(rot);
+	sp.use();
+
 	// render loop
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		rot->setContent(glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.0f, 0.0f, 1.0f)));
+		sp.updateUniforms();
+
+
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		angle += 0.1f;
 
 		glfwSwapBuffers(window);
 	}

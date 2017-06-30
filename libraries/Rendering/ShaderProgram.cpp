@@ -87,4 +87,19 @@ GLuint ShaderProgram::getShaderProgramHandle() {
 
 void ShaderProgram::use() {
 	glUseProgram(m_shaderProgramHandle);
+	updateUniforms();
+}
+
+void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform) {
+	use();
+	GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
+	if(location < 0)
+		throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
+	m_mat4Uniforms.push_back(std::make_pair(uniform, location));
+}
+
+void ShaderProgram::updateUniforms() {
+	for (auto n : m_mat4Uniforms) {
+		glUniformMatrix4fv(n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
+	}
 }
