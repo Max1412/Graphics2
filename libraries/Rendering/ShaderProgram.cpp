@@ -23,13 +23,14 @@ ShaderProgram::ShaderProgram(std::vector<Shader> shaders) : m_initWithShaders(tr
 }
 
 
-ShaderProgram::~ShaderProgram() {
+void ShaderProgram::del() {
 	// delete all shaders
 	for(auto shader : m_shaders)
 		glDeleteShader(shader.getHandle());
 
 	// delete porgram
 	glDeleteProgram(m_shaderProgramHandle);
+	util::getGLerror(__LINE__, __FUNCTION__);
 }
 
 void ShaderProgram::addShader(Shader &shader) {

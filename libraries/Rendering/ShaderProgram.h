@@ -16,6 +16,7 @@
 
 #include "Shader.h"
 #include "Uniform.h"
+#include "Utils/UtilCollection.h"
 
 
 class ShaderProgram
@@ -25,7 +26,8 @@ public:
 	ShaderProgram(std::string vspath, std::string fspath);
 	ShaderProgram(Shader &shader1, Shader &shader2);
 	ShaderProgram(std::vector<Shader> shaders);
-	~ShaderProgram();
+
+	void del();
 	
 	void addShader(Shader &shader);
 
