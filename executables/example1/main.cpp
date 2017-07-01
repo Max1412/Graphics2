@@ -20,11 +20,6 @@
 #include "Rendering/VertexArray.h"
 #include "Rendering/Uniform.h"
 
-std::string GLubyteToString(const GLubyte* content) {
-	return std::string(reinterpret_cast<const char*>(content));
-
-}
-
 int main(int argc, char* argv[]) {
 	// init glfw, open window, manage context
 	GLFWwindow* window = util::setupGLFWwindow(1600, 980, "Example 1");
@@ -92,6 +87,7 @@ int main(int argc, char* argv[]) {
 	colorBuffer.del();
 	positionBuffer.del();
 	vao.del();
+	sp.del();
 
 	// close window
 	glfwDestroyWindow(window);
