@@ -1,3 +1,3 @@
 # OpenGL-Playground
 
-OpenGL project to test things and to implement things from the OpenGL 4 Cookbook
+OpenGL project to test things and to implement things from the OpenGL 4 Cookbook (improved) / CG lectures / own ideas
