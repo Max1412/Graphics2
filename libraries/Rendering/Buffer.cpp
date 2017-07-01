@@ -16,3 +16,7 @@ GLuint Buffer::getHandle() {
 void Buffer::bind() {
 	glBindBuffer(m_target, m_bufferHandle);
 }
+
+void Buffer::bindBase(unsigned int binding) {
+	glBindBufferBase(m_target, binding, m_bufferHandle);
+}

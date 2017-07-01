@@ -17,6 +17,8 @@ public:
 
 	void bind();
 
+	void bindBase(unsigned int binding);
+
 	void del();
 
 	template<typename T>
