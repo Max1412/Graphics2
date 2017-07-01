@@ -39,6 +39,8 @@ int main(int argc, char* argv[]) {
 	// print OpenGL info
 	util::printOpenGLInfo();
 
+	util::enableDebugCallback();
+
 	// get list of OpenGL extensions (can be searched later if needed)
 	std::vector<std::string> extensions = util::getGLExtenstions();
 
@@ -52,6 +54,7 @@ int main(int argc, char* argv[]) {
 	bs.RadiusInner = 0.25f;
 	bs.RadiusOuter = 0.45f;
 
+	// shader storage buffer object containg BlobSettings struct
 	Buffer blobBuffer;
 	blobBuffer.setData(std::vector<BlobSettings>{bs}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
 	blobBuffer.bindBase(0);
@@ -83,7 +86,6 @@ int main(int argc, char* argv[]) {
 
 	Buffer texCoordBuffer;
 	texCoordBuffer.setData(texCoordData, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-
 
 	VertexArray vao;
 	vao.connectBuffer(vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);

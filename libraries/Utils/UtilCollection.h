@@ -25,5 +25,9 @@ namespace util
 
 	void getGLerror(int line, std::string function);
 
+	void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * message, void * param);
+
+	void enableDebugCallback();
+
 	const bool debugmode = true;
 }

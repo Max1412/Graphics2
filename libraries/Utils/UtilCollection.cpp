@@ -50,5 +50,85 @@ namespace util
 			}
 		}
 	}
+	void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+		const GLchar *message, const void *userParam) {
+		std::cout << "OpenGL debug callback called!" << std::endl;
+		std::cout << "Source: ";
+		switch (source) {
+		case GL_DEBUG_SOURCE_API:
+			std::cout << "API Call";
+			break;
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+			std::cout << "Window system";
+			break;
+		case GL_DEBUG_SOURCE_THIRD_PARTY:
+			std::cout << "Third party application";
+			break;
+		case GL_DEBUG_SOURCE_APPLICATION:
+			std::cout << "This application";
+			break;
+		case GL_DEBUG_SOURCE_OTHER:
+			std::cout << "Some other source";
+			break;
+		}
+		std::cout << std::endl;
+		std::cout << "message: " << message << std::endl;
+		std::cout << "type: ";
+		// converting GLenums is tedious :(
+		switch (type) {
+		case GL_DEBUG_TYPE_ERROR:
+			std::cout << "ERROR";
+			break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+			std::cout << "DEPRECATED_BEHAVIOR";
+			break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+			std::cout << "UNDEFINED_BEHAVIOR";
+			break;
+		case GL_DEBUG_TYPE_PORTABILITY:
+			std::cout << "PORTABILITY";
+			break;
+		case GL_DEBUG_TYPE_PERFORMANCE:
+			std::cout << "PERFORMANCE";
+			break;
+		case GL_DEBUG_TYPE_MARKER:
+			std::cout << "Annotation (MARKER)";
+			break;
+		case GL_DEBUG_TYPE_PUSH_GROUP:
+			std::cout << "Debug push group";
+			break;
+		case GL_DEBUG_TYPE_POP_GROUP:
+			std::cout << "Debug pop group";
+			break;
+		case GL_DEBUG_TYPE_OTHER:
+			std::cout << "OTHER";
+			break;
+		}
+		std::cout << std::endl;
+		std::cout << "id: " << id << std::endl;
+		std::cout << "severity: ";
+		switch (severity) {
+		case GL_DEBUG_SEVERITY_LOW:
+			std::cout << "LOW";
+			break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			std::cout << "MEDIUM";
+			break;
+		case GL_DEBUG_SEVERITY_HIGH:
+			std::cout << "HIGH";
+			break;
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			std::cout << "NOTIFICATION";
+			break;
+		}
+		std::cout << std::endl;
+		std::cout << std::endl;
+	}
+
+	void enableDebugCallback() {
+		glDebugMessageCallback(debugCallback, NULL);
+		// TODO set ifs/elses for enabling notification, low, high..
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, NULL, GL_FALSE);
+	}
 
 }

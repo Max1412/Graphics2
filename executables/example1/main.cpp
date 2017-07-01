@@ -30,6 +30,9 @@ int main(int argc, char* argv[]) {
 	// print OpenGL info
 	util::printOpenGLInfo();
 
+	util::enableDebugCallback();
+
+
 	// get list of OpenGL extensions (can be searched later if needed)
 	std::vector<std::string> extensions = util::getGLExtenstions();
 
