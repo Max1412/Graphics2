@@ -24,12 +24,12 @@ class ShaderProgram
 public:
 	ShaderProgram();
 	ShaderProgram(std::string vspath, std::string fspath);
-	ShaderProgram(Shader &shader1, Shader &shader2);
+	ShaderProgram(const Shader &shader1, const Shader &shader2);
 	ShaderProgram(std::vector<Shader> shaders);
 
 	void del();
 	
-	void addShader(Shader &shader);
+	void addShader(const Shader &shader);
 
 	void createProgram();
 

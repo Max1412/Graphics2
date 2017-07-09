@@ -13,7 +13,7 @@ public:
 
 	std::string getName();
 	T getContent();
-	void setContent(T &content);
+	void setContent(const T &content);
 
 private:
 	std::string m_name;
@@ -31,6 +31,6 @@ T Uniform<T>::getContent() {
 }
 
 template<typename T>
-void Uniform<T>::setContent(T &content) {
+void Uniform<T>::setContent(const T &content) {
 	m_content = content;
 }

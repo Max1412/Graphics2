@@ -9,7 +9,7 @@ ShaderProgram::ShaderProgram(std::string vspath, std::string fspath) : m_initWit
 }
 
 
-ShaderProgram::ShaderProgram(Shader &shader1, Shader &shader2) : m_initWithShaders(true) {
+ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_initWithShaders(true) {
 	m_shaders.push_back(shader1);
 	m_shaders.push_back(shader2);
 
@@ -33,7 +33,7 @@ void ShaderProgram::del() {
 	util::getGLerror(__LINE__, __FUNCTION__);
 }
 
-void ShaderProgram::addShader(Shader &shader) {
+void ShaderProgram::addShader(const Shader &shader) {
 	if (m_initWithShaders) {
 		throw std::runtime_error("ShaderProgram was initalized with Shaders, adding later on is not allowed");
 	}

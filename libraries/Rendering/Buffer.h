@@ -22,22 +22,22 @@ public:
 	void del();
 
 	template<typename T>
-	void setData(std::vector<T> &data, GLenum target,  GLenum drawType);
+	void setData(const std::vector<T> &data, GLenum target,  GLenum drawType);
 
 	template<typename T, std::size_t N>
-	void setData(std::array<T, N> &data, GLenum target, GLenum drawType);
+	void setData(const std::array<T, N> &data, GLenum target, GLenum drawType);
 
 	template<typename T>
-	void setStorage(std::vector<T> &data, GLenum target, GLbitfield flags);
+	void setStorage(const std::vector<T> &data, GLenum target, GLbitfield flags);
 
 	template<typename T, std::size_t N>
-	void setStorage(std::array<T, N> &data, GLenum target, GLbitfield flags);
+	void setStorage(const std::array<T, N> &data, GLenum target, GLbitfield flags);
 
 	template<typename T>
-	void setSubData(std::vector<T> &data, GLenum target, int offset);
+	void setSubData(const std::vector<T> &data, GLenum target, int offset);
 
 	template<typename T, std::size_t N>
-	void setSubData(std::array<T, N> &data, GLenum target, int offset);
+	void setSubData(const std::array<T, N> &data, GLenum target, int offset);
 
 private:
 	GLuint m_bufferHandle;
@@ -53,7 +53,7 @@ private:
 */
 
 template <typename T>
-void Buffer::setData(std::vector<T> &data, GLenum target, GLenum drawType) {
+void Buffer::setData(const std::vector<T> &data, GLenum target, GLenum drawType) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reassign buffer data");
 	m_target = target;
@@ -62,7 +62,7 @@ void Buffer::setData(std::vector<T> &data, GLenum target, GLenum drawType) {
 }
 
 template <typename T, std::size_t N>
-void Buffer::setData(std::array<T, N> &data, GLenum target, GLenum drawType) {
+void Buffer::setData(const std::array<T, N> &data, GLenum target, GLenum drawType) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reassign buffer data");
 	m_target = target;
@@ -71,7 +71,7 @@ void Buffer::setData(std::array<T, N> &data, GLenum target, GLenum drawType) {
 }
 
 template<typename T>
-void Buffer::setSubData(std::vector<T> &data, GLenum target, int offset) {
+void Buffer::setSubData(const std::vector<T> &data, GLenum target, int offset) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reassign buffer data");
 	m_target = target;
@@ -80,7 +80,7 @@ void Buffer::setSubData(std::vector<T> &data, GLenum target, int offset) {
 }
 
 template <typename T, std::size_t N>
-void Buffer::setSubData(std::array<T, N> &data, GLenum target, int offset) {
+void Buffer::setSubData(const std::array<T, N> &data, GLenum target, int offset) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reassign buffer data");
 	m_target = target;
@@ -89,7 +89,7 @@ void Buffer::setSubData(std::array<T, N> &data, GLenum target, int offset) {
 }
 
 template<typename T>
-void Buffer::setStorage(std::vector<T> &data, GLenum target, GLbitfield flags) {
+void Buffer::setStorage(const std::vector<T> &data, GLenum target, GLbitfield flags) {
 	m_target = target;
 	glBindBuffer(target, m_bufferHandle);
 	glBufferStorage(target, data.size() * sizeof(T), data.data(), flags);
@@ -98,7 +98,7 @@ void Buffer::setStorage(std::vector<T> &data, GLenum target, GLbitfield flags) {
 }
 
 template <typename T, std::size_t N>
-void Buffer::setStorage(std::array<T, N> &data, GLenum target, GLbitfield flags) {
+void Buffer::setStorage(const std::array<T, N> &data, GLenum target, GLbitfield flags) {
 	m_target = target;
 	glBindBuffer(target, m_bufferHandle);
 	glBufferStorage(target, data.size() * sizeof(T), data.data(), flags);
