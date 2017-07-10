@@ -128,7 +128,7 @@ namespace util
 	void enableDebugCallback() {
 		glDebugMessageCallback(debugCallback, NULL);
 		// TODO set ifs/elses for enabling notification, low, high..
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, NULL, GL_FALSE);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_FALSE);
 	}
 
 }
