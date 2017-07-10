@@ -21,6 +21,7 @@
 #include "Rendering/Uniform.h"
 #include "IO/ModelImporter.h"
 #include "Rendering/Mesh.h"
+#include "Rendering/SimpleTrackball.h"
 
 const unsigned int width = 1600;
 const unsigned int height = 900;
@@ -87,8 +88,10 @@ int main(int argc, char* argv[]) {
 
 	sp.use();
 
+    SimpleTrackball camera(width, height, 10.0f);
+    glm::mat4 view = camera.getView();
+
 	glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / (float)height, 1.0f, 1000.0f);
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
@@ -131,7 +134,9 @@ int main(int argc, char* argv[]) {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		modelUniform->setContent(glm::rotate(modelUniform->getContent(), angle, glm::vec3(0.0f, 1.0f, 0.0f)));
+        camera.update(window);
+
+		modelUniform->setContent(camera.getView());
 
 		sp.updateUniforms();
 
