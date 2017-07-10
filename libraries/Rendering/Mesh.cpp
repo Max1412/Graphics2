@@ -8,6 +8,7 @@ Mesh::Mesh(aiMesh* assimpMesh) {
 
     m_vertices.resize(assimpMesh->mNumVertices);
     m_normals.resize(assimpMesh->mNumVertices);
+    //m_texCoords.resize(assimpMesh->mNumVertices);
 
     #pragma omp parallel for
     for (int i = 0; i < assimpMesh->mNumVertices; i++) {
@@ -22,7 +23,7 @@ Mesh::Mesh(aiMesh* assimpMesh) {
         /*
         aiVector3D* aitex = assimpMesh->mTextureCoords[i];
         glm::vec3 tex(aitex->x, aitex->y, aitex->z);
-        m_texCoords.push_back(tex);
+        m_texCoords.at(i) = tex;
         */
     }
     for (unsigned int i = 0; i < assimpMesh->mNumFaces; i++) {
