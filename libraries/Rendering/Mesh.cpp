@@ -6,14 +6,19 @@ Mesh::Mesh(aiMesh* assimpMesh) {
         throw std::runtime_error("Mesh must have normals, tex coords, faces");
     }
 
-    for (unsigned int i = 0; i < assimpMesh->mNumVertices; i++) {
+    m_vertices.resize(assimpMesh->mNumVertices);
+    m_normals.resize(assimpMesh->mNumVertices);
+
+    #pragma omp parallel for
+    for (int i = 0; i < assimpMesh->mNumVertices; i++) {
         aiVector3D aivec = assimpMesh->mVertices[i];
         glm::vec3 vertex(aivec.x, aivec.y, aivec.z);
-        m_vertices.push_back(vertex);
+        m_vertices.at(i) = vertex;
 
         aiVector3D ainorm = assimpMesh->mNormals[i];
         glm::vec3 normal(ainorm.x, ainorm.y, ainorm.z);
-        m_normals.push_back(normal);
+        m_normals.at(i) = normal;
+
         /*
         aiVector3D* aitex = assimpMesh->mTextureCoords[i];
         glm::vec3 tex(aitex->x, aitex->y, aitex->z);
