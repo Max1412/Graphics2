@@ -38,6 +38,7 @@ public:
 	void use();
 
 	void addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform);
+    void addUniform(std::shared_ptr<Uniform<bool>> uniform);
 
 	void updateUniforms();
 
@@ -47,4 +48,6 @@ private:
 	bool m_initWithShaders = false;
 
 	std::vector<std::pair<std::shared_ptr<Uniform<glm::mat4>>, GLint>> m_mat4Uniforms;
+    std::vector<std::pair<std::shared_ptr<Uniform<bool>>, GLint>> m_boolUniforms;
+
 };
