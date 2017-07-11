@@ -2,6 +2,15 @@
 
 OpenGL project to test things and to implement things from the OpenGL 4 Cookbook (improved) / CG lectures / own ideas
 
+OpenGL-Version:
+* 4.3 and up shoudl work (right now)
+
+Used libraries:
+* Assimp (tested with 3.3.1)
+* glfw3 (tested with 3.2.1)
+* glew (tested with 2.0.0)
+* glm (tested with 0.9.8.4)
+
 ### example1
 * A rotating Triangle
 
