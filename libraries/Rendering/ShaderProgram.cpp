@@ -110,15 +110,20 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<bool>> uniform) {
 
 void ShaderProgram::updateUniforms() {
 	for (auto n : m_mat4Uniforms) {
-		glUniformMatrix4fv(n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
+        if (n.first->getChangeFlag()) {
+            glUniformMatrix4fv(n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
+            n.first->hasBeenUpdated();
+        }
 	}
     for (auto n : m_boolUniforms) {
-        if (n.first->getContent()) {
-            glUniform1i(n.second, 1);
-        }
-        else {
-            glUniform1i(n.second, 0);
-
+        if (n.first->getChangeFlag()) {
+            if (n.first->getContent()) {
+                glUniform1i(n.second, 1);
+            }
+            else {
+                glUniform1i(n.second, 0);
+            }
+            n.first->hasBeenUpdated();
         }
     }
 }
