@@ -3,7 +3,7 @@
 OpenGL project to test things and to implement things from the OpenGL 4 Cookbook (improved) / CG lectures / own ideas
 
 OpenGL-Version:
-* 4.3 and up shoudl work (right now)
+* 4.3 and up should work (right now)
 
 Used libraries:
 * Assimp (tested with 3.3.1)
