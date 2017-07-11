@@ -6,6 +6,7 @@ OpenGL-Version:
 * 4.3 and up should work (right now)
 
 Used libraries:
+* ImGui: https://github.com/ocornut/imgui
 * Assimp (tested with 3.3.1)
 * glfw3 (tested with 3.2.1)
 * glew (tested with 2.0.0)
