@@ -7,9 +7,7 @@ flat out vec3 LightIntensity;
 
 layout (std430, binding = 0) restrict readonly buffer Light {
 	vec4 Position; // Light position in eye coords.
-	vec3 La; // Ambient light intensity
-	vec3 Ld; // Diffuse light intensity
-	vec3 Ls; // Specular light intensity
+	vec3 Intensity;
 };
 
 layout (std430, binding = 1) restrict readonly buffer Material {
@@ -34,13 +32,13 @@ void main() {
 	vec3 v = normalize(-eyeCoords.xyz);
 	vec3 r = reflect( -s, tnorm );
 
-	vec3 ambient = La * Ka;
+	vec3 ambient = Intensity * Ka;
 	float sDotN = max( dot(s,tnorm), 0.0000001f);
-	vec3 diffuse = Ld * Kd * sDotN;
+	vec3 diffuse = Intensity * Kd * sDotN;
 	vec3 spec = vec3(0.0);
 
 	if( sDotN > 0.0 )
-		spec = Ls * Ks * pow(max( dot(r,v), 0.0000001f ), Shininess);
+		spec = Intensity * Ks * pow(max( dot(r,v), 0.0000001f ), Shininess);
 
 	LightIntensity = ambient + diffuse + spec;
 

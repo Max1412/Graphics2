@@ -28,12 +28,8 @@ const unsigned int height = 900;
 
 struct LightInfo {
 	glm::vec4 Position; // Light position in eye coords.
-	glm::vec3 La; // Ambient light intensity
-	float pad1;
-	glm::vec3 Ld; // Diffuse light intensity
-	float pad2;
-	glm::vec3 Ls; // Specular light intensity
-	float pad3;
+	glm::vec3 Intensity; // Ambient light intensity
+    float pad;
 };
 
 struct MaterialInfo {
@@ -106,9 +102,7 @@ int main(int argc, char* argv[]) {
 
 	LightInfo li;
 	li.Position = glm::vec4(0.0f, 0.0f, 20.0f, 0.0f);
-	li.La = glm::vec3(0.3f);
-	li.Ld = glm::vec3(0.4f, 0.4f, 0.4f);
-	li.Ls = glm::vec3(0.8f, 0.8f, 0.8f);
+    li.Intensity = glm::vec3(0.3f);
 
 	MaterialInfo m;
 	m.Ka = glm::vec3(1.0f, 1.0f, 1.0f);
