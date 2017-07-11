@@ -22,7 +22,6 @@ ModelImporter::ModelImporter(const std::string &filename) {
 }
 
 ModelImporter::~ModelImporter() {
-	delete m_scene;
 }
 
 std::vector<Mesh> ModelImporter::getMeshes() {
