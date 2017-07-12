@@ -106,10 +106,11 @@ int main(int argc, char* argv[]) {
     sp.addUniform(viewUniform);
     sp.addUniform(modelUniform);
 
+    
     std::vector<LightInfo> lvec;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 3; i++) {
         LightInfo li;
-        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 3.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
         li.Position = rotMat * glm::vec4(i*3.0f, i*3.0f, i*3.0f, 0.0f);
         li.Intensity = glm::normalize(glm::vec3((i) % 5,(i+1) % 5, (i + 2) % 5)) / 2.0f;
         if (i % 2) {
@@ -119,6 +120,14 @@ int main(int argc, char* argv[]) {
         std::cout << glm::to_string(li.Intensity) << std::endl;
         lvec.push_back(li);
     }
+    
+    /*
+    std::vector<LightInfo> lvec;
+    LightInfo li;
+    li.Position = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    li.Intensity = glm::vec4(0.8f);
+    lvec.push_back(li);
+    */
 
     MaterialInfo m;
     m.Ka = glm::vec3(0.3f);
@@ -142,8 +151,18 @@ int main(int argc, char* argv[]) {
 
     bool flat = false;
     bool lastFlat = flat;
+    bool toon = false;
+    bool lastToon = toon;
+    int levels = 3;
+    int lastLevels = levels;
+
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
+    auto toonUniform = std::make_shared<Uniform<bool>>("useToon", toon);
+    auto levelsUniform = std::make_shared<Uniform<int>>("levels", levels);
+
     sp.addUniform(flatUniform);
+    sp.addUniform(toonUniform);
+    sp.addUniform(levelsUniform);
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
@@ -157,6 +176,18 @@ int main(int argc, char* argv[]) {
             if (flat != lastFlat) {
                 flatUniform->setContent(flat);
                 lastFlat = flat;
+            }
+            ImGui::Checkbox("Toon Shading", &toon);
+            if (toon != lastToon) {
+                toonUniform->setContent(toon);
+                lastToon = toon;
+            }
+            if (toon) {
+                ImGui::SliderInt("Toon Shading Levels", &levels, 1, 10);
+                if (levels != lastLevels) {
+                    levelsUniform->setContent(levels);
+                    lastLevels = levels;
+                }
             }
             ImGui::End();
         }

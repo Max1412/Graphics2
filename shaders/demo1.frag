@@ -21,6 +21,7 @@ layout (std430, binding = 1) restrict readonly buffer Material {
 };
 
 uniform int useFlat;
+uniform int useToon;
 
 layout( location = 0 ) out vec4 FragColor;
 
@@ -29,6 +30,16 @@ vec3 ads(int lightIndex, vec3 pos, vec3 norm) {
 	vec3 s = normalize( vec3(Lights[lightIndex].LightPosition) - pos );
 	vec3 r = reflect( -s, norm );
 	return Lights[lightIndex].LightIntensity *	( Ka + Kd * max( dot(s, norm), 0.0000001 ) +	Ks * pow( max( dot(r,v), 0.000001 ), Shininess ) );
+}
+
+uniform int levels;
+
+vec3 toonShade(int lightIndex, vec3 pos, vec3 norm) {
+	float scaleFactor = 1.0 / levels;
+	vec3 s = normalize( vec3(Lights[lightIndex].LightPosition) - pos );
+	float cosine = max( 0.000001, dot( s, norm ) );
+	vec3 diffuse = Kd * floor( cosine * levels ) * scaleFactor;
+	return Lights[lightIndex].LightIntensity * (Ka + diffuse);
 }
 
 void main() {
@@ -41,6 +52,10 @@ void main() {
 	vec3 n = normalize( Normal );
 	FragColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	for(int i = 0; i < Lights.length(); i++){
-		FragColor += vec4(ads(i, Position, n ), 1.0);
+		if(useToon == 1){
+			FragColor += vec4(toonShade(i, Position, n ), 1.0);
+		} else {
+			FragColor += vec4(ads(i, Position, n ), 1.0);
+		}
 	}
 }
