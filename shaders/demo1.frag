@@ -4,9 +4,13 @@ in vec3 Position;
 in vec3 interpNormal;
 flat in vec3 flatNormal;
 
-layout (std430, binding = 0) restrict readonly buffer Light {
+struct Light {
 	vec4 LightPosition; // Light position in eye coords.
 	vec3 LightIntensity;
+};
+
+layout (std430, binding = 0) restrict readonly buffer LightBuffer {
+	Light Lights[];
 };
 
 layout (std430, binding = 1) restrict readonly buffer Material {
@@ -20,7 +24,14 @@ uniform int useFlat;
 
 layout( location = 0 ) out vec4 FragColor;
 
-vec3 ads( ) {
+vec3 ads(int lightIndex, vec3 pos, vec3 norm) {
+	vec3 v = normalize(-pos);
+	vec3 s = normalize( vec3(Lights[lightIndex].LightPosition) - pos );
+	vec3 r = reflect( -s, norm );
+	return Lights[lightIndex].LightIntensity *	( Ka + Kd * max( dot(s, norm), 0.0000001 ) +	Ks * pow( max( dot(r,v), 0.000001 ), Shininess ) );
+}
+
+void main() {
 	vec3 Normal = vec3(0.0, 0.0, 0.0);
 	if(useFlat == 1){
 		Normal = flatNormal;
@@ -28,12 +39,8 @@ vec3 ads( ) {
 		Normal = interpNormal;
 	}
 	vec3 n = normalize( Normal );
-	vec3 s = normalize( vec3(LightPosition) - Position );
-	vec3 v = normalize(vec3(-Position));
-	vec3 r = reflect( -s, n );
-	return LightIntensity *	( Ka + Kd * max( dot(s, n), 0.0 ) +	Ks * pow( max( dot(r,v), 0.0 ), Shininess ) );
-}
-
-void main() {
-	FragColor = vec4(ads(), 1.0);
+	FragColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	for(int i = 0; i < Lights.length(); i++){
+		FragColor += vec4(ads(i, Position, n ), 1.0);
+	}
 }

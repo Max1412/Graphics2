@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <iostream>
 #include <exception>
@@ -105,18 +106,28 @@ int main(int argc, char* argv[]) {
     sp.addUniform(viewUniform);
     sp.addUniform(modelUniform);
 
-    LightInfo li;
-    li.Position = glm::vec4(0.0f, 0.0f, 20.0f, 0.0f);
-    li.Intensity = glm::vec3(0.3f);
+    std::vector<LightInfo> lvec;
+    for (int i = 0; i < 5; i++) {
+        LightInfo li;
+        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+        li.Position = rotMat * glm::vec4(i*3.0f, i*3.0f, i*3.0f, 0.0f);
+        li.Intensity = glm::normalize(glm::vec3((i) % 5,(i+1) % 5, (i + 2) % 5)) / 2.0f;
+        if (i % 2) {
+            li.Intensity = glm::normalize(glm::vec3((i-1) % 5, (i) % 5, (i + 1) % 5)) / 2.0f;
+            li.Intensity = glm::normalize(glm::vec3(1.0f) - li.Intensity) / 2.0f;
+        }
+        std::cout << glm::to_string(li.Intensity) << std::endl;
+        lvec.push_back(li);
+    }
 
     MaterialInfo m;
-    m.Ka = glm::vec3(1.0f, 1.0f, 1.0f);
-    m.Kd = glm::vec3(0.9f, 0.9f, 0.9f);
-    m.Ks = glm::vec3(0.5f, 0.5f, 0.5f);
-    m.Shininess = 15.0f;
+    m.Ka = glm::vec3(0.3f);
+    m.Kd = glm::vec3(0.3f);
+    m.Ks = glm::vec3(0.9f);
+    m.Shininess = 100.0f;
 
     Buffer lightBuffer;
-    lightBuffer.setData(std::vector<LightInfo>{li}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    lightBuffer.setData(lvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
     lightBuffer.bindBase(0);
 
     Buffer materialBuffer;
@@ -130,6 +141,7 @@ int main(int argc, char* argv[]) {
     glm::vec4 clear_color(0.1f);
 
     bool flat = false;
+    bool lastFlat = flat;
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
     sp.addUniform(flatUniform);
 
@@ -142,6 +154,10 @@ int main(int argc, char* argv[]) {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("ImGUI test window");
             ImGui::Checkbox("Flat Shading", &flat);
+            if (flat != lastFlat) {
+                flatUniform->setContent(flat);
+                lastFlat = flat;
+            }
             ImGui::End();
         }
 
@@ -155,7 +171,6 @@ int main(int argc, char* argv[]) {
         camera.update(window);
 
         modelUniform->setContent(camera.getView());
-        flatUniform->setContent(flat);
 
         sp.updateUniforms();
 
