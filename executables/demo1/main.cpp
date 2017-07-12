@@ -47,7 +47,7 @@ struct MaterialInfo {
 int main(int argc, char* argv[]) {
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Demo 1");
-
+    glfwSwapInterval(0);
     // init glew and check for errors
     util::initGLEW();
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 
     
     std::vector<LightInfo> lvec;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 5; i++) {
         LightInfo li;
         glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 3.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
         li.Position = rotMat * glm::vec4(i*3.0f, i*3.0f, i*3.0f, 0.0f);
@@ -120,14 +120,6 @@ int main(int argc, char* argv[]) {
         std::cout << glm::to_string(li.Intensity) << std::endl;
         lvec.push_back(li);
     }
-    
-    /*
-    std::vector<LightInfo> lvec;
-    LightInfo li;
-    li.Position = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
-    li.Intensity = glm::vec4(0.8f);
-    lvec.push_back(li);
-    */
 
     MaterialInfo m;
     m.Ka = glm::vec3(0.3f);
@@ -164,14 +156,25 @@ int main(int argc, char* argv[]) {
     sp.addUniform(toonUniform);
     sp.addUniform(levelsUniform);
 
+    std::vector<float> ftimes;
+    std::vector<unsigned int> rftimes;
+
+    GLuint query;
+    GLuint elapsed_time;
+    int done = false;
+    glGenQueries(1, &query);
+
     // render loop
     while (!glfwWindowShouldClose(window)) {
+
+        glBeginQuery(GL_TIME_ELAPSED, query);
+
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
         {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-            ImGui::Begin("ImGUI test window");
+            ImGui::Begin("Lighting settings");
             ImGui::Checkbox("Flat Shading", &flat);
             if (flat != lastFlat) {
                 flatUniform->setContent(flat);
@@ -192,21 +195,47 @@ int main(int argc, char* argv[]) {
             ImGui::End();
         }
 
-        ImGui::ShowTestWindow();
-
+        //ImGui::ShowTestWindow();
 
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.update(window);
-
         modelUniform->setContent(camera.getView());
 
         sp.updateUniforms();
 
         //glDrawArrays(GL_TRIANGLES, 0, numVertices);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+        glEndQuery(GL_TIME_ELAPSED);
+        while (!done) {
+            glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
+        }
+        glGetQueryObjectuiv(query, GL_QUERY_RESULT, &elapsed_time);
+        ftimes.push_back(elapsed_time / 1000000.f);
+        rftimes.push_back(elapsed_time / 1000);
+
+        {
+            ImGui::SetNextWindowPos(ImVec2(1200, 100));
+            ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
+            ImGui::Begin("Performance");
+            ImGui::PlotLines("Frametime", ftimes.data(), ftimes.size(), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
+            unsigned int accTime = 0;
+            float flaccTime = 0.0f;
+            if (ftimes.size() > 21) {
+                for (size_t i = rftimes.size() - 21; i < rftimes.size(); ++i) {
+                    flaccTime += ftimes.at(i);
+                    accTime += rftimes.at(i);
+                }
+                flaccTime /= 20.0f;
+                accTime /= 20;
+            }
+            ImGui::Value("Frametime (microseconds)", accTime);
+            ImGui::Value("Frametime (millisecons)", flaccTime);
+            ImGui::End();
+        }
 
         ImGui::Render();
         glfwSwapBuffers(window);
