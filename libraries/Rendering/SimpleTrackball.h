@@ -10,7 +10,9 @@ public:
 	SimpleTrackball(int width, int height, float radius);
 
 	void update(GLFWwindow* window);
-	glm::mat4 getView();
+
+	const glm::mat4& getView() const;
+    glm::mat4& getView();
 
 private:
 	glm::mat4 m_viewMatrix;

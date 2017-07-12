@@ -1,14 +1,5 @@
 #include "ShaderProgram.h"
 
-
-ShaderProgram::ShaderProgram(std::string vspath, std::string fspath) : m_initWithShaders(true) {
-	m_shaders.push_back(Shader(vspath, GL_VERTEX_SHADER));
-	m_shaders.push_back(Shader(vspath, GL_VERTEX_SHADER));
-
-	createProgram();
-}
-
-
 ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_initWithShaders(true) {
 	m_shaders.push_back(shader1);
 	m_shaders.push_back(shader2);
@@ -16,7 +7,7 @@ ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_i
 	createProgram();
 }
 
-ShaderProgram::ShaderProgram(std::vector<Shader> shaders) : m_initWithShaders(true) {
+ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithShaders(true) {
 	m_shaders = shaders;
 
 	createProgram();
@@ -77,8 +68,8 @@ void ShaderProgram::createProgram() {
 			glGetShaderInfoLog(m_shaderProgramHandle, logLen, &written, &log[0]);
 			std::cout << "Program log: " << log << std::endl;
 		}
+        util::getGLerror(__LINE__, __FUNCTION__);
 		throw std::runtime_error("Failed to link shader program!\n");
-
 	}
 }
 

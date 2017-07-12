@@ -8,13 +8,17 @@
 template<typename T>
 class Uniform {
 public:
-	Uniform(std::string name, T content) :
+	Uniform(const std::string& name, T content) :
 		m_name(name), m_content(content) {};
 
-	std::string getName();
-	T getContent();
+	const std::string& getName() const;
+
+    T getContent() const;
+
+    bool getChangeFlag() const;
+
 	void setContent(const T &content);
-    bool getChangeFlag();
+
     void hasBeenUpdated();
 
 private:
@@ -24,12 +28,12 @@ private:
 };
 
 template<typename T>
-std::string Uniform<T>::getName() {
+const std::string& Uniform<T>::getName() const {
 	return m_name;
 }
 
 template<typename T>
-bool Uniform<T>::getChangeFlag() {
+bool Uniform<T>::getChangeFlag() const {
     return m_hasChanged;
 }
 
@@ -39,8 +43,8 @@ void Uniform<T>::hasBeenUpdated() {
 }
 
 template<typename T>
-T Uniform<T>::getContent() {
-	return m_content;
+T Uniform<T>::getContent() const {
+    return m_content;
 }
 
 template<typename T>

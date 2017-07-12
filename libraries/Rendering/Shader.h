@@ -14,7 +14,7 @@
 class Shader
 {
 public:
-	Shader(std::string path, GLuint shaderType);
+	Shader(const std::string& path, GLuint shaderType);
 	~Shader();
 
 	GLuint getHandle();
@@ -22,6 +22,6 @@ public:
 private:
 	GLuint m_shaderHandle;
 
-	std::string Shader::loadShaderFile(const std::string fileName) const;
+	std::string Shader::loadShaderFile(const std::string& fileName) const;
 
 };

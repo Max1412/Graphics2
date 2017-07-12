@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-Shader::Shader(std::string path, GLuint shaderType)
+Shader::Shader(const std::string& path, GLuint shaderType)
 {
 	// create shader and check for errors
 	m_shaderHandle = glCreateShader(shaderType);
@@ -44,8 +44,7 @@ GLuint Shader::getHandle() {
 	return m_shaderHandle;
 }
 
-std::string Shader::loadShaderFile(const std::string fileName) const
-{
+std::string Shader::loadShaderFile(const std::string& fileName) const {
 	std::string fileContent;
 	std::string line;
 

@@ -8,10 +8,10 @@ class Mesh {
 public:
     Mesh(aiMesh* assimpMesh);
     
-    std::vector<glm::vec3> getVertices();
-    std::vector<glm::vec3> getNormals();
-    std::vector<glm::vec3> getTexCoords();
-    std::vector<unsigned int> getIndices();
+    const std::vector<glm::vec3>& getVertices() const;
+    const std::vector<glm::vec3>& getNormals() const;
+    const std::vector<glm::vec3>& getTexCoords() const;
+    const std::vector<unsigned int>& getIndices() const;
 
 private:
     std::vector<glm::vec3> m_vertices;

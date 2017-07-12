@@ -67,6 +67,10 @@ void SimpleTrackball::update(GLFWwindow* window) {
 
 }
 
-glm::mat4 SimpleTrackball::getView() {
+const glm::mat4& SimpleTrackball::getView() const {
 	return m_viewMatrix;
+}
+
+glm::mat4& SimpleTrackball::getView() {
+    return m_viewMatrix;
 }

@@ -34,18 +34,18 @@ Mesh::Mesh(aiMesh* assimpMesh) {
     }
 }
 
-std::vector<glm::vec3> Mesh::getVertices() {
+const std::vector<glm::vec3>& Mesh::getVertices() const {
     return m_vertices;
 }
 
-std::vector<glm::vec3> Mesh::getNormals() {
+const std::vector<glm::vec3>& Mesh::getNormals() const {
     return m_normals;
 }
 
-std::vector<glm::vec3> Mesh::getTexCoords() {
+const std::vector<glm::vec3>& Mesh::getTexCoords() const {
     return m_texCoords;
 }
 
-std::vector<unsigned int> Mesh::getIndices() {
+const std::vector<unsigned int>& Mesh::getIndices() const {
     return m_indices;
 }

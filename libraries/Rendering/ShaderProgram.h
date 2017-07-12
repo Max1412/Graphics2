@@ -25,7 +25,7 @@ public:
 	ShaderProgram();
 	ShaderProgram(std::string vspath, std::string fspath);
 	ShaderProgram(const Shader &shader1, const Shader &shader2);
-	ShaderProgram(std::vector<Shader> shaders);
+	ShaderProgram(const std::vector<Shader>& shaders);
 
 	void del();
 	

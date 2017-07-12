@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 
     glEnable(GL_DEPTH_TEST);
 
-    glm::vec4 clear_color(1.0f, 1.0f, 1.0f, 1.0f);
+    glm::vec4 clear_color(0.1f);
 
     bool flat = false;
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
