@@ -178,8 +178,6 @@ int main(int argc, char* argv[]) {
 
     float angle = 0.01f;
 
-    glEnable(GL_DEPTH_TEST);
-
     glm::vec4 clear_color(0.1f);
 
     bool flat = false;
@@ -202,6 +200,11 @@ int main(int argc, char* argv[]) {
     sp.addUniform(MaterialIDUniform);
 
     Timer timer;
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
