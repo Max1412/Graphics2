@@ -15,6 +15,7 @@
 #include <memory>
 
 #include "Utils/UtilCollection.h"
+#include "Utils/Timer.h"
 #include "Rendering/Shader.h"
 #include "Rendering/ShaderProgram.h"
 #include "Rendering/Buffer.h"
@@ -156,24 +157,18 @@ int main(int argc, char* argv[]) {
     sp.addUniform(toonUniform);
     sp.addUniform(levelsUniform);
 
-    std::vector<float> ftimes;
-    std::vector<unsigned int> rftimes;
-
-    GLuint query;
-    GLuint elapsed_time;
-    int done = false;
-    glGenQueries(1, &query);
+    Timer timer;
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
 
-        glBeginQuery(GL_TIME_ELAPSED, query);
+        timer.start();
 
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
         {
-            ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(250, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Lighting settings");
             ImGui::Checkbox("Flat Shading", &flat);
             if (flat != lastFlat) {
@@ -186,7 +181,7 @@ int main(int argc, char* argv[]) {
                 lastToon = toon;
             }
             if (toon) {
-                ImGui::SliderInt("Toon Shading Levels", &levels, 1, 10);
+                ImGui::SliderInt("Toon Shading Levels", &levels, 1, 5);
                 if (levels != lastLevels) {
                     levelsUniform->setContent(levels);
                     lastLevels = levels;
@@ -209,33 +204,9 @@ int main(int argc, char* argv[]) {
         //glDrawArrays(GL_TRIANGLES, 0, numVertices);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
-        glEndQuery(GL_TIME_ELAPSED);
-        while (!done) {
-            glGetQueryObjectiv(query, GL_QUERY_RESULT_AVAILABLE, &done);
-        }
-        glGetQueryObjectuiv(query, GL_QUERY_RESULT, &elapsed_time);
-        ftimes.push_back(elapsed_time / 1000000.f);
-        rftimes.push_back(elapsed_time / 1000);
+        timer.stop();
 
-        {
-            ImGui::SetNextWindowPos(ImVec2(1200, 100));
-            ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
-            ImGui::Begin("Performance");
-            ImGui::PlotLines("Frametime", ftimes.data(), ftimes.size(), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
-            unsigned int accTime = 0;
-            float flaccTime = 0.0f;
-            if (ftimes.size() > 21) {
-                for (size_t i = rftimes.size() - 21; i < rftimes.size(); ++i) {
-                    flaccTime += ftimes.at(i);
-                    accTime += rftimes.at(i);
-                }
-                flaccTime /= 20.0f;
-                accTime /= 20;
-            }
-            ImGui::Value("Frametime (microseconds)", accTime);
-            ImGui::Value("Frametime (millisecons)", flaccTime);
-            ImGui::End();
-        }
+        timer.drawGuiWindow();
 
         ImGui::Render();
         glfwSwapBuffers(window);
