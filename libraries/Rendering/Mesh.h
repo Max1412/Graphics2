@@ -10,6 +10,7 @@
 class Mesh {
 public:
     Mesh(aiMesh* assimpMesh);
+    Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices);
 
     void del();
     
@@ -34,9 +35,9 @@ private:
     std::vector<glm::vec3> m_texCoords;
     std::vector<unsigned int> m_indices;
 
-    glm::mat4 m_modelMatrix;
+    glm::mat4 m_modelMatrix = glm::mat4(1.0f);
 
-    unsigned m_materialID;
+    unsigned m_materialID = 1U;
 
     Buffer m_vertexBuffer;
     Buffer m_normalBuffer;

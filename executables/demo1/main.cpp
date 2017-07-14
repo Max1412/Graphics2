@@ -71,36 +71,25 @@ int main(int argc, char* argv[]) {
     std::vector<Mesh> meshes = mi.getMeshes();
     Mesh bunny = meshes.at(0);
 
-    std::array<glm::vec3, 4> planePositions = {
+    // create a plane
+    std::vector<glm::vec3> planePositions = {
         glm::vec3(-1, 0, -1), glm::vec3(-1, 0, 1), glm::vec3(1, 0, 1), glm::vec3(1, 0, -1)
     };
 
-    std::array<glm::vec3, 4> planeNormals = {
+    std::vector<glm::vec3> planeNormals = {
         glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)
     };
 
-    std::array<unsigned int, 6> planeIndices = {
+    std::vector<unsigned> planeIndices = {
         0, 1, 2, 
         2, 3, 0
     };
 
-    Buffer PlaneVertexBuffer;
-    PlaneVertexBuffer.setData(planePositions, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-
-    Buffer PlaneNormalBuffer;
-    PlaneNormalBuffer.setData(planeNormals, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-
-    Buffer PlaneIndexBuffer;
-    PlaneIndexBuffer.setData(planeIndices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-
-    VertexArray PlaneVao;
-    PlaneVao.connectBuffer(PlaneVertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
-    PlaneVao.connectBuffer(PlaneNormalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
-    PlaneVao.bind();
-    PlaneIndexBuffer.bind();
+    Mesh plane(planePositions, planeNormals, planeIndices);
 
     sp.use();
 
+    // create matrices for uniforms
     SimpleTrackball camera(width, height, 10.0f);
     glm::mat4 view = camera.getView();
 
@@ -113,7 +102,9 @@ int main(int argc, char* argv[]) {
     glm::mat4 PlaneModel(1.0f);
     PlaneModel = glm::translate(PlaneModel, glm::vec3(0.0f, -1.34f, 0.0f));
     PlaneModel = glm::scale(PlaneModel, glm::vec3(5.0f));
+    plane.setModelMatrix(PlaneModel);
 
+    // create matrix uniforms and add them to the shader program
     auto projUniform = std::make_shared<Uniform<glm::mat4>>("ProjectionMatrix", proj);
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("ViewMatrix", view);
     auto modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", model);
@@ -153,8 +144,9 @@ int main(int argc, char* argv[]) {
     m2.Shininess = 20.0f;
     mvec.push_back(m2);
 
-    // first material is for bunny
+    // first material is for bunny, second for plane
     bunny.setMaterialID(0);
+    plane.setMaterialID(1);
 
     // create buffers for materials and lights
     Buffer lightBuffer;
@@ -167,6 +159,7 @@ int main(int argc, char* argv[]) {
 
     glm::vec4 clear_color(0.1f);
 
+    // values for GUI-controllable uniforms
     bool flat = false;
     bool lastFlat = flat;
     bool toon = false;
@@ -174,12 +167,11 @@ int main(int argc, char* argv[]) {
     int levels = 3;
     int lastLevels = levels;
 
-    int materialID = 0;
-
+    // shading uniforms
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
     auto toonUniform = std::make_shared<Uniform<bool>>("useToon", toon);
     auto levelsUniform = std::make_shared<Uniform<int>>("levels", levels);
-    auto MaterialIDUniform = std::make_shared<Uniform<int>>("mID", materialID);
+    auto MaterialIDUniform = std::make_shared<Uniform<int>>("mID", bunny.getMaterialID());
 
     sp.addUniform(flatUniform);
     sp.addUniform(toonUniform);
@@ -241,13 +233,11 @@ int main(int argc, char* argv[]) {
         bunny.draw();
 
         // prepare plane
-        modelUniform->setContent(PlaneModel);
-        MaterialIDUniform->setContent(1);
+        modelUniform->setContent(plane.getModelMatrix());
+        MaterialIDUniform->setContent(plane.getMaterialID());
         sp.updateUniforms();
 
-        PlaneVao.bind();
-        PlaneIndexBuffer.bind();
-        glDrawElements(GL_TRIANGLES, planeIndices.size(), GL_UNSIGNED_INT, 0);
+        plane.draw();
 
         timer.stop();
         timer.drawGuiWindow();
