@@ -13,7 +13,7 @@ GLuint Buffer::getHandle() {
 	return m_bufferHandle;
 }
 
-void Buffer::bind() {
+void Buffer::bind() const {
 	glBindBuffer(m_target, m_bufferHandle);
 }
 

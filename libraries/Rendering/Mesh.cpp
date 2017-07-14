@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-Mesh::Mesh(aiMesh* assimpMesh) {
+Mesh::Mesh(aiMesh* assimpMesh) : m_modelMatrix(glm::mat4(1.0f)), m_materialID(0U) {
 
     if (!assimpMesh->HasNormals() ||/* !assimpMesh->HasTextureCoords(0) || */!assimpMesh->HasFaces()) {
         throw std::runtime_error("Mesh must have normals, tex coords, faces");
@@ -32,7 +32,43 @@ Mesh::Mesh(aiMesh* assimpMesh) {
             m_indices.push_back(face.mIndices[j]);
         }
     }
+
+    m_vertexBuffer.setData(m_vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    m_normalBuffer.setData(m_normals, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    m_indexBuffer.setData(m_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+    m_vao.connectBuffer(m_vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
+    m_vao.connectBuffer(m_normalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
 }
+
+void Mesh::draw() const {
+    m_vao.bind();
+    m_indexBuffer.bind();
+    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
+}
+
+void Mesh::del() {
+    m_vertexBuffer.del();
+    m_normalBuffer.del();
+    m_indexBuffer.del();
+    m_vao.del();
+}
+
+void Mesh::setModelMatrix(const glm::mat4& modelMatrix) {
+    m_modelMatrix = modelMatrix;
+}
+
+const glm::mat4& Mesh::getModelMatrix() const {
+    return m_modelMatrix;
+}
+
+const unsigned Mesh::getMaterialID() const {
+    return m_materialID;
+}
+
+void Mesh::setMaterialID(const unsigned materialID) {
+    m_materialID = materialID;
+}
+
 
 const std::vector<glm::vec3>& Mesh::getVertices() const {
     return m_vertices;

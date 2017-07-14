@@ -9,7 +9,7 @@ void VertexArray::del() {
 	util::getGLerror(__LINE__, __FUNCTION__);
 }
 
-void VertexArray::bind() {
+void VertexArray::bind() const {
 	glBindVertexArray(m_vaoHandle);
 }
 

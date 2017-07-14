@@ -11,7 +11,7 @@ class VertexArray {
 public:
 	VertexArray();
 
-	void bind();
+	void bind() const;
 
 	void del();
 

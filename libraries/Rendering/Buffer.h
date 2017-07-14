@@ -15,7 +15,7 @@ public:
 
 	GLuint getHandle();
 
-	void bind();
+	void bind() const;
 
 	void bindBase(unsigned int binding);
 

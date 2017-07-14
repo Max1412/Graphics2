@@ -69,25 +69,7 @@ int main(int argc, char* argv[]) {
 
     ModelImporter mi("bunny.obj");
     std::vector<Mesh> meshes = mi.getMeshes();
-    std::vector<glm::vec3> vertices = meshes.at(0).getVertices();
-    std::vector<glm::vec3> normals = meshes.at(0).getNormals();
-    std::vector<unsigned int> indices = meshes.at(0).getIndices();
-
-
-    Buffer vBuffer;
-    vBuffer.setData(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-
-    Buffer nBuffer;
-    nBuffer.setData(normals, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-
-    Buffer iBuffer;
-    iBuffer.setData(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-
-    VertexArray vao;
-    vao.connectBuffer(vBuffer, 0, 3, GL_FLOAT, GL_FALSE);
-    vao.connectBuffer(nBuffer, 1, 3, GL_FLOAT, GL_FALSE);
-    vao.bind();
-    iBuffer.bind();
+    Mesh bunny = meshes.at(0);
 
     std::array<glm::vec3, 4> planePositions = {
         glm::vec3(-1, 0, -1), glm::vec3(-1, 0, 1), glm::vec3(1, 0, 1), glm::vec3(1, 0, -1)
@@ -126,6 +108,7 @@ int main(int argc, char* argv[]) {
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
     //model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+    bunny.setModelMatrix(model);
 
     glm::mat4 PlaneModel(1.0f);
     PlaneModel = glm::translate(PlaneModel, glm::vec3(0.0f, -1.34f, 0.0f));
@@ -139,6 +122,7 @@ int main(int argc, char* argv[]) {
     sp.addUniform(viewUniform);
     sp.addUniform(modelUniform);
     
+    // "generate" lights
     std::vector<LightInfo> lvec;
     for (int i = 0; i < 5; i++) {
         LightInfo li;
@@ -153,6 +137,7 @@ int main(int argc, char* argv[]) {
         lvec.push_back(li);
     }
 
+    // set up materials
     std::vector<MaterialInfo> mvec;
     MaterialInfo m;
     m.Ka = glm::vec3(0.3f);
@@ -168,6 +153,10 @@ int main(int argc, char* argv[]) {
     m2.Shininess = 20.0f;
     mvec.push_back(m2);
 
+    // first material is for bunny
+    bunny.setMaterialID(0);
+
+    // create buffers for materials and lights
     Buffer lightBuffer;
     lightBuffer.setData(lvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
     lightBuffer.bindBase(0);
@@ -175,10 +164,6 @@ int main(int argc, char* argv[]) {
     Buffer materialBuffer;
     materialBuffer.setData(mvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
     materialBuffer.bindBase(1);
-
-    float angle = 0.01f;
-
-    glEnable(GL_DEPTH_TEST);
 
     glm::vec4 clear_color(0.1f);
 
@@ -242,15 +227,15 @@ int main(int argc, char* argv[]) {
 
         camera.update(window);
         viewUniform->setContent(camera.getView());
-        modelUniform->setContent(model);
-        MaterialIDUniform->setContent(0);
+
+        // prepare first mesh (bunny)
+        modelUniform->setContent(bunny.getModelMatrix());
+        MaterialIDUniform->setContent(bunny.getMaterialID());
         sp.updateUniforms();
 
-        //glDrawArrays(GL_TRIANGLES, 0, numVertices);
-        vao.bind();
-        iBuffer.bind();
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        bunny.draw();
 
+        // prepare plane
         modelUniform->setContent(PlaneModel);
         MaterialIDUniform->setContent(1);
         sp.updateUniforms();
@@ -259,19 +244,13 @@ int main(int argc, char* argv[]) {
         PlaneIndexBuffer.bind();
         glDrawElements(GL_TRIANGLES, planeIndices.size(), GL_UNSIGNED_INT, 0);
 
-
         timer.stop();
-
         timer.drawGuiWindow();
 
         ImGui::Render();
         glfwSwapBuffers(window);
     }
 
-    vBuffer.del();
-    nBuffer.del();
-    iBuffer.del();
-    vao.del();
     sp.del();
     ImGui_ImplGlfwGL3_Shutdown();
 
