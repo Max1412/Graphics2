@@ -3,7 +3,7 @@
 ModelImporter::ModelImporter(const std::string &filename) {
 	m_importer;
 	m_scene = m_importer.ReadFile(RESOURCES_PATH + std::string("/") + filename,
-		aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_FlipWindingOrder | aiProcess_GenUVCoords);
+		aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords);
 
 	if (!m_scene || m_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
 		std::string err = m_importer.GetErrorString();

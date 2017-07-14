@@ -188,6 +188,11 @@ int main(int argc, char* argv[]) {
 
     Timer timer;
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+
+
     // render loop
     while (!glfwWindowShouldClose(window)) {
 
