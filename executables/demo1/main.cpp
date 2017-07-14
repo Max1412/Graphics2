@@ -89,6 +89,34 @@ int main(int argc, char* argv[]) {
     vao.bind();
     iBuffer.bind();
 
+    std::array<glm::vec3, 4> planePositions = {
+        glm::vec3(-1, 0, -1), glm::vec3(-1, 0, 1), glm::vec3(1, 0, 1), glm::vec3(1, 0, -1)
+    };
+
+    std::array<glm::vec3, 4> planeNormals = {
+        glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)
+    };
+
+    std::array<unsigned int, 6> planeIndices = {
+        0, 1, 2, 
+        2, 3, 0
+    };
+
+    Buffer PlaneVertexBuffer;
+    PlaneVertexBuffer.setData(planePositions, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+
+    Buffer PlaneNormalBuffer;
+    PlaneNormalBuffer.setData(planeNormals, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+
+    Buffer PlaneIndexBuffer;
+    PlaneIndexBuffer.setData(planeIndices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+
+    VertexArray PlaneVao;
+    PlaneVao.connectBuffer(PlaneVertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
+    PlaneVao.connectBuffer(PlaneNormalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
+    PlaneVao.bind();
+    PlaneIndexBuffer.bind();
+
     sp.use();
 
     SimpleTrackball camera(width, height, 10.0f);
@@ -97,7 +125,11 @@ int main(int argc, char* argv[]) {
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / (float)height, 1.0f, 1000.0f);
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+    //model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+
+    glm::mat4 PlaneModel(1.0f);
+    PlaneModel = glm::translate(PlaneModel, glm::vec3(0.0f, -1.34f, 0.0f));
+    PlaneModel = glm::scale(PlaneModel, glm::vec3(5.0f));
 
     auto projUniform = std::make_shared<Uniform<glm::mat4>>("ProjectionMatrix", proj);
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("ViewMatrix", view);
@@ -106,7 +138,6 @@ int main(int argc, char* argv[]) {
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
     sp.addUniform(modelUniform);
-
     
     std::vector<LightInfo> lvec;
     for (int i = 0; i < 5; i++) {
@@ -122,18 +153,27 @@ int main(int argc, char* argv[]) {
         lvec.push_back(li);
     }
 
+    std::vector<MaterialInfo> mvec;
     MaterialInfo m;
     m.Ka = glm::vec3(0.3f);
     m.Kd = glm::vec3(0.3f);
     m.Ks = glm::vec3(0.9f);
     m.Shininess = 100.0f;
+    mvec.push_back(m);
+
+    MaterialInfo m2;
+    m2.Ka = glm::vec3(0.3f);
+    m2.Kd = glm::vec3(0.3f);
+    m2.Ks = glm::vec3(0.3f);
+    m2.Shininess = 20.0f;
+    mvec.push_back(m2);
 
     Buffer lightBuffer;
     lightBuffer.setData(lvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
     lightBuffer.bindBase(0);
 
     Buffer materialBuffer;
-    materialBuffer.setData(std::vector<MaterialInfo>{m}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    materialBuffer.setData(mvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
     materialBuffer.bindBase(1);
 
     float angle = 0.01f;
@@ -149,13 +189,17 @@ int main(int argc, char* argv[]) {
     int levels = 3;
     int lastLevels = levels;
 
+    int materialID = 0;
+
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
     auto toonUniform = std::make_shared<Uniform<bool>>("useToon", toon);
     auto levelsUniform = std::make_shared<Uniform<int>>("levels", levels);
+    auto MaterialIDUniform = std::make_shared<Uniform<int>>("mID", materialID);
 
     sp.addUniform(flatUniform);
     sp.addUniform(toonUniform);
     sp.addUniform(levelsUniform);
+    sp.addUniform(MaterialIDUniform);
 
     Timer timer;
 
@@ -197,12 +241,24 @@ int main(int argc, char* argv[]) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.update(window);
-        modelUniform->setContent(camera.getView());
-
+        viewUniform->setContent(camera.getView());
+        modelUniform->setContent(model);
+        MaterialIDUniform->setContent(0);
         sp.updateUniforms();
 
         //glDrawArrays(GL_TRIANGLES, 0, numVertices);
+        vao.bind();
+        iBuffer.bind();
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+        modelUniform->setContent(PlaneModel);
+        MaterialIDUniform->setContent(1);
+        sp.updateUniforms();
+
+        PlaneVao.bind();
+        PlaneIndexBuffer.bind();
+        glDrawElements(GL_TRIANGLES, planeIndices.size(), GL_UNSIGNED_INT, 0);
+
 
         timer.stop();
 
