@@ -31,6 +31,14 @@ layout (std430, binding = 1) restrict readonly buffer MaterialBuffer {
 	Material material[];
 };
 
+layout (std430, binding = 2) restrict readonly buffer FogParams{
+    vec3 col; // Fog color
+    float start; // This is only for linear fog
+    float end; // This is only for linear fog
+    float density; // For exp and exp2 equation
+    int mode; // 1 = linear, 2 = exp, 3 = exp2
+} fog;
+
 uniform mat4 ViewMatrix;
 uniform vec3 lightAmbient;
 uniform int matIndex;
@@ -40,6 +48,18 @@ uniform int useToon;
 uniform int levels;
 
 layout( location = 0 ) out vec4 fragmentColor;
+
+float getFogFactor(float z) {
+    float f = 0.0;
+    if (fog.mode == 1)
+        f = (fog.end-z)/(fog.end-fog.start);
+    else if (fog.mode == 2)
+        f = exp(-fog.density*z);
+    else if( fog.mode == 3)
+        f = exp(-pow(fog.density*z, 2.0));
+    f = clamp(f, 0.0, 1.0);
+    return f;
+}
 
 void main() {
 	vec3 passNormal = vec3(0.0, 0.0, 0.0);
@@ -102,5 +122,10 @@ void main() {
             fragmentColor.rgb += light[i].col * diffuse;
          }
     }
+    if (fog.mode != 0) {
+        float f = getFogFactor(length( passPosition));
+        fragmentColor.rgb = f * fragmentColor.rgb + (1-f) * fog.col;
+    }
+
 	fragmentColor.a = diffuse_alpha;
 }

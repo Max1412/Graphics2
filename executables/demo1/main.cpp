@@ -48,6 +48,15 @@ struct MaterialInfo {
     float pad1, pad2;
 };
 
+struct FogInfo {
+    glm::vec3 col;
+    float start;
+    float end;
+    float density;
+    int mode;
+    float pad;
+};
+
 int main(int argc, char* argv[]) {
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Demo 1");
@@ -132,7 +141,7 @@ int main(int argc, char* argv[]) {
             li.col = glm::normalize(glm::vec3(1.0f) - li.col);
         }
         std::cout << glm::to_string(li.col) << std::endl;
-        if(i == 2){
+        if(i == 3){
             li.spot_cutoff = 0.1f;
             li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
             li.spot_exponent = 1.0f;
@@ -179,6 +188,17 @@ int main(int argc, char* argv[]) {
     materialBuffer.setData(mvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
     materialBuffer.bindBase(1);
 
+    FogInfo f;
+    f.start = 0.0f;
+    f.end = 10.0f;
+    f.density = 0.1f;
+    f.col = glm::vec3(0.1f);
+    f.mode = 3;
+    std::vector<FogInfo> fogvec{ f };
+    Buffer fogBuffer;
+    fogBuffer.setData(fogvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    fogBuffer.bindBase(2);
+
     glm::vec4 clear_color(0.1f);
 
     // values for GUI-controllable uniforms
@@ -206,6 +226,7 @@ int main(int argc, char* argv[]) {
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
 
+    int lastMode = fogvec.at(0).mode;
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
@@ -216,7 +237,7 @@ int main(int argc, char* argv[]) {
         ImGui_ImplGlfwGL3_NewFrame();
 
         {
-            ImGui::SetNextWindowSize(ImVec2(250, 100), ImGuiSetCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Lighting settings");
             ImGui::Checkbox("Flat Shading", &flat);
             if (flat != lastFlat) {
@@ -234,6 +255,19 @@ int main(int argc, char* argv[]) {
                     levelsUniform->setContent(levels);
                     lastLevels = levels;
                 }
+            }
+            ImGui::SliderInt("Fog Mode", &fogvec.at(0).mode, 0, 3);
+            if (fogvec.at(0).mode != lastMode) {
+                std::cout << "mapping buffer" << '\n';
+                fogBuffer.bind();
+                size_t fogModeOffset = sizeof(f.col) + sizeof(f.start) + sizeof(f.end) + sizeof(f.density);
+                GLint* ptr = (GLint *)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, fogModeOffset, sizeof(f.mode), GL_MAP_WRITE_BIT);
+                *ptr = fogvec.at(0).mode;
+                glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+                lastMode = fogvec.at(0).mode;
+            }
+            if (ImGui::Button("Save FBO")) {
+                util::saveFBOtoFile("demo1", window);
             }
             ImGui::End();
         }
