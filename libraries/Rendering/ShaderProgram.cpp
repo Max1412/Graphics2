@@ -90,6 +90,14 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform) {
 	m_mat4Uniforms.push_back(std::make_pair(uniform, location));
 }
 
+void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::vec3>> uniform) {
+    use();
+    GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
+    if (location < 0)
+        throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
+    m_vec3Uniforms.push_back(std::make_pair(uniform, location));
+}
+
 void ShaderProgram::addUniform(std::shared_ptr<Uniform<bool>> uniform) {
     use();
     GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
@@ -128,6 +136,12 @@ void ShaderProgram::updateUniforms() {
     for (auto n : m_intUniforms) {
         if (n.first->getChangeFlag()) {
             glUniform1i(n.second, n.first->getContent());
+            n.first->hasBeenUpdated();
+        }
+    }
+    for (auto n : m_vec3Uniforms) {
+        if (n.first->getChangeFlag()) {
+            glUniform3fv(n.second, 1, glm::value_ptr(n.first->getContent()));
             n.first->hasBeenUpdated();
         }
     }
