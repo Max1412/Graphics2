@@ -31,18 +31,21 @@ const unsigned int width = 1600;
 const unsigned int height = 900;
 
 struct LightInfo {
-    glm::vec4 Position; // Light position in eye coords.
-    glm::vec3 Intensity; // Ambient light intensity
-    float pad;
+    glm::vec4 pos; //pos.w=0 dir., pos.w=1 point light
+    glm::vec3 col;
+    float spot_cutoff; //no spotlight if cutoff=0
+    glm::vec3 spot_direction;
+    float spot_exponent;
 };
 
 struct MaterialInfo {
-    glm::vec3 Ka; // Ambient reflectivity
-    float pad4;
-    glm::vec3 Kd; // Diffuse reflectivity
-    float pad5;
-    glm::vec3 Ks; // Specular reflectivity
-    float Shininess; // Specular shininess factor
+    glm::vec3 diffColor;
+    float kd;
+    glm::vec3 specColor;
+    float ks;
+    float shininess;
+    float kt;
+    float pad1, pad2;
 };
 
 int main(int argc, char* argv[]) {
@@ -112,36 +115,55 @@ int main(int argc, char* argv[]) {
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
     sp.addUniform(modelUniform);
-    
+
+    glm::vec3 ambient(0.5f);
+    auto ambientLightUniform = std::make_shared<Uniform<glm::vec3>>("lightAmbient", ambient);
+    sp.addUniform(ambientLightUniform);
+
     // "generate" lights
     std::vector<LightInfo> lvec;
     for (int i = 0; i < 5; i++) {
         LightInfo li;
-        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 3.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-        li.Position = rotMat * glm::vec4(i*3.0f, i*3.0f, i*3.0f, 0.0f);
-        li.Intensity = glm::normalize(glm::vec3((i) % 5,(i+1) % 5, (i + 2) % 5)) / 2.0f;
+        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+        li.pos = rotMat * glm::vec4(i*3.0f, i*3.0f, i*3.0f, 1.0f);
+        li.col = glm::normalize(glm::vec3((i) % 5,(i+1) % 5, (i + 2) % 5));
         if (i % 2) {
-            li.Intensity = glm::normalize(glm::vec3((i-1) % 5, (i) % 5, (i + 1) % 5)) / 2.0f;
-            li.Intensity = glm::normalize(glm::vec3(1.0f) - li.Intensity) / 2.0f;
+            li.col = glm::normalize(glm::vec3((i-1) % 5, (i) % 5, (i + 1) % 5));
+            li.col = glm::normalize(glm::vec3(1.0f) - li.col);
         }
-        std::cout << glm::to_string(li.Intensity) << std::endl;
+        std::cout << glm::to_string(li.col) << std::endl;
+        if(i == 2){
+            li.spot_cutoff = 0.1f;
+            li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
+            li.spot_exponent = 1.0f;
+        }
+        else {
+            li.spot_cutoff = 0.0f;
+            li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
+            li.spot_exponent = 0.0f;
+        }
+
         lvec.push_back(li);
     }
 
     // set up materials
     std::vector<MaterialInfo> mvec;
     MaterialInfo m;
-    m.Ka = glm::vec3(0.3f);
-    m.Kd = glm::vec3(0.3f);
-    m.Ks = glm::vec3(0.9f);
-    m.Shininess = 100.0f;
+    m.diffColor = glm::vec3(0.9f);
+    m.kd = 0.5f;
+    m.specColor = glm::vec3(0.9f);
+    m.ks = 3.0f;
+    m.shininess = 100.0f;
+    m.kt = 0.0f;
     mvec.push_back(m);
 
     MaterialInfo m2;
-    m2.Ka = glm::vec3(0.3f);
-    m2.Kd = glm::vec3(0.3f);
-    m2.Ks = glm::vec3(0.3f);
-    m2.Shininess = 20.0f;
+    m2.diffColor = glm::vec3(0.9f);
+    m2.kd = 0.3f;
+    m2.specColor = glm::vec3(0.9f);
+    m2.ks = 0.3f;
+    m2.shininess = 20.0f;
+    m.kt = 0.0f;
     mvec.push_back(m2);
 
     // first material is for bunny, second for plane
@@ -171,7 +193,7 @@ int main(int argc, char* argv[]) {
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
     auto toonUniform = std::make_shared<Uniform<bool>>("useToon", toon);
     auto levelsUniform = std::make_shared<Uniform<int>>("levels", levels);
-    auto MaterialIDUniform = std::make_shared<Uniform<int>>("mID", bunny.getMaterialID());
+    auto MaterialIDUniform = std::make_shared<Uniform<int>>("matIndex", bunny.getMaterialID());
 
     sp.addUniform(flatUniform);
     sp.addUniform(toonUniform);
