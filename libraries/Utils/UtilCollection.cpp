@@ -1,4 +1,6 @@
 #include "UtilCollection.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "IO/stb_image_write.h"
 
 namespace util
 {
@@ -130,5 +132,47 @@ namespace util
 		// TODO set ifs/elses for enabling notification, low, high..
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_FALSE);
 	}
+
+    void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height) {
+        // flip
+#pragma omp parallel for
+        for (int yi = 0; yi < (height / 2); yi++) {
+            for (int xi = 0; xi < width; xi++) {
+                unsigned int offset1 = (xi + (yi * width)) * 4;
+                unsigned int offset2 = (xi + ((height - 1 - yi) * width)) * 4;
+                for (int bi = 0; bi < 4; bi++) {
+                    unsigned char byte1 = image[offset1 + bi];
+                    unsigned char byte2 = image[offset2 + bi];
+                    image[offset1 + bi] = byte2;
+                    image[offset2 + bi] = byte1;
+                }
+            }
+        }
+        std::stringstream path;
+        path << (RESOURCES_PATH) << "../../../" << name << "_" << time(0) << ".png";
+        
+        int err = stbi_write_png(path.str().c_str(), width, height, 4, image.data(), 4 * width);
+        if (err == 0) throw std::runtime_error("error writing image");
+
+    }
+
+    void saveFBOtoFile(std::string name, GLFWwindow* window) {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        int width;
+        int height;
+        glfwGetFramebufferSize(window, &width, &height);
+        std::vector<unsigned char> image;
+        image.resize(width * height * 4);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+
+        //Encode the image
+        try {
+            std::thread{ savePNG, name, image, width, height }.detach();
+        }
+        catch (std::runtime_error& ex) {
+            std::cout << ex.what() << std::endl;
+        }
+    }
 
 }
