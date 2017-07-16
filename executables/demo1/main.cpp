@@ -140,14 +140,13 @@ int main(int argc, char* argv[]) {
         std::cout << glm::to_string(li.col) << std::endl;
         if(i == 3){
             li.spot_cutoff = 0.1f;
-            li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
-            li.spot_exponent = 1.0f;
         }
         else {
             li.spot_cutoff = 0.0f;
-            li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
-            li.spot_exponent = 0.0f;
         }
+        li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
+        li.spot_exponent = 1.0f;
+
 
         lvec.push_back(li);
     }
@@ -200,11 +199,8 @@ int main(int argc, char* argv[]) {
 
     // values for GUI-controllable uniforms
     bool flat = false;
-    bool lastFlat = flat;
     bool toon = false;
-    bool lastToon = toon;
     int levels = 3;
-    int lastLevels = levels;
 
     // shading uniforms
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
@@ -223,9 +219,6 @@ int main(int argc, char* argv[]) {
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
 
-    int lastMode = fogvec.at(0).mode;
-    glm::vec3 lastCol = fogvec.at(0).col;
-
     // render loop
     while (!glfwWindowShouldClose(window)) {
 
@@ -237,36 +230,35 @@ int main(int argc, char* argv[]) {
         {
             ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Lighting settings");
-            ImGui::Checkbox("Flat Shading", &flat);
-            if (flat != lastFlat) {
-                flatUniform->setContent(flat);
-                lastFlat = flat;
-            }
-            ImGui::Checkbox("Toon Shading", &toon);
-            if (toon != lastToon) {
-                toonUniform->setContent(toon);
-                lastToon = toon;
-            }
+            if (ImGui::Checkbox("Flat Shading", &flat)) flatUniform->setContent(flat);
+            if (ImGui::Checkbox("Toon Shading", &toon)) toonUniform->setContent(toon);
             if (toon) {
-                ImGui::SliderInt("Toon Shading Levels", &levels, 1, 5);
-                if (levels != lastLevels) {
+                if (ImGui::SliderInt("Toon Shading Levels", &levels, 1, 5))
                     levelsUniform->setContent(levels);
-                    lastLevels = levels;
-                }
             }
-            ImGui::SliderInt("Fog Mode", &fogvec.at(0).mode, 0, 3);
-            if (fogvec.at(0).mode != lastMode) {
+            if (ImGui::SliderInt("Fog Mode", &fogvec.at(0).mode, 0, 3)) {
                 size_t fogModeOffset = sizeof(f.col) + sizeof(f.start) + sizeof(f.end) + sizeof(f.density);
                 fogBuffer.setPartialContentMapped(fogvec.at(0).mode, fogModeOffset, sizeof(f.mode));
-                lastMode = fogvec.at(0).mode;
             }
-            ImGui::SliderFloat3("Fog Color", glm::value_ptr(fogvec.at(0).col), 0.0f, 1.0f);
+            if(ImGui::SliderFloat3("Fog Color", glm::value_ptr(fogvec.at(0).col), 0.0f, 1.0f)){
+                fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0, sizeof(f.col));
+            }
             if (ImGui::Button("Reset Fog Color")) {
                 fogvec.at(0).col = glm::vec3(0.1f);
-            }
-            if (fogvec.at(0).col != lastCol) {
                 fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0, sizeof(f.col));
-                lastCol = fogvec.at(0).col;
+            }
+            ImGui::End();
+
+            ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiSetCond_FirstUseEver);
+            ImGui::SetNextWindowPos(ImVec2(400, 20));
+            ImGui::Begin("Lights settings");
+            for(int i = 0; i < lvec.size(); ++i) {
+                std::stringstream name;
+                name << "Light " << i << " spot cutoff";
+                if(ImGui::SliderFloat(name.str().c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)){
+                    size_t spotCutoffOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).pos);
+                    lightBuffer.setPartialContentMapped(lvec.at(i).spot_cutoff, spotCutoffOffset, sizeof(lvec.at(i).spot_cutoff));
+                }
             }
             ImGui::End();
         }
