@@ -25,7 +25,7 @@ void Timer::stop() {
     util::getGLerror(__LINE__, __FUNCTION__);
 }
 
-void Timer::drawGuiWindow() {
+void Timer::drawGuiWindow(GLFWwindow* window) {
     ImGui::SetNextWindowPos(ImVec2(1200, 100));
     ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Performance");
@@ -38,5 +38,8 @@ void Timer::drawGuiWindow() {
         flaccTime /= 20.0f;
     }
     ImGui::Value("Frametime (millisecons)", flaccTime);
+    if (ImGui::Button("Save FBO")) {
+        util::saveFBOtoFile("demo1", window);
+    }
     ImGui::End();
 }

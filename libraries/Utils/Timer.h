@@ -17,7 +17,7 @@ public:
     void del();
     void start();
     void stop();
-    void drawGuiWindow();
+    void drawGuiWindow(GLFWwindow* window);
 
 private:
     std::vector<float> m_ftimes;
