@@ -40,7 +40,7 @@ public:
 	void setSubData(const std::array<T, N> &data, GLenum target, int offset);
 
     template<typename S>
-    void setPartialContentMapped(const S& data, int startOffset, int size);
+    void setPartialContentMapped(const S& data, int startOffset);
 
 private:
 	GLuint m_bufferHandle;
@@ -56,9 +56,9 @@ private:
 */
 
 template<typename S>
-void Buffer::setPartialContentMapped(const S& data, int startOffset, int size) {
+void Buffer::setPartialContentMapped(const S& data, int startOffset) {
     bind();
-    S* ptr = static_cast<S*>(glMapBufferRange(m_target, startOffset, size, GL_MAP_WRITE_BIT));
+    S* ptr = static_cast<S*>(glMapBufferRange(m_target, startOffset, sizeof(data), GL_MAP_WRITE_BIT));
     *ptr = data;
     glUnmapBuffer(m_target);
 }

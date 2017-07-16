@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 5; i++) {
         LightInfo li;
         glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-        li.pos = rotMat * glm::vec4(i*3.0f, i*3.0f, i*3.0f, 1.0f);
+        li.pos = rotMat * (glm::vec4(i*3.0f, i*3.0f, i*3.0f, 1.0f) + glm::vec4(0.0001f, 0.0001f, 0.0001f, 0.0f));
         li.col = glm::normalize(glm::vec3((i) % 5,(i+1) % 5, (i + 2) % 5));
         if (i % 2) {
             li.col = glm::normalize(glm::vec3((i-1) % 5, (i) % 5, (i + 1) % 5));
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
         ImGui_ImplGlfwGL3_NewFrame();
 
         {
-            ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Lighting settings");
             if (ImGui::Checkbox("Flat Shading", &flat)) flatUniform->setContent(flat);
             if (ImGui::Checkbox("Toon Shading", &toon)) toonUniform->setContent(toon);
@@ -238,26 +238,31 @@ int main(int argc, char* argv[]) {
             }
             if (ImGui::SliderInt("Fog Mode", &fogvec.at(0).mode, 0, 3)) {
                 size_t fogModeOffset = sizeof(f.col) + sizeof(f.start) + sizeof(f.end) + sizeof(f.density);
-                fogBuffer.setPartialContentMapped(fogvec.at(0).mode, fogModeOffset, sizeof(f.mode));
+                fogBuffer.setPartialContentMapped(fogvec.at(0).mode, fogModeOffset);
             }
             if(ImGui::SliderFloat3("Fog Color", glm::value_ptr(fogvec.at(0).col), 0.0f, 1.0f)){
-                fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0, sizeof(f.col));
+                fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0);
             }
             if (ImGui::Button("Reset Fog Color")) {
                 fogvec.at(0).col = glm::vec3(0.1f);
-                fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0, sizeof(f.col));
+                fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0);
             }
             ImGui::End();
 
-            ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiSetCond_FirstUseEver);
-            ImGui::SetNextWindowPos(ImVec2(400, 20));
+            ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+            //ImGui::SetNextWindowPos(ImVec2(20, 150));
             ImGui::Begin("Lights settings");
             for(int i = 0; i < lvec.size(); ++i) {
-                std::stringstream name;
-                name << "Light " << i << " spot cutoff";
-                if(ImGui::SliderFloat(name.str().c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)){
-                    size_t spotCutoffOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).pos);
-                    lightBuffer.setPartialContentMapped(lvec.at(i).spot_cutoff, spotCutoffOffset, sizeof(lvec.at(i).spot_cutoff));
+                std::stringstream n;
+                n << i;
+                ImGui::Text((std::string("Light ") + n.str()).c_str());
+                if(ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)){
+                    size_t spotCutoffOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col);
+                    lightBuffer.setPartialContentMapped(lvec.at(i).spot_cutoff, spotCutoffOffset);
+                }
+                if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), glm::value_ptr(lvec.at(i).col), 0.0f, 1.0f)) {
+                    size_t colOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos);
+                    lightBuffer.setPartialContentMapped(lvec.at(i).col, colOffset);
                 }
             }
             ImGui::End();
