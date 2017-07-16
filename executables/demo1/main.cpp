@@ -9,9 +9,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <iostream>
-#include <exception>
 #include <string>
-#include <sstream>
 #include <memory>
 
 #include "Utils/UtilCollection.h"
@@ -19,7 +17,6 @@
 #include "Rendering/Shader.h"
 #include "Rendering/ShaderProgram.h"
 #include "Rendering/Buffer.h"
-#include "Rendering/VertexArray.h"
 #include "Rendering/Uniform.h"
 #include "IO/ModelImporter.h"
 #include "Rendering/Mesh.h"
@@ -227,6 +224,7 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
 
     int lastMode = fogvec.at(0).mode;
+    glm::vec3 lastCol = fogvec.at(0).col;
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
@@ -261,13 +259,21 @@ int main(int argc, char* argv[]) {
                 std::cout << "mapping buffer" << '\n';
                 fogBuffer.bind();
                 size_t fogModeOffset = sizeof(f.col) + sizeof(f.start) + sizeof(f.end) + sizeof(f.density);
-                GLint* ptr = (GLint *)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, fogModeOffset, sizeof(f.mode), GL_MAP_WRITE_BIT);
+                GLint* ptr = static_cast<GLint*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, fogModeOffset, sizeof(f.mode), GL_MAP_WRITE_BIT));
                 *ptr = fogvec.at(0).mode;
                 glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
                 lastMode = fogvec.at(0).mode;
             }
-            if (ImGui::Button("Save FBO")) {
-                util::saveFBOtoFile("demo1", window);
+            ImGui::SliderFloat3("Fog Color", glm::value_ptr(fogvec.at(0).col), 0.0f, 1.0f);
+            if (ImGui::Button("Reset Fog Color")) {
+                fogvec.at(0).col = glm::vec3(0.1f);
+            }
+            if (fogvec.at(0).col != lastCol) {
+                fogBuffer.bind();
+                glm::vec3* ptr = static_cast<glm::vec3*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(f.col), GL_MAP_WRITE_BIT));
+                *ptr = fogvec.at(0).col;
+                glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+                lastCol = fogvec.at(0).col;
             }
             ImGui::End();
         }
@@ -296,7 +302,7 @@ int main(int argc, char* argv[]) {
         plane.draw();
 
         timer.stop();
-        timer.drawGuiWindow();
+        timer.drawGuiWindow(window);
 
         ImGui::Render();
         glfwSwapBuffers(window);
