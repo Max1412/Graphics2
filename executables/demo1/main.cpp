@@ -256,12 +256,8 @@ int main(int argc, char* argv[]) {
             }
             ImGui::SliderInt("Fog Mode", &fogvec.at(0).mode, 0, 3);
             if (fogvec.at(0).mode != lastMode) {
-                std::cout << "mapping buffer" << '\n';
-                fogBuffer.bind();
                 size_t fogModeOffset = sizeof(f.col) + sizeof(f.start) + sizeof(f.end) + sizeof(f.density);
-                GLint* ptr = static_cast<GLint*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, fogModeOffset, sizeof(f.mode), GL_MAP_WRITE_BIT));
-                *ptr = fogvec.at(0).mode;
-                glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+                fogBuffer.setPartialContentMapped(fogvec.at(0).mode, fogModeOffset, sizeof(f.mode));
                 lastMode = fogvec.at(0).mode;
             }
             ImGui::SliderFloat3("Fog Color", glm::value_ptr(fogvec.at(0).col), 0.0f, 1.0f);
@@ -269,10 +265,7 @@ int main(int argc, char* argv[]) {
                 fogvec.at(0).col = glm::vec3(0.1f);
             }
             if (fogvec.at(0).col != lastCol) {
-                fogBuffer.bind();
-                glm::vec3* ptr = static_cast<glm::vec3*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(f.col), GL_MAP_WRITE_BIT));
-                *ptr = fogvec.at(0).col;
-                glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+                fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0, sizeof(f.col));
                 lastCol = fogvec.at(0).col;
             }
             ImGui::End();
