@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
                     glm::mat4 rotxyz = glm::rotate(rotxy, glm::radians(rotations.at(i).z), glm::vec3(0.0f, 0.0f, 1.0f));
                     glm::vec3 newPos = rotxyz * lvec.at(i).pos;
                     lightBuffer.setPartialContentMapped(newPos, posOffset);
-                    lvec.at(i).spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(lvec.at(i).pos));
+                    lvec.at(i).spot_direction = glm::normalize(glm::vec3(0.0f) - newPos);
                     size_t spotDirOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).spot_cutoff);
                     lightBuffer.setPartialContentMapped(lvec.at(i).spot_direction, spotDirOffset);
                 }
