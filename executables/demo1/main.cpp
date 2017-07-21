@@ -259,11 +259,16 @@ int main(int argc, char* argv[]) {
             }
             if (ImGui::Button("Reload Fragment Shader"))
             {
-                fs.init();
-                sp.changeShader(fs);
-                sp.use();
-                sp.forceUpdateUniforms();
-                util::getGLerror(__LINE__, __FUNCTION__);
+                try {
+                    fs.init();
+                    sp.changeShader(fs);
+                    sp.use();
+                    sp.forceUpdateUniforms();
+                } catch(std::runtime_error &err) {
+                    std::cout << "Shader could not be loaded, not using it" << std::endl;
+                    std::cout << err.what() << std::endl;
+                }
+
             }
 
             ImGui::End();
