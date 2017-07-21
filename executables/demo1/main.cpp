@@ -251,11 +251,16 @@ int main(int argc, char* argv[]) {
             }
             if(ImGui::Button("Reload Vertex Shader"))
             {
-                vs.init();
-                sp.changeShader(vs);
-                sp.use();
-                sp.forceUpdateUniforms();
-                util::getGLerror(__LINE__, __FUNCTION__);
+                try {
+                    vs.init();
+                    sp.changeShader(vs);
+                    sp.use();
+                    sp.forceUpdateUniforms();
+                }
+                catch (std::runtime_error &err) {
+                    std::cout << "Shader could not be loaded, not using it" << std::endl;
+                    std::cout << err.what() << std::endl;
+                }
             }
             if (ImGui::Button("Reload Fragment Shader"))
             {
@@ -264,11 +269,11 @@ int main(int argc, char* argv[]) {
                     sp.changeShader(fs);
                     sp.use();
                     sp.forceUpdateUniforms();
-                } catch(std::runtime_error &err) {
+                }
+                catch (std::runtime_error &err) {
                     std::cout << "Shader could not be loaded, not using it" << std::endl;
                     std::cout << err.what() << std::endl;
                 }
-
             }
 
             ImGui::End();
