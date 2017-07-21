@@ -18,3 +18,4 @@ Used libraries:
 * phong lighting (spotlights, directional lights, specular & diffuse, fog)
 * toon shading
 * GUI-controllable lighting parameters
+* Shader live reloading
