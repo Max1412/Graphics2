@@ -17,10 +17,13 @@ public:
 	Shader(const std::string& path, GLuint shaderType);
 	~Shader();
 
-	GLuint getHandle();
+	GLuint getHandle() const;
+    GLuint getShaderType() const;
+
 
 private:
 	GLuint m_shaderHandle;
+    GLuint m_shaderType;
 
 	std::string Shader::loadShaderFile(const std::string& fileName) const;
 
