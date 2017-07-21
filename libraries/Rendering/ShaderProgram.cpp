@@ -8,6 +8,7 @@ ShaderProgram::ShaderProgram(std::string vspath, std::string fspath) : m_initWit
     m_shaderMap.insert(std::make_pair(fs.getShaderType(), fs));
 
     createProgram();
+    linkProgram();
 }
 
 ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_initWithShaders(true) {
@@ -15,6 +16,7 @@ ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_i
     m_shaderMap.insert(std::make_pair(shader2.getShaderType(), shader2));
 
 	createProgram();
+    linkProgram();
 }
 
 ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithShaders(true) {
@@ -22,6 +24,34 @@ ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithSha
         m_shaderMap.insert(std::make_pair(n.getShaderType(), n));
 
 	createProgram();
+    linkProgram();
+}
+
+void ShaderProgram::changeShader(const Shader &shader) {
+    // find out which shader has to be changed and detach it
+    auto search = m_shaderMap.find(shader.getShaderType());
+    if(search == m_shaderMap.end())
+    {
+        throw std::runtime_error("No matching shader found");
+    }
+    glDetachShader(m_shaderProgramHandle, search->second.getHandle());
+
+    // insert new shader into map, attach it and relink
+    glAttachShader(m_shaderProgramHandle, shader.getHandle());
+    try
+    {
+        linkProgram();
+    } catch(std::runtime_error &err)
+    {
+        std::cout << "linking failed, rolling back to the old shader" << std::endl;
+        std::cout << err.what() << std::endl;
+        glDetachShader(m_shaderProgramHandle, shader.getHandle());
+        glAttachShader(m_shaderProgramHandle, search->second.getHandle());
+        linkProgram();
+    }
+    // insert new shader into map when everything worked
+    m_shaderMap.insert(std::make_pair(shader.getShaderType(), shader));
+
 }
 
 
@@ -60,28 +90,31 @@ void ShaderProgram::createProgram() {
 	// attach all shaders
 	for(auto n : m_shaderMap)
 		glAttachShader(m_shaderProgramHandle, n.second.getHandle());
+}
 
-	// link program
-	glLinkProgram(m_shaderProgramHandle);
+void ShaderProgram::linkProgram()
+{
+    // link program
+    glLinkProgram(m_shaderProgramHandle);
 
-	// check if linking was succesful, print log if not
-	GLint status;
-	glGetProgramiv(m_shaderProgramHandle, GL_LINK_STATUS, &status);
-	if (GL_FALSE == status) {
-		GLint logLen;
-		glGetProgramiv(m_shaderProgramHandle, GL_INFO_LOG_LENGTH,
-			&logLen);
-		if (logLen > 0)
-		{
-			std::string log;
-			log.resize(logLen);
-			GLsizei written;
-			glGetShaderInfoLog(m_shaderProgramHandle, logLen, &written, &log[0]);
-			std::cout << "Program log: " << log << std::endl;
-		}
+    // check if linking was succesful, print log if not
+    GLint status;
+    glGetProgramiv(m_shaderProgramHandle, GL_LINK_STATUS, &status);
+    if (GL_FALSE == status) {
+        GLint logLen;
+        glGetProgramiv(m_shaderProgramHandle, GL_INFO_LOG_LENGTH,
+            &logLen);
+        if (logLen > 0)
+        {
+            std::string log;
+            log.resize(logLen);
+            GLsizei written;
+            glGetShaderInfoLog(m_shaderProgramHandle, logLen, &written, &log[0]);
+            std::cout << "Program log: " << log << std::endl;
+        }
         util::getGLerror(__LINE__, __FUNCTION__);
-		throw std::runtime_error("Failed to link shader program!\n");
-	}
+        throw std::runtime_error("Failed to link shader program!\n");
+    }
 }
 
 GLuint ShaderProgram::getShaderProgramHandle() {
@@ -127,12 +160,12 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<int>> uniform) {
 
 
 void ShaderProgram::updateUniforms() {
-	for (auto n : m_mat4Uniforms) {
+    for (auto n : m_mat4Uniforms) {
         if (n.first->getChangeFlag()) {
             glUniformMatrix4fv(n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
             n.first->hasBeenUpdated();
         }
-	}
+    }
     for (auto n : m_boolUniforms) {
         if (n.first->getChangeFlag()) {
             if (n.first->getContent()) {
@@ -156,4 +189,25 @@ void ShaderProgram::updateUniforms() {
             n.first->hasBeenUpdated();
         }
     }
+}
+
+void ShaderProgram::forceUpdateUniforms() {
+        for (auto n : m_mat4Uniforms) {
+            glUniformMatrix4fv(n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
+        }
+        for (auto n : m_boolUniforms) {
+            if (n.first->getContent()) {
+                glUniform1i(n.second, 1);
+            }
+            else {
+                glUniform1i(n.second, 0);
+            }
+        }
+
+        for (auto n : m_intUniforms) {
+            glUniform1i(n.second, n.first->getContent());
+        }
+        for (auto n : m_vec3Uniforms) {
+            glUniform3fv(n.second, 1, glm::value_ptr(n.first->getContent()));
+        }
 }

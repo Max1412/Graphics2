@@ -33,10 +33,13 @@ public:
 	void addShader(const Shader &shader);
 
 	void createProgram();
+    void linkProgram();
 
 	GLuint getShaderProgramHandle();
 
 	void use();
+
+    void changeShader(const Shader &shader);
 
 	void addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform);
     void addUniform(std::shared_ptr<Uniform<glm::vec3>> uniform);
@@ -45,6 +48,8 @@ public:
 
 
 	void updateUniforms();
+    void forceUpdateUniforms();
+
 
 private:
 	GLuint m_shaderProgramHandle;
