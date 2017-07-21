@@ -6,6 +6,7 @@
 #include <memory>
 #include <array>
 #include <vector>
+#include <map>
 #include <utility>
 
 #include <GL/glew.h>
@@ -47,7 +48,7 @@ public:
 
 private:
 	GLuint m_shaderProgramHandle;
-	std::vector<Shader> m_shaders;
+    std::map<GLuint, Shader> m_shaderMap;
 	bool m_initWithShaders = false;
 
     std::vector<std::pair<std::shared_ptr<Uniform<glm::vec3>>, GLint>> m_vec3Uniforms;

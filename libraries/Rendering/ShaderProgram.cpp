@@ -1,14 +1,25 @@
 #include "ShaderProgram.h"
 
+ShaderProgram::ShaderProgram(std::string vspath, std::string fspath) : m_initWithShaders(true) {
+    Shader vs(vspath, GL_VERTEX_SHADER);
+    Shader fs(fspath, GL_FRAGMENT_SHADER);
+
+    m_shaderMap.insert(std::make_pair(vs.getShaderType(), vs));
+    m_shaderMap.insert(std::make_pair(fs.getShaderType(), fs));
+
+    createProgram();
+}
+
 ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_initWithShaders(true) {
-	m_shaders.push_back(shader1);
-	m_shaders.push_back(shader2);
+    m_shaderMap.insert(std::make_pair(shader1.getShaderType(), shader1));
+    m_shaderMap.insert(std::make_pair(shader2.getShaderType(), shader2));
 
 	createProgram();
 }
 
 ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithShaders(true) {
-	m_shaders = shaders;
+    for(auto n : shaders)
+        m_shaderMap.insert(std::make_pair(n.getShaderType(), n));
 
 	createProgram();
 }
@@ -16,8 +27,8 @@ ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithSha
 
 void ShaderProgram::del() {
 	// delete all shaders
-	for(auto shader : m_shaders)
-		glDeleteShader(shader.getHandle());
+	for(auto shaderPair : m_shaderMap)
+		glDeleteShader(shaderPair.second.getHandle());
 
 	// delete porgram
 	glDeleteProgram(m_shaderProgramHandle);
@@ -28,14 +39,14 @@ void ShaderProgram::addShader(const Shader &shader) {
 	if (m_initWithShaders) {
 		throw std::runtime_error("ShaderProgram was initalized with Shaders, adding later on is not allowed");
 	}
-	m_shaders.push_back(shader);
+    m_shaderMap.insert(std::make_pair(shader.getShaderType(), shader));
 }
 
 void ShaderProgram::createProgram() {
 
 	// check if there are shaders in this ShaderProgram
-	if (m_shaders.size() == 0) {
-		throw std::runtime_error("No shaders in this ShaderProgram! Plase add shaders before calling createProgram()!");
+	if (m_shaderMap.size() == 0) {
+		throw std::runtime_error("No shaders in this ShaderProgram! Please add shaders before calling createProgram()!");
 	}
 
 
@@ -47,8 +58,8 @@ void ShaderProgram::createProgram() {
 	}
 
 	// attach all shaders
-	for(auto n : m_shaders)
-		glAttachShader(m_shaderProgramHandle, n.getHandle());
+	for(auto n : m_shaderMap)
+		glAttachShader(m_shaderProgramHandle, n.second.getHandle());
 
 	// link program
 	glLinkProgram(m_shaderProgramHandle);
