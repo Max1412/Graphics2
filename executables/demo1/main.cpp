@@ -249,6 +249,23 @@ int main(int argc, char* argv[]) {
                 fogvec.at(0).col = glm::vec3(0.1f);
                 fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0);
             }
+            if(ImGui::Button("Reload Vertex Shader"))
+            {
+                vs.init();
+                sp.changeShader(vs);
+                sp.use();
+                sp.forceUpdateUniforms();
+                util::getGLerror(__LINE__, __FUNCTION__);
+            }
+            if (ImGui::Button("Reload Fragment Shader"))
+            {
+                fs.init();
+                sp.changeShader(fs);
+                sp.use();
+                sp.forceUpdateUniforms();
+                util::getGLerror(__LINE__, __FUNCTION__);
+            }
+
             ImGui::End();
 
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
