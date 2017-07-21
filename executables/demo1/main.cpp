@@ -316,6 +316,8 @@ int main(int argc, char* argv[]) {
         glfwSwapBuffers(window);
     }
 
+    lightBuffer.del();
+    materialBuffer.del();
     sp.del();
     ImGui_ImplGlfwGL3_Shutdown();
 
