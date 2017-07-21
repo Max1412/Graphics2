@@ -1,6 +1,7 @@
 #include "UtilCollection.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "IO/stb_image_write.h"
+#include <ctime>
 
 namespace util
 {
@@ -47,11 +48,12 @@ namespace util
 		if(debugmode) {
 			GLenum err;
 			while ((err = glGetError()) != GL_NO_ERROR) {
-				std::cerr << "OpenGL Error: " << err << std::endl;
-				std::cerr << "Last error check in function " << function << " at line " << line << std::endl;
+				std::cout << "OpenGL Error: " << err << std::endl;
+				std::cout << "Last error check in function " << function << " at line " << line << std::endl;
 			}
 		}
 	}
+
 	void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
 		const GLchar *message, const void *userParam) {
 		std::cout << "OpenGL debug callback called!" << std::endl;
