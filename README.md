@@ -19,3 +19,9 @@ Used libraries:
 * toon shading
 * GUI-controllable lighting parameters
 * Shader live reloading
+
+### demo 2: distance fields
+* work in progress
+* raymarching distance fields: soft shadows, simple distance field ambient occlusion
+* Shader live reloading
+* heavily inspired by http://www.iquilezles.org/, university lectures
