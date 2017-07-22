@@ -19,7 +19,7 @@ public:
 	~Shader();
 
     void Shader::init(const std::string& path);
-    void Shader::init();
+    void Shader::init() const;
 
 
 	GLuint getHandle() const;

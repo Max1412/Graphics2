@@ -53,7 +53,7 @@ void Shader::init(const std::string& path)
 }
 
 
-void Shader::init()
+void Shader::init() const
 {
     if(m_path.size() == 0)
     {

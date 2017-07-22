@@ -18,6 +18,7 @@
 #include "Shader.h"
 #include "Uniform.h"
 #include "Utils/UtilCollection.h"
+#include "imgui/imgui.h"
 
 
 class ShaderProgram
@@ -50,6 +51,7 @@ public:
 	void updateUniforms();
     void forceUpdateUniforms();
 
+    void showReloadShaderGUI(const Shader& vshader, const Shader& fshader);
 
 private:
 	GLuint m_shaderProgramHandle;

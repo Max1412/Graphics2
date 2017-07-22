@@ -211,3 +211,37 @@ void ShaderProgram::forceUpdateUniforms() {
             glUniform3fv(n.second, 1, glm::value_ptr(n.first->getContent()));
         }
 }
+
+void ShaderProgram::showReloadShaderGUI(const Shader& vshader, const Shader& fshader)
+{
+        ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
+        ImGui::Begin("Shader Settings");
+        if (ImGui::Button("Reload Vertex Shader"))
+        {
+            try {
+                vshader.init();
+                changeShader(vshader);
+                use();
+                forceUpdateUniforms();
+            }
+            catch (std::runtime_error &err) {
+                std::cout << "Shader could not be loaded, not using it" << std::endl;
+                std::cout << err.what() << std::endl;
+            }
+        }
+        if (ImGui::Button("Reload Fragment Shader"))
+        {
+            try {
+                fshader.init();
+                changeShader(fshader);
+                use();
+                forceUpdateUniforms();
+            }
+            catch (std::runtime_error &err) {
+                std::cout << "Shader could not be loaded, not using it" << std::endl;
+                std::cout << err.what() << std::endl;
+            }
+        }
+
+        ImGui::End();
+}
