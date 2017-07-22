@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
 
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
-
+        sp.showReloadShaderGUI(vs, fs);
         {
             ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Lighting settings");
@@ -249,33 +249,6 @@ int main(int argc, char* argv[]) {
                 fogvec.at(0).col = glm::vec3(0.1f);
                 fogBuffer.setPartialContentMapped(fogvec.at(0).col, 0);
             }
-            if(ImGui::Button("Reload Vertex Shader"))
-            {
-                try {
-                    vs.init();
-                    sp.changeShader(vs);
-                    sp.use();
-                    sp.forceUpdateUniforms();
-                }
-                catch (std::runtime_error &err) {
-                    std::cout << "Shader could not be loaded, not using it" << std::endl;
-                    std::cout << err.what() << std::endl;
-                }
-            }
-            if (ImGui::Button("Reload Fragment Shader"))
-            {
-                try {
-                    fs.init();
-                    sp.changeShader(fs);
-                    sp.use();
-                    sp.forceUpdateUniforms();
-                }
-                catch (std::runtime_error &err) {
-                    std::cout << "Shader could not be loaded, not using it" << std::endl;
-                    std::cout << err.what() << std::endl;
-                }
-            }
-
             ImGui::End();
 
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
