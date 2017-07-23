@@ -37,7 +37,7 @@ void Timer::drawGuiWindow(GLFWwindow* window) {
         }
         flaccTime /= 20.0f;
     }
-    ImGui::Value("Frametime (millisecons)", flaccTime);
+    ImGui::Value("Frametime (milliseconds)", flaccTime);
     if (ImGui::Button("Save FBO")) {
         util::saveFBOtoFile("demo1", window);
     }

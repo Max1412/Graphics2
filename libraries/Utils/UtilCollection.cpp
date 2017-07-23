@@ -56,7 +56,7 @@ namespace util
 
 	void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
 		const GLchar *message, const void *userParam) {
-		std::cout << "OpenGL debug callback called!" << std::endl;
+		std::cout << "OpenGL debug callback called!" << "\n";
 		std::cout << "Source: ";
 		switch (source) {
 		case GL_DEBUG_SOURCE_API:
@@ -75,8 +75,8 @@ namespace util
 			std::cout << "Some other source";
 			break;
 		}
-		std::cout << std::endl;
-		std::cout << "message: " << message << std::endl;
+		std::cout << "\n";
+		std::cout << "message: " << message << "\n";
 		std::cout << "type: ";
 		// converting GLenums is tedious :(
 		switch (type) {
@@ -108,8 +108,8 @@ namespace util
 			std::cout << "OTHER";
 			break;
 		}
-		std::cout << std::endl;
-		std::cout << "id: " << id << std::endl;
+		std::cout << "\n";
+		std::cout << "id: " << id << "\n";
 		std::cout << "severity: ";
 		switch (severity) {
 		case GL_DEBUG_SEVERITY_LOW:
@@ -125,7 +125,7 @@ namespace util
 			std::cout << "NOTIFICATION";
 			break;
 		}
-		std::cout << std::endl;
+		std::cout << "\n";
 		std::cout << std::endl;
 	}
 
