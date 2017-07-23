@@ -106,7 +106,41 @@ int main(int argc, char* argv[]) {
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
 
+    glm::vec3 ambient(0.5f);
+    auto ambientLightUniform = std::make_shared<Uniform<glm::vec3>>("lightAmbient", ambient);
+    sp.addUniform(ambientLightUniform);
+
+    // "generate" lights
+    std::vector<LightInfo> lvec;
+    for (int i = 0; i < 5; i++) {
+        LightInfo li;
+        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+        li.pos = rotMat * (glm::vec4(i*3.0f, i*3.0f, i*3.0f, 1.0f) + glm::vec4(0.0001f, 0.0001f, 0.0001f, 0.0f));
+        li.col = glm::normalize(glm::vec3((i) % 5, (i + 1) % 5, (i + 2) % 5));
+        if (i % 2) {
+            li.col = glm::normalize(glm::vec3((i - 1) % 5, (i) % 5, (i + 1) % 5));
+            li.col = glm::normalize(glm::vec3(1.0f) - li.col);
+        }
+        std::cout << glm::to_string(li.col) << std::endl;
+        if (i == 3) {
+            li.spot_cutoff = 0.1f;
+        }
+        else {
+            li.spot_cutoff = 0.0f;
+        }
+        li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
+        li.spot_exponent = 1.0f;
+
+
+        lvec.push_back(li);
+    }
+    // create buffers for materials and lights
+    Buffer lightBuffer;
+    lightBuffer.setData(lvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    lightBuffer.bindBase(0);
+
     glm::vec4 clear_color(0.1f);
+    std::vector<glm::vec3> rotations(5, glm::vec3(0.0f));
 
     Timer timer;
 
@@ -129,6 +163,42 @@ int main(int argc, char* argv[]) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        {
+            ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+            //ImGui::SetNextWindowPos(ImVec2(20, 150));
+            ImGui::Begin("Lights settings");
+            for (int i = 0; i < lvec.size(); ++i) {
+                std::stringstream n;
+                n << i;
+                ImGui::Text((std::string("Light ") + n.str()).c_str());
+                if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), glm::value_ptr(lvec.at(i).col), 0.0f, 1.0f)) {
+                    size_t colOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos);
+                    lightBuffer.setContentSubData(lvec.at(i).col, colOffset);
+                }
+                if (ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)) {
+                    size_t spotCutoffOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col);
+                    lightBuffer.setContentSubData(lvec.at(i).spot_cutoff, spotCutoffOffset);
+                }
+                if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i).spot_exponent, 0.0f, 100.0f)) {
+                    size_t spotCutoffExpOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).spot_cutoff) + sizeof(lvec.at(i).spot_direction);
+                    lightBuffer.setContentSubData(lvec.at(i).spot_exponent, spotCutoffExpOffset);
+                }
+                if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), glm::value_ptr(rotations.at(i)), 0.0f, 360.0f)) {
+                    size_t posOffset = i * sizeof(lvec.at(i));
+                    glm::mat4 rotx = glm::rotate(glm::mat4(1.0f), glm::radians(rotations.at(i).x), glm::vec3(1.0f, 0.0f, 0.0f));
+                    glm::mat4 rotxy = glm::rotate(rotx, glm::radians(rotations.at(i).y), glm::vec3(0.0f, 1.0f, 0.0f));
+                    glm::mat4 rotxyz = glm::rotate(rotxy, glm::radians(rotations.at(i).z), glm::vec3(0.0f, 0.0f, 1.0f));
+                    glm::vec3 newPos = rotxyz * lvec.at(i).pos;
+                    lightBuffer.setContentSubData(newPos, posOffset);
+                    lvec.at(i).spot_direction = glm::normalize(glm::vec3(0.0f) - newPos);
+                    size_t spotDirOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).spot_cutoff);
+                    lightBuffer.setContentSubData(lvec.at(i).spot_direction, spotDirOffset);
+                }
+
+            }
+            ImGui::End();
+        }
 
         camera.update(window);
         viewUniform->setContent(camera.getView());

@@ -9,6 +9,22 @@ uniform mat4 ProjectionMatrix;
 // pixel in [-1,1]
 in vec2 pixelPos;
 
+// Lighting
+struct Light
+{
+	vec4 pos; //pos.w=0 dir., pos.w=1 point light
+	vec3 col;
+	float spot_cutoff; //no spotlight if cutoff=0
+	vec3 spot_direction;
+	float spot_exponent;
+};
+
+uniform vec3 lightAmbient;
+
+layout (std430, binding = 0) restrict readonly buffer LightBuffer {
+	Light light[];
+};
+
 // TODO use light ssbo
 const vec3 LPos = vec3(5.0, 7.0, 5.0);
 
@@ -218,8 +234,42 @@ float softshadow( in vec3 shadePoint, in vec3 lightVec, float mint, float maxt)
 
 // TODO add better shading model
 // Simple shading
-vec3 shade(vec3 p, vec3 V, vec3 N, vec3 color)
+vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
 {
+	vec3 lightVector;
+	float spot;
+	vec3 light_camcoord;
+	float matkd = 0.5;
+	vec3 matdiffColor = vec3(0.9);
+	float matks = 3.0f;
+	vec3 matSpecColor = vec3(0.9);
+	vec3 fragmentColor = matkd * vec3(0.9) * lightAmbient;
+	for ( int i = 0; i < light.length(); i++) {
+		light_camcoord = (light[i].pos).xyz;
+		if (light[i].pos.w > 0.001f)
+			lightVector = normalize(light_camcoord - p);
+		else
+			lightVector = normalize(light_camcoord);
+		float cos_phi = max( dot( N, lightVector), 0.000001f);
+		vec3 reflection = normalize( reflect( -lightVector, N));
+		float cos_psi_n = pow( max( dot( reflection, eye), 0.000001f), 32); // 32 is shininess
+		if (light[i].spot_cutoff < 0.001f)
+					spot = 1.0;
+		else {
+			float cos_phi_spot = max( dot( -lightVector, normalize(light[i].spot_direction)), 0.000001f);
+			if( cos_phi_spot >= cos( light[i].spot_cutoff))
+				spot = pow( cos_phi_spot, light[i].spot_exponent);
+			else
+				spot = 0.0f;
+		}
+		
+		fragmentColor += matkd * spot * matdiffColor * cos_phi * light[i].col;
+		fragmentColor += matks * spot * matSpecColor * cos_psi_n * light[i].col;
+		fragmentColor *= softshadow(p, lightVector, 0.1, length(light_camcoord - p) + 1);
+	}
+	
+	
+	/*
 	vec3 l = normalize(LPos - p);
 		
 	vec3 lcol = vec3(0.0);
@@ -229,12 +279,12 @@ vec3 shade(vec3 p, vec3 V, vec3 N, vec3 color)
 	vec3 R = reflect(-l, N);
 
 	lcol += pow(max(dot(R, V), 0.0), 32.0) * float(dotLN > 0.0);
-
+	*/
 	// calculate shadow
-	float shad = softshadow(p, l, 0.1, length(LPos - p) + 1);
-	lcol *= shad;
-
-	return lcol;
+	//float shad = softshadow(p, lightVector, 0.1, length(light_camcoord - p) + 1);
+	//lcol *= shad;
+	//fragmentColor *= shad;
+	return fragmentColor;
 }
 
 void main(){
