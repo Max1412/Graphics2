@@ -125,23 +125,26 @@ float dfPlane(vec3 p, vec3 q, vec3 n)
 // TODO create an actual scene
 float distancefield(vec3 p)
 {
-	//column
-	float d1 = dfPBox(p, vec3(0.0, 0.0, 0.0), vec3(0.5, 1.5, 0.5));
-	float d2 = dfSphere(p, vec3(0.0, 0.5, 0.0), 0.9);
-	float d = opSubtract(d1, d2);
+	// //column
+	// float d1 = dfPBox(p, vec3(0.0, 0.0, 0.0), vec3(0.5, 1.5, 0.5));
+	// float d2 = dfSphere(p, vec3(0.0, 0.5, 0.0), 0.9);
+	// float d = opSubtract(d1, d2);
 
-	// ground box
-	float d3 = dfPBox(p, vec3(0.0, -2.8, 0.0), vec3(5.0, 0.2, 5.0));
-	d = opUnion(d, d3);
+	// // ground box
+	// float d3 = dfPBox(p, vec3(0.0, -2.8, 0.0), vec3(5.0, 0.2, 5.0));
+	// d = opUnion(d, d3);
 
-	// addidtional sphere
-	float sphere2 = dfSphere(p, vec3(3.0, -1.8, 0.0), 1.0);
-	d = opUnion(d, sphere2);
+	// // addidtional sphere
+	// float sphere2 = dfSphere(p, vec3(3.0, -1.8, 0.0), 1.0);
+	// d = opUnion(d, sphere2);
 
-	// torus
-	float torus = dfTorus(p, vec2(2.0, 1.0));
-	d = opUnion(d, torus);
-
+	// // torus
+	// float torus = dfTorus(p, vec2(2.0, 1.0));
+	// d = opUnion(d, torus);
+	float d = dfPlane(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+	float sphere = dfSphere(p, vec3(-1.0, 1.0, 0.0), 1.0);
+	d = opUnion(d, sphere);
+	d = opUnion(dfBox(p, vec3(1.0, 1.0, 1.0)), d);
 	return d;
 }
 
@@ -263,9 +266,11 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
 				spot = 0.0f;
 		}
 		
-		fragmentColor += matkd * spot * matdiffColor * cos_phi * light[i].col;
+		float shadow = softshadow(p, lightVector, 0.1, length(light_camcoord - p) + 1);
+		fragmentColor += matkd * spot * matdiffColor * shadow * cos_phi * light[i].col;
 		fragmentColor += matks * spot * matSpecColor * cos_psi_n * light[i].col;
-		fragmentColor *= softshadow(p, lightVector, 0.1, length(light_camcoord - p) + 1);
+		//fragmentColor *= shadow;
+		fragmentColor *= ao(p, N, 0.05, 3);
 	}
 	
 	
@@ -303,8 +308,6 @@ void main(){
 		vec3 N = normal(p);
 
 		vec3 c = shade(p, -dir, N, vec3(0.9, 0.9, 0.9));
-
-		c *= ao(p, N, 0.05, 5);
 
 		fragmentColor = vec4(c, 1.0);
 	}

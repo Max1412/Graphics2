@@ -112,10 +112,10 @@ int main(int argc, char* argv[]) {
 
     // "generate" lights
     std::vector<LightInfo> lvec;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 2; i++) {
         LightInfo li;
         glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-        li.pos = rotMat * (glm::vec4(i*3.0f, i*3.0f, i*3.0f, 1.0f) + glm::vec4(0.0001f, 0.0001f, 0.0001f, 0.0f));
+        li.pos = rotMat * (glm::vec4((i + 1)*3.0f, (i + 1)*3.0f, (i + 1)*3.0f, 1.0f) + glm::vec4(0.0001f, 0.0001f, 0.0001f, 0.0f));
         li.col = glm::normalize(glm::vec3((i) % 5, (i + 1) % 5, (i + 2) % 5));
         if (i % 2) {
             li.col = glm::normalize(glm::vec3((i - 1) % 5, (i) % 5, (i + 1) % 5));
