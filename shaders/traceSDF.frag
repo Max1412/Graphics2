@@ -125,30 +125,15 @@ float dfPlane(vec3 p, vec3 q, vec3 n)
 // TODO create an actual scene
 float distancefield(vec3 p)
 {
-	// //column
-	// float d1 = dfPBox(p, vec3(0.0, 0.0, 0.0), vec3(0.5, 1.5, 0.5));
-	// float d2 = dfSphere(p, vec3(0.0, 0.5, 0.0), 0.9);
-	// float d = opSubtract(d1, d2);
-
-	// // ground box
-	// float d3 = dfPBox(p, vec3(0.0, -2.8, 0.0), vec3(5.0, 0.2, 5.0));
-	// d = opUnion(d, d3);
-
-	// // addidtional sphere
-	// float sphere2 = dfSphere(p, vec3(3.0, -1.8, 0.0), 1.0);
-	// d = opUnion(d, sphere2);
-
-	// // torus
-	// float torus = dfTorus(p, vec2(2.0, 1.0));
-	// d = opUnion(d, torus);
+	// ground plane
 	float d = dfPlane(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-	float sphere = dfSphere(p, vec3(-1.0, 2.0, 0.0), 1.0);
-	d = opUnion(d, sphere);
-	float box = dfBox(p, vec3(1.0, 1.5, 1.0));
-	float sphere2 = dfSphere(p, vec3(1.0, 2.0, 0.0), 1.0);
-	//box = opIntersect(sphere, box);
-	d = opUnion(box, d);
-	//d = opUnion(d, opComplement(sphere2));
+
+	// a simple "tree"
+	float sphere2 = dfSphere(opRep(p, vec3(0.0, 0.0, 0.0)), vec3(0.0, 3.0, 0.0), 1.0);
+	float box = dfPBox(opRep(p, vec3(0.0, 0.0, 0.0)), vec3(0.0, 0.0, 0.0), vec3(0.15, 3, 0.15));
+	d = opUnion(d, sphere2);
+	d = opUnion(d, box);
+	
 	return d;
 }
 
@@ -274,7 +259,7 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
 		fragmentColor += matkd * spot * matdiffColor * shadow * cos_phi * light[i].col;
 		fragmentColor += matks * spot * matSpecColor * cos_psi_n * light[i].col;
 		//fragmentColor *= shadow;
-		//fragmentColor *= ao(p, N, 0.05, 3);
+		fragmentColor *= ao(p, N, 0.04, 2);
 	}
 	
 	
