@@ -12,20 +12,65 @@ public:
     Mesh(aiMesh* assimpMesh);
     Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices);
 
+    /**
+     * \brief current destructor workaround
+     */
     void del();
     
+    /**
+     * \brief returns vertices as vector of vec3
+     * \return vertices
+     */
     const std::vector<glm::vec3>& getVertices() const;
+    
+    /**
+     * \brief returns normals as vector of vec3
+     * \return normals
+     */
     const std::vector<glm::vec3>& getNormals() const;
+
+    /**
+     * \brief returns UV coords as vector of vec3
+     * \return UV/texture coordinates
+     */
     const std::vector<glm::vec3>& getTexCoords() const;
+
+    /**
+     * \brief returns indices as vectors of uint
+     * \return indices
+     */
     const std::vector<unsigned int>& getIndices() const;
 
+    /**
+     * \brief returns the model matrix
+     * \return 4x4 model matrix, initially identity matrix
+     */
     const glm::mat4& getModelMatrix() const;
+
+
+    /**
+     * \brief returns the material ID
+     * \return material ID
+     */
     const unsigned getMaterialID() const;
 
 
+    /**
+     * \brief binds the vao & index buffer and uses glDrawArrays
+     */
     void draw() const;
 
+
+    /**
+     * \brief sets the model matrix
+     * \param modelMatrix model matrix for this mesh
+     */
     void setModelMatrix(const glm::mat4& modelMatrix);
+
+    /**
+     * \brief sets the material ID
+     * \param materialID material ID for this mesh
+     */
     void setMaterialID(const unsigned materialID);
 
 

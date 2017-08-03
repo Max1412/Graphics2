@@ -8,9 +8,23 @@ class SimpleTrackball {
 public:
 	SimpleTrackball(int width, int height, float radius);
 
+    /**
+	 * \brief Updates the view matrix based on mouse input
+	 * \param window 
+	 */
 	void update(GLFWwindow* window);
 
+    /**
+	 * \brief returns the view matrix (const)
+	 * \return 4x4 view matrix (const)
+	 */
 	const glm::mat4& getView() const;
+
+
+    /**
+     * \brief returns the view matrix (mutable)
+     * \return 4x4 view matrix
+     */
     glm::mat4& getView();
 
 private:

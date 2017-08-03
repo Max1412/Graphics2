@@ -10,9 +10,25 @@ class Timer {
 public:
     Timer();
 
+    /**
+     * \brief current destructor workaround
+     */
     void del();
+
+    /**
+     * \brief starts the GPU timer
+     */
     void start();
+
+    /**
+     * \brief stops the GPU timer
+     */
     void stop();
+
+    /**
+     * \brief draws an imgui window with the frametime and a graph
+     * \param window 
+     */
     void drawGuiWindow(GLFWwindow* window);
 
 private:
