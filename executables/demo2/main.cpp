@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <memory>
 
 #include "Utils/UtilCollection.h"

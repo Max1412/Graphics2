@@ -1,7 +1,10 @@
 #include "UtilCollection.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "IO/stb_image_write.h"
+
 #include <ctime>
+#include <iostream>
+#include <sstream>
 
 namespace util
 {

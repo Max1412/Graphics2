@@ -1,12 +1,9 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
 #include <array>
 #include <vector>
 
-#include "Utils/UtilCollection.h"
+#include <GL/glew.h>
 
 class Buffer
 {

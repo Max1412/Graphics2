@@ -1,7 +1,10 @@
 #include "ModelImporter.h"
 
+#include <iostream>
+
+#include <assimp/postprocess.h>
+
 ModelImporter::ModelImporter(const std::string &filename) {
-	m_importer;
 	m_scene = m_importer.ReadFile(RESOURCES_PATH + std::string("/") + filename,
 		aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords);
 

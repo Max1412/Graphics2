@@ -142,9 +142,13 @@ float distancefield(vec3 p)
 	// float torus = dfTorus(p, vec2(2.0, 1.0));
 	// d = opUnion(d, torus);
 	float d = dfPlane(p, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-	float sphere = dfSphere(p, vec3(-1.0, 1.0, 0.0), 1.0);
+	float sphere = dfSphere(p, vec3(-1.0, 2.0, 0.0), 1.0);
 	d = opUnion(d, sphere);
-	d = opUnion(dfBox(p, vec3(1.0, 1.0, 1.0)), d);
+	float box = dfBox(p, vec3(1.0, 1.5, 1.0));
+	float sphere2 = dfSphere(p, vec3(1.0, 2.0, 0.0), 1.0);
+	//box = opIntersect(sphere, box);
+	d = opUnion(box, d);
+	//d = opUnion(d, opComplement(sphere2));
 	return d;
 }
 
@@ -270,7 +274,7 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
 		fragmentColor += matkd * spot * matdiffColor * shadow * cos_phi * light[i].col;
 		fragmentColor += matks * spot * matSpecColor * cos_psi_n * light[i].col;
 		//fragmentColor *= shadow;
-		fragmentColor *= ao(p, N, 0.05, 3);
+		//fragmentColor *= ao(p, N, 0.05, 3);
 	}
 	
 	

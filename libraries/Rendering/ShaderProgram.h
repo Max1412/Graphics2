@@ -1,24 +1,17 @@
 #pragma once
 
-#include <string>
-#include <fstream>
-#include <iostream>
+
 #include <memory>
-#include <array>
 #include <vector>
 #include <map>
 #include <utility>
 
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
 #include "Uniform.h"
 #include "Utils/UtilCollection.h"
-#include "imgui/imgui.h"
 
 
 class ShaderProgram

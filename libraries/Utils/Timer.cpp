@@ -1,4 +1,5 @@
 #include "Timer.h"
+#include "imgui/imgui.h"
 
 Timer::Timer() {
     glGenQueries(1, &m_query);

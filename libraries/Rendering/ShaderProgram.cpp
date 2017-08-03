@@ -1,5 +1,9 @@
 #include "ShaderProgram.h"
 
+#include <iostream>
+
+#include "imgui/imgui.h"
+
 ShaderProgram::ShaderProgram(std::string vspath, std::string fspath) : m_initWithShaders(true) {
     Shader vs(vspath, GL_VERTEX_SHADER);
     Shader fs(fspath, GL_FRAGMENT_SHADER);

@@ -1,8 +1,8 @@
 #pragma once
+
 #include <assimp/scene.h>
 #include <glm/glm.hpp>
 #include <vector>
-#include <memory>
 
 #include "Buffer.h"
 #include "VertexArray.h"

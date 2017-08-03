@@ -1,4 +1,10 @@
 #include "Shader.h"
+
+#include <array>
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #include "Utils/Timer.h"
 
 Shader::Shader(const std::string& path, GLuint shaderType) : m_shaderType(shaderType), m_path(path)

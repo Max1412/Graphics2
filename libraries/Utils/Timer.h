@@ -1,13 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
 #include <GL/glew.h>
 
 #include "Utils/UtilCollection.h"
-
-#include "imgui/imgui_impl_glfw_gl3.h"
-
 
 
 class Timer {

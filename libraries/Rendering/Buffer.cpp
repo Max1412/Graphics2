@@ -1,5 +1,8 @@
 #include "Buffer.h"
 
+#include "Utils/UtilCollection.h"
+
+
 Buffer::Buffer() {
 	glGenBuffers(1, &m_bufferHandle);
 }

@@ -1,5 +1,9 @@
 #include "SimpleTrackball.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "imgui/imgui.h"
+
 
 SimpleTrackball::SimpleTrackball(int width, int height, float radius) {
 

@@ -1,12 +1,9 @@
 #pragma once
 
-#include <string>
-#include <iostream>
 #include <vector>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 #include "Rendering/Mesh.h"
 
