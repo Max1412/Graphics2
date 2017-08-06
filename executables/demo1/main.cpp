@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
                 size_t positionOffset = i * sizeof(lvec.at(i));
                 lightBuffer.bind();
                 float *ptr = lightBuffer.mapBufferContet<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
-                ImGui::SliderFloat3((std::string("Position ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
+                ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
                 lightBuffer.unmapBuffer();
             }
             ImGui::End();

@@ -131,8 +131,13 @@ float distancefield(vec3 p)
 	// a simple "tree"
 	float sphere2 = dfSphere(opRep(p, vec3(0.0, 0.0, 0.0)), vec3(0.0, 3.0, 0.0), 1.0);
 	float box = dfPBox(opRep(p, vec3(0.0, 0.0, 0.0)), vec3(0.0, 0.0, 0.0), vec3(0.15, 3, 0.15));
+
+	float dbox = dfBox(p, vec3(1.0, 1.0, 1.0));
+	float dbox2 = dfPBox(p, vec3(0.0, 1.0, 0.0), vec3(0.9, 0.1, 0.9));
+	float thing = opSubtract(dbox, dbox2);
 	d = opUnion(d, sphere2);
 	d = opUnion(d, box);
+	d = opUnion(d, thing);
 	
 	return d;
 }

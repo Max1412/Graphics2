@@ -193,16 +193,14 @@ int main(int argc, char* argv[]) {
                     glm::vec3 newPos = rotxyz * lvec.at(i).pos;
                     lightBuffer.setContentSubData(newPos, posOffset);
                     lvec.at(i).spot_direction = glm::normalize(glm::vec3(0.0f) - newPos);
-                    size_t spotDirOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).spot_cutoff);
-                    size_t spotDirOffset2 = i * sizeof(lvec.at(i)) * offsetof(LightInfo, spot_direction);
-                    std::cout << spotDirOffset << " " << spotDirOffset2 << std::endl;
+                    size_t spotDirOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_direction);
                     lightBuffer.setContentSubData(lvec.at(i).spot_direction, spotDirOffset);
                 }
                 // maps memory to access it by GUI -- probably very bad performance-wise
                 size_t positionOffset = i * sizeof(lvec.at(i));
                 lightBuffer.bind();
                 float *ptr = lightBuffer.mapBufferContet<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
-                ImGui::SliderFloat3((std::string("Position ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
+                ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
                 lightBuffer.unmapBuffer();
             }
             ImGui::End();
