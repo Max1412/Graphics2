@@ -260,15 +260,15 @@ int main(int argc, char* argv[]) {
                 n << i;
                 ImGui::Text((std::string("Light ") + n.str()).c_str());
                 if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), glm::value_ptr(lvec.at(i).col), 0.0f, 1.0f)) {
-                    size_t colOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos);
+                    size_t colOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, col);
                     lightBuffer.setContentSubData(lvec.at(i).col, colOffset);
                 }
                 if(ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)){
-                    size_t spotCutoffOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col);
+                    size_t spotCutoffOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_cutoff);
                     lightBuffer.setContentSubData(lvec.at(i).spot_cutoff, spotCutoffOffset);
                 }
                 if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i).spot_exponent, 0.0f, 100.0f)) {
-                    size_t spotCutoffExpOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).spot_cutoff) + sizeof(lvec.at(i).spot_direction);
+                    size_t spotCutoffExpOffset = i * sizeof(lvec.at(i)) * offsetof(LightInfo, spot_exponent);
                     lightBuffer.setContentSubData(lvec.at(i).spot_exponent, spotCutoffExpOffset);
                 }
                 if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), glm::value_ptr(rotations.at(i)), 0.0f, 360.0f)) {
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
                     glm::vec3 newPos = rotxyz * lvec.at(i).pos;
                     lightBuffer.setContentSubData(newPos, posOffset);
                     lvec.at(i).spot_direction = glm::normalize(glm::vec3(0.0f) - newPos);
-                    size_t spotDirOffset = i * sizeof(lvec.at(i)) + sizeof(lvec.at(i).pos) + sizeof(lvec.at(i).col) + sizeof(lvec.at(i).spot_cutoff);
+                    size_t spotDirOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_direction);
                     lightBuffer.setContentSubData(lvec.at(i).spot_direction, spotDirOffset);
                 }
 
