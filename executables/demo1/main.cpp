@@ -282,6 +282,13 @@ int main(int argc, char* argv[]) {
                     size_t spotDirOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_direction);
                     lightBuffer.setContentSubData(lvec.at(i).spot_direction, spotDirOffset);
                 }
+                // maps memory to access it by GUI -- probably very bad performance-wise
+                size_t positionOffset = i * sizeof(lvec.at(i));
+                lightBuffer.bind();
+                float* ptr = static_cast<float*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, positionOffset, sizeof(glm::vec3), GL_MAP_READ_BIT | GL_MAP_WRITE_BIT));
+                ImGui::SliderFloat3((std::string("Position ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
+                glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
 
             }
             ImGui::End();
