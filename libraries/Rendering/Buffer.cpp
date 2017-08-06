@@ -23,3 +23,9 @@ void Buffer::bind() const {
 void Buffer::bindBase(unsigned int binding) {
 	glBindBufferBase(m_target, binding, m_bufferHandle);
 }
+
+void Buffer::unmapBuffer()
+{
+    glUnmapBuffer(m_target);
+
+}

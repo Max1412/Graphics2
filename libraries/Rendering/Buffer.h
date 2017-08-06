@@ -103,6 +103,9 @@ public:
      */
     template<typename S>
     void setPartialContentMapped(const S& data, int startOffset);
+    template <class S>
+    S* mapBufferContet(int size, int startOffset, GLbitfield flags);
+    void unmapBuffer();
 
     /**
      * \brief binds the buffer, writes data with glBufferSubData
@@ -132,6 +135,12 @@ void Buffer::setPartialContentMapped(const S& data, int startOffset) {
     S* ptr = static_cast<S*>(glMapBufferRange(m_target, startOffset, sizeof(data), GL_MAP_WRITE_BIT));
     *ptr = data;
     glUnmapBuffer(m_target);
+}
+
+template<typename S>
+S* Buffer::mapBufferContet(int size, int startOffset, GLbitfield flags) {
+    bind();
+    return static_cast<S*>(glMapBufferRange(m_target, startOffset, size, flags));
 }
 
 template<typename S>
