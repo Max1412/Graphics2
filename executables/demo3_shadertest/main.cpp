@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> extensions = util::getGLExtenstions();
 
     Shader vs("sfq.vert", GL_VERTEX_SHADER);
-    Shader fs("sfq1.frag", GL_FRAGMENT_SHADER);
+    Shader fs("sfq2.frag", GL_FRAGMENT_SHADER);
     ShaderProgram sp(vs, fs);
     sp.use();
 
@@ -65,7 +65,6 @@ int main(int argc, char* argv[]) {
     auto time = std::chrono::high_resolution_clock::now();
     auto time2 = std::chrono::high_resolution_clock::now();
     auto dur = (time2 - time).count();
-    std::cout << dur << std::endl;
     auto duration = dur / 1000000000.0f;
     auto timeUniform = std::make_shared<Uniform<float>>("u_time", duration);
     sp.addUniform(timeUniform);
@@ -94,7 +93,6 @@ int main(int argc, char* argv[]) {
 
         time2 = std::chrono::high_resolution_clock::now();
         dur = (time2 - time).count();
-        std::cout << dur << std::endl;
         duration = dur / 100000000.0f;
         timeUniform->setContent(duration);
         sp.updateUniforms();
