@@ -27,7 +27,6 @@ void Timer::stop() {
 }
 
 void Timer::drawGuiWindow(GLFWwindow* window) {
-    ImGui::SetNextWindowPos(ImVec2(1200, 100));
     ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Performance");
     ImGui::PlotLines("Frametime", m_ftimes.data(), m_ftimes.size(), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
