@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
                     lightBuffer.setContentSubData(lvec.at(i).spot_cutoff, spotCutoffOffset);
                 }
                 if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i).spot_exponent, 0.0f, 100.0f)) {
-                    size_t spotCutoffExpOffset = i * sizeof(lvec.at(i)) * offsetof(LightInfo, spot_exponent);
+                    size_t spotCutoffExpOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_exponent);
                     lightBuffer.setContentSubData(lvec.at(i).spot_exponent, spotCutoffExpOffset);
                 }
                 if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), glm::value_ptr(rotations.at(i)), 0.0f, 360.0f)) {
