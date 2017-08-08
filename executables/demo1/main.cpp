@@ -222,10 +222,14 @@ int main(int argc, char* argv[]) {
 
     std::vector<glm::vec3> rotations(5, glm::vec3(0.0f));
 
+    float angle = 0.1f;
+
     // render loop
     while (!glfwWindowShouldClose(window)) {
 
         timer.start();
+        glm::mat4 newModel = glm::rotate(bunny.getModelMatrix(), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        bunny.setModelMatrix(newModel);
 
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
