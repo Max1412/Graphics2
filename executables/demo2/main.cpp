@@ -57,7 +57,7 @@ struct FogInfo {
 
 int main(int argc, char* argv[]) {
     // init glfw, open window, manage context
-    GLFWwindow* window = util::setupGLFWwindow(width, height, "Demo 1");
+    GLFWwindow* window = util::setupGLFWwindow(width, height, "Demo 2");
     glfwSwapInterval(0);
     // init glew and check for errors
     util::initGLEW();
