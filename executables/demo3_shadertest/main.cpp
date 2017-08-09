@@ -19,8 +19,8 @@
 #include "imgui/imgui_impl_glfw_gl3.h"
 #include <iostream>
 
-const unsigned int width = 1280;
-const unsigned int height = 720;
+const unsigned int width = 800;
+const unsigned int height = 800;
 
 int main(int argc, char* argv[]) {
     // init glfw, open window, manage context
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> extensions = util::getGLExtenstions();
 
     Shader vs("sfq.vert", GL_VERTEX_SHADER);
-    Shader fs("sfq2.frag", GL_FRAGMENT_SHADER);
+    Shader fs("mondrian.frag", GL_FRAGMENT_SHADER);
     ShaderProgram sp(vs, fs);
     sp.use();
 
@@ -67,7 +67,16 @@ int main(int argc, char* argv[]) {
     auto dur = (time2 - time).count();
     auto duration = dur / 1000000000.0f;
     auto timeUniform = std::make_shared<Uniform<float>>("u_time", duration);
-    sp.addUniform(timeUniform);
+    // catch optimized-out uniforms -- this is for testing purposes only
+    try
+    {
+        sp.addUniform(timeUniform);
+    }
+    catch (std::runtime_error& err)
+    {
+        std::cout << "Unused uniform" << '\n';
+        std::cout << err.what() << '\n';
+    }
 
     glm::vec4 clear_color(0.1f);
 
@@ -105,6 +114,7 @@ int main(int argc, char* argv[]) {
         ImGui::Render();
         glfwSwapBuffers(window);
     }
+    std::cout << std::endl;
     sp.del();
     ImGui_ImplGlfwGL3_Shutdown();
 
