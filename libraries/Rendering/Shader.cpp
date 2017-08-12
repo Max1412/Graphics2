@@ -61,7 +61,7 @@ void Shader::init(const std::string& path)
 
 void Shader::init() const
 {
-    if(m_path.size() == 0)
+    if(m_path.empty())
     {
         throw std::runtime_error("No path given");
     }

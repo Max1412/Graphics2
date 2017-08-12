@@ -79,7 +79,7 @@ void ShaderProgram::addShader(const Shader &shader) {
 void ShaderProgram::createProgram() {
 
 	// check if there are shaders in this ShaderProgram
-	if (m_shaderMap.size() == 0) {
+	if (m_shaderMap.empty()) {
 		throw std::runtime_error("No shaders in this ShaderProgram! Please add shaders before calling createProgram()!");
 	}
 
