@@ -85,7 +85,6 @@ void ShaderProgram::createProgram() {
 		throw std::runtime_error("No shaders in this ShaderProgram! Please add shaders before calling createProgram()!");
 	}
 
-
 	// create Program and check for errors
 	m_shaderProgramHandle = glCreateProgram();
 	if (0 == m_shaderProgramHandle)

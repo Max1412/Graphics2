@@ -17,22 +17,43 @@
 class ShaderProgram
 {
 public:
-	ShaderProgram();
 	ShaderProgram(std::string vspath, std::string fspath);
 	ShaderProgram(const Shader &shader1, const Shader &shader2);
 	ShaderProgram(const std::vector<Shader>& shaders);
     ~ShaderProgram();
 
 	
+    /**
+	 * \brief adds a shaderto the program
+	 * \param shader the shader that is to be added
+	 */
 	void addShader(const Shader &shader);
 
+    /**
+	 * \brief creates a shader program with all shaders from the map
+	 */
 	void createProgram();
+
+    /**
+     * \brief links the shader program
+     */
     void linkProgram();
 
+    /**
+	 * \brief retruns the shader program handle
+	 * \return shader program handle
+	 */
 	GLuint getShaderProgramHandle() const;
 
+    /**
+	 * \brief sets the shader program as the currently used shader program
+	 */
 	void use();
 
+    /**
+     * \brief swaps current shader of the same kind with the given shader
+     * \param shader new shader to be used
+     */
     void changeShader(const Shader &shader);
 
     void addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform);
@@ -42,11 +63,21 @@ public:
     void addUniform(std::shared_ptr<Uniform<int>> uniform);
     void addUniform(std::shared_ptr<Uniform<float>> uniform);
 
-
-
+    /**
+	 * \brief updates all uniforms depending on their flags
+	 */
 	void updateUniforms();
+
+    /**
+     * \brief forces update of all uniforms (ignores flag)
+     */
     void forceUpdateUniforms();
 
+    /**
+     * \brief shows a "reload vertex/fragment shader" gui window using imgui
+     * \param vshader the vertex shader to be changed/reloaded
+     * \param fshader the fragment shader to be changed/reloaded
+     */
     void showReloadShaderGUI(const Shader& vshader, const Shader& fshader);
 
 private:
