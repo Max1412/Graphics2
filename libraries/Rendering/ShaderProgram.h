@@ -29,7 +29,7 @@ public:
 	void createProgram();
     void linkProgram();
 
-	GLuint getShaderProgramHandle();
+	GLuint getShaderProgramHandle() const;
 
 	void use();
 

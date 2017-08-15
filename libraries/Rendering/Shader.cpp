@@ -28,12 +28,12 @@ Shader::Shader(GLuint shaderType) : m_shaderType(shaderType)
     }
 }
 
-void Shader::init(const std::string& path)
+void Shader::init(const std::string& path) const
 {
     // load shader file and use it
     std::string shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + path);
     std::array<const GLchar*, 1> codeArray{ shaderCode.c_str() };
-    glShaderSource(m_shaderHandle, 1, codeArray.data(), NULL);
+    glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 
     // compile shader
     glCompileShader(m_shaderHandle);
@@ -68,7 +68,7 @@ void Shader::init() const
     // load shader file and use it
     std::string shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + m_path);
     std::array<const GLchar*, 1> codeArray{ shaderCode.c_str() };
-    glShaderSource(m_shaderHandle, 1, codeArray.data(), NULL);
+    glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 
     // compile shader
     glCompileShader(m_shaderHandle);

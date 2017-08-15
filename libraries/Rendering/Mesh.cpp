@@ -1,5 +1,4 @@
 #include "Mesh.h"
-#include <iostream>
 #include <GLFW/glfw3.h>
 
 Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER) {
@@ -56,7 +55,7 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
 void Mesh::draw() const {
     m_vao.bind();
     m_indexBuffer.bind();
-    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
 }
 
 

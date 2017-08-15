@@ -21,7 +21,7 @@ namespace util
 
 	GLFWwindow* setupGLFWwindow(unsigned int width, unsigned int height, std::string name) {
 		glfwInit();
-		GLFWwindow* window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(window);
 		return window;
 	}

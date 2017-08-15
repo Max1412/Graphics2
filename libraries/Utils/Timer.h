@@ -15,7 +15,7 @@ public:
     /**
      * \brief starts the GPU timer
      */
-    void start();
+    void start() const;
 
     /**
      * \brief stops the GPU timer

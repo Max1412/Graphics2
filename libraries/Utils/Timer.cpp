@@ -12,7 +12,7 @@ Timer::~Timer() {
     util::getGLerror(__LINE__, __FUNCTION__);
 }
 
-void Timer::start() {
+void Timer::start() const {
     glBeginQuery(GL_TIME_ELAPSED, m_query);
 }
 

@@ -15,7 +15,7 @@ public:
      * \brief inits with a given path (loading the shader)
      * \param path relative to SHADERS_PATH
      */
-    void Shader::init(const std::string& path);
+    void Shader::init(const std::string& path) const;
 
     /**
      * \brief inits with the path given in the constructor

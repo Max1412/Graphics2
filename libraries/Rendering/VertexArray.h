@@ -20,7 +20,7 @@ public:
 	 * \param type GL data type
 	 * \param normalized specifies if fixed point attributes should be normalized
 	 */
-	void connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized);
+	void connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const;
    
     /**
 	 * \brief connects a buffer to this vao
@@ -32,7 +32,7 @@ public:
 	 * \param stride byte offset between vertex attributes
 	 * \param pointer offset to begin of the array
 	 */
-	void connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, const GLvoid* pointer);
+	void connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, const GLvoid* pointer) const;
 private:
 	GLuint m_vaoHandle;
 };

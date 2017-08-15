@@ -123,7 +123,7 @@ void ShaderProgram::linkProgram()
     }
 }
 
-GLuint ShaderProgram::getShaderProgramHandle() {
+GLuint ShaderProgram::getShaderProgramHandle() const{
 	return m_shaderProgramHandle;
 }
 

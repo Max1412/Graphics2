@@ -29,8 +29,8 @@ void SimpleTrackball::update(GLFWwindow* window) {
         glfwGetCursorPos(window, &x, &y);
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
-            float changeX = ((float)x - m_oldX) * m_sensitivity;
-            float changeY = ((float)y - m_oldY) * m_sensitivity;
+            float changeX = (static_cast<float>(x) - m_oldX) * m_sensitivity;
+            float changeY = (static_cast<float>(y) - m_oldY) * m_sensitivity;
 
             m_theta -= changeY;
             if (m_theta < 0.01f) {
@@ -49,8 +49,8 @@ void SimpleTrackball::update(GLFWwindow* window) {
             }
         }
 
-        m_oldX = (float)x;
-        m_oldY = (float)y;
+        m_oldX = static_cast<float>(x);
+        m_oldY = static_cast<float>(y);
 
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
             m_radius -= 0.1f;
