@@ -7,10 +7,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-#include <exception>
-#include <string>
-#include <sstream>
 #include <memory>
 
 #include "Utils/UtilCollection.h"
@@ -67,14 +63,14 @@ int main(int argc, char* argv[]) {
     std::vector<unsigned int> indices = meshes.at(0)->getIndices();
 
 
-	Buffer vBuffer;
-	vBuffer.setData(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer vBuffer(GL_ARRAY_BUFFER);
+	vBuffer.setData(vertices, GL_STATIC_DRAW);
 
-	Buffer nBuffer;
-	nBuffer.setData(normals, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+	Buffer nBuffer(GL_ARRAY_BUFFER);
+	nBuffer.setData(normals, GL_STATIC_DRAW);
 
-	Buffer iBuffer;
-	iBuffer.setData(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+	Buffer iBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	iBuffer.setData(indices, GL_STATIC_DRAW);
 
 	VertexArray vao;
 	vao.connectBuffer(vBuffer, 0, 3, GL_FLOAT, GL_FALSE);
@@ -87,7 +83,7 @@ int main(int argc, char* argv[]) {
     SimpleTrackball camera(width, height, 10.0f);
     glm::mat4 view = camera.getView();
 
-	glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / (float)height, 1.0f, 1000.0f);
+	glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / static_cast<float>(height), 1.0f, 1000.0f);
 	glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
 	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
@@ -110,12 +106,12 @@ int main(int argc, char* argv[]) {
 	m.Ks = glm::vec3(0.5f, 0.5f, 0.5f);
 	m.Shininess = 15.0f;
 
-	Buffer lightBuffer;
-	lightBuffer.setData(std::vector<LightInfo>{li}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
+	lightBuffer.setData(std::vector<LightInfo>{li}, GL_DYNAMIC_DRAW);
 	lightBuffer.bindBase(0);
 
-	Buffer materialBuffer;
-	materialBuffer.setData(std::vector<MaterialInfo>{m}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
+	materialBuffer.setData(std::vector<MaterialInfo>{m}, GL_DYNAMIC_DRAW);
 	materialBuffer.bindBase(1);
 
 	float angle = 0.01f;
@@ -135,7 +131,7 @@ int main(int argc, char* argv[]) {
 		sp.updateUniforms();
 
 		//glDrawArrays(GL_TRIANGLES, 0, numVertices);
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
 		glfwSwapBuffers(window);
 	}

@@ -67,14 +67,14 @@ int main(int argc, char* argv[]) {
     std::vector<unsigned int> indices = meshes.at(0)->getIndices();
 
 
-    Buffer vBuffer;
-    vBuffer.setData(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer vBuffer(GL_ARRAY_BUFFER);
+    vBuffer.setData(vertices, GL_STATIC_DRAW);
 
-    Buffer nBuffer;
-    nBuffer.setData(normals, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer nBuffer(GL_ARRAY_BUFFER);
+    nBuffer.setData(normals, GL_STATIC_DRAW);
 
-    Buffer iBuffer;
-    iBuffer.setData(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer iBuffer(GL_ELEMENT_ARRAY_BUFFER);
+    iBuffer.setData(indices, GL_STATIC_DRAW);
 
     VertexArray vao;
     vao.connectBuffer(vBuffer, 0, 3, GL_FLOAT, GL_FALSE);
@@ -110,12 +110,12 @@ int main(int argc, char* argv[]) {
     m.Ks = glm::vec3(0.5f, 0.5f, 0.5f);
     m.Shininess = 15.0f;
 
-    Buffer lightBuffer;
-    lightBuffer.setData(std::vector<LightInfo>{li}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
+    lightBuffer.setData(std::vector<LightInfo>{li}, GL_DYNAMIC_DRAW);
     lightBuffer.bindBase(0);
 
-    Buffer materialBuffer;
-    materialBuffer.setData(std::vector<MaterialInfo>{m}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
+    materialBuffer.setData(std::vector<MaterialInfo>{m}, GL_DYNAMIC_DRAW);
     materialBuffer.bindBase(1);
 
     float angle = 0.01f;

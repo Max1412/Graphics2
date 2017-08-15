@@ -4,7 +4,7 @@
 #include <iostream>
 
 
-Buffer::Buffer() {
+Buffer::Buffer(GLenum target) : m_target(target) {
 	glGenBuffers(1, &m_bufferHandle);
 }
 
@@ -17,7 +17,7 @@ Buffer::~Buffer() {
     std::cout << "buffer destructor called" << std::endl;
 }
 
-GLuint Buffer::getHandle() {
+GLuint Buffer::getHandle() const {
 	return m_bufferHandle;
 }
 
@@ -25,12 +25,11 @@ void Buffer::bind() const {
 	glBindBuffer(m_target, m_bufferHandle);
 }
 
-void Buffer::bindBase(unsigned int binding) {
+void Buffer::bindBase(unsigned int binding) const {
 	glBindBufferBase(m_target, binding, m_bufferHandle);
 }
 
-void Buffer::unmapBuffer()
-{
+void Buffer::unmapBuffer() const {
     glUnmapBuffer(m_target);
 
 }

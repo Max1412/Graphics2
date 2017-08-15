@@ -50,11 +50,11 @@ int main(int argc, char* argv[]) {
 		0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 1.0f };
 
-	Buffer positionBuffer;
-	positionBuffer.setData(positionData, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer positionBuffer(GL_ARRAY_BUFFER);
+	positionBuffer.setData(positionData, GL_STATIC_DRAW);
 
-	Buffer colorBuffer;
-	colorBuffer.setData(colorData, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer colorBuffer(GL_ARRAY_BUFFER);
+	colorBuffer.setData(colorData, GL_STATIC_DRAW);
 
 	VertexArray vao;
 	vao.connectBuffer(positionBuffer, 0, 3, GL_FLOAT, GL_FALSE);

@@ -87,8 +87,8 @@ int main(int argc, char* argv[]) {
         { 1.0, 1.0 }
     };
 
-    Buffer QuadBuffer;
-    QuadBuffer.setData(quadData, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer QuadBuffer(GL_ARRAY_BUFFER);
+    QuadBuffer.setData(quadData, GL_STATIC_DRAW);
     VertexArray quadVAO;
     quadVAO.connectBuffer(QuadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
 
@@ -136,8 +136,8 @@ int main(int argc, char* argv[]) {
         lvec.push_back(li);
     }
     // create buffers for materials and lights
-    Buffer lightBuffer;
-    lightBuffer.setData(lvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
+    lightBuffer.setData(lvec, GL_DYNAMIC_DRAW);
     lightBuffer.bindBase(0);
 
     glm::vec4 clear_color(0.1f);
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
                 // maps memory to access it by GUI -- probably very bad performance-wise
                 size_t positionOffset = i * sizeof(lvec.at(i));
                 lightBuffer.bind();
-                float *ptr = lightBuffer.mapBufferContet<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+                float *ptr = lightBuffer.mapBufferContent<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
                 ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
                 lightBuffer.unmapBuffer();
             }

@@ -55,8 +55,8 @@ int main(int argc, char* argv[]) {
 	bs.RadiusOuter = 0.45f;
 
 	// shader storage buffer object containg BlobSettings struct
-	Buffer blobBuffer;
-	blobBuffer.setData(std::vector<BlobSettings>{bs}, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer blobBuffer(GL_SHADER_STORAGE_BUFFER);
+	blobBuffer.setData(std::vector<BlobSettings>{bs}, GL_DYNAMIC_DRAW);
 	blobBuffer.bindBase(0);
 
 	std::array<float, 18> positionData = {
@@ -81,11 +81,11 @@ int main(int argc, char* argv[]) {
 		1.0f, 1.0f, 0.0f
 	};
 
-	Buffer vertexBuffer;
-	vertexBuffer.setData(positionData, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer vertexBuffer(GL_ARRAY_BUFFER);
+	vertexBuffer.setData(positionData, GL_STATIC_DRAW);
 
-	Buffer texCoordBuffer;
-	texCoordBuffer.setData(texCoordData, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer texCoordBuffer(GL_ARRAY_BUFFER);
+	texCoordBuffer.setData(texCoordData, GL_STATIC_DRAW);
 
 	VertexArray vao;
 	vao.connectBuffer(vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);

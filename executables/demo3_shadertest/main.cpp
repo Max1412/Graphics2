@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
         { 1.0, 1.0 }
     };
 
-    Buffer QuadBuffer;
-    QuadBuffer.setData(quadData, GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+    Buffer QuadBuffer(GL_ARRAY_BUFFER);
+    QuadBuffer.setData(quadData, GL_STATIC_DRAW);
     VertexArray quadVAO;
     quadVAO.connectBuffer(QuadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
 

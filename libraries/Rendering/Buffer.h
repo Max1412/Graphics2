@@ -8,13 +8,14 @@
 class Buffer
 {
 public:
-	Buffer();
+	Buffer(GLenum target);
     ~Buffer();
+
     /**
 	 * \brief returns the OpenGL buffer handle
 	 * \return buffer handle
 	 */
-	GLuint getHandle();
+	GLuint getHandle() const;
 
     /**
 	 * \brief binds the buffer to the OpenGL context
@@ -25,70 +26,64 @@ public:
 	 * \brief binds the buffer to a binding layout
 	 * \param binding 
 	 */
-	void bindBase(unsigned int binding);
+	void bindBase(unsigned int binding) const;
 
     /**
 	 * \brief binds the buffer, uses glBufferData to allocate & move data to GPU
 	 * \tparam T data type
 	 * \param data input data as vector
-	 * \param target gl buffer target (GL_..._BUFFER)
 	 * \param drawType gl draw type (GL_..._DRAW)
 	 */
 	template<typename T>
-	void setData(const std::vector<T> &data, GLenum target,  GLenum drawType);
+	void setData(const std::vector<T> &data,  GLenum drawType);
 
     /**
 	 * \brief binds the buffer, uses glBufferData to allocate & move data to GPU
 	 * \tparam T data type
 	 * \tparam N array size
 	 * \param data input data as array
-	 * \param target gl buffer target (GL_..._BUFFER)
 	 * \param drawType gl draw type (GL_..._DRAW)
 	 */
 	template<typename T, std::size_t N>
-	void setData(const std::array<T, N> &data, GLenum target, GLenum drawType);
+	void setData(const std::array<T, N> &data, GLenum drawType);
 
     /**
 	 * \brief binds the buffer, uses glBufferStorage, buffer will be immutable
 	 * \tparam T data type
 	 * \param data input data as vector
-	 * \param target gl buffer target (GL_..._BUFFER)
 	 * \param flags buffer flags
 	 */
 	template<typename T>
-	void setStorage(const std::vector<T> &data, GLenum target, GLbitfield flags);
+	void setStorage(const std::vector<T> &data, GLbitfield flags);
 
     /**
 	 * \brief binds the buffer, uses glBufferStorage, buffer will be immutable
 	 * \tparam T data type
 	 * \tparam N array size
 	 * \param data input data as vector
-	 * \param target gl buffer target (GL_..._BUFFER)
 	 * \param flags buffer flags
 	 */
 	template<typename T, std::size_t N>
-	void setStorage(const std::array<T, N> &data, GLenum target, GLbitfield flags);
+	void setStorage(const std::array<T, N> &data, GLbitfield flags);
 
     /**
 	 * \brief binds the buffer, sets (sub)data
 	 * \tparam T data type
 	 * \param data input data as array
-	 * \param target gl buffer target (GL_..._BUFFER)
 	 * \param offset offset in bytes from the start
 	 */
 	template<typename T>
-	void setSubData(const std::vector<T> &data, GLenum target, int offset);
+	void setSubData(const std::vector<T> &data, int offset);
 
     /**
 	 * \brief binds the buffer, sets (sub)data
 	 * \tparam T data type
 	 * \tparam N array size
 	 * \param data input data as array
-	 * \param target gl buffer target (GL_..._BUFFER)
 	 * \param offset offset in bytes from the start
 	 */
 	template<typename T, std::size_t N>
-	void setSubData(const std::array<T, N> &data, GLenum target, int offset);
+	void setSubData(const std::array<T, N> &data, int offset);
 
     /**
      * \brief maps the buffer, writes data, unmaps the buffer
@@ -98,9 +93,22 @@ public:
      */
     template<typename S>
     void setPartialContentMapped(const S& data, int startOffset);
+
+    /**
+     * \brief maps the buffer, returns mapped pointer
+     * \tparam S content data type
+     * \param size size of mapped part of the buffer
+     * \param startOffset start offset to the buffer data
+     * \param flags buffer flags
+     * \return 
+     */
     template <class S>
-    S* mapBufferContet(int size, int startOffset, GLbitfield flags);
-    void unmapBuffer();
+    S* mapBufferContent(int size, int startOffset, GLbitfield flags);
+
+    /**
+     * \brief unmaps the buffer
+     */
+    void unmapBuffer() const;
 
     /**
      * \brief binds the buffer, writes data with glBufferSubData
@@ -116,8 +124,6 @@ private:
 	GLenum m_target;
 
 	bool m_isImmutable = false;
-
-
 };
 
 /*
@@ -133,7 +139,7 @@ void Buffer::setPartialContentMapped(const S& data, int startOffset) {
 }
 
 template<typename S>
-S* Buffer::mapBufferContet(int size, int startOffset, GLbitfield flags) {
+S* Buffer::mapBufferContent(int size, int startOffset, GLbitfield flags) {
     bind();
     return static_cast<S*>(glMapBufferRange(m_target, startOffset, size, flags));
 }
@@ -145,54 +151,48 @@ void Buffer::setContentSubData(const S& data, int startOffset) {
 }
 
 template <typename T>
-void Buffer::setData(const std::vector<T> &data, GLenum target, GLenum drawType) {
+void Buffer::setData(const std::vector<T> &data, GLenum drawType) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
-	m_target = target;
-	glBindBuffer(target, m_bufferHandle);
-	glBufferData(target, data.size() * sizeof(T), data.data(), drawType);
+	glBindBuffer(m_target, m_bufferHandle);
+	glBufferData(m_target, data.size() * sizeof(T), data.data(), drawType);
 }
 
 template <typename T, std::size_t N>
-void Buffer::setData(const std::array<T, N> &data, GLenum target, GLenum drawType) {
+void Buffer::setData(const std::array<T, N> &data, GLenum drawType) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
-	m_target = target;
-	glBindBuffer(target, m_bufferHandle);
-	glBufferData(target, data.size() * sizeof(T), data.data(), drawType);
+	glBindBuffer(m_target, m_bufferHandle);
+	glBufferData(m_target, data.size() * sizeof(T), data.data(), drawType);
 }
 
 template<typename T>
-void Buffer::setSubData(const std::vector<T> &data, GLenum target, int offset) {
-	m_target = target;
-	glBindBuffer(target, m_bufferHandle);
-	glBufferSubData(target, offset, data.size() * sizeof(T), data.data());
+void Buffer::setSubData(const std::vector<T> &data, int offset) {
+	glBindBuffer(m_target, m_bufferHandle);
+	glBufferSubData(m_target, offset, data.size() * sizeof(T), data.data());
 }
 
 template <typename T, std::size_t N>
-void Buffer::setSubData(const std::array<T, N> &data, GLenum target, int offset) {
-	m_target = target;
-	glBindBuffer(target, m_bufferHandle);
-	glBufferSubData(target, offset, data.size() * sizeof(T), data.data());
+void Buffer::setSubData(const std::array<T, N> &data, int offset) {
+	glBindBuffer(m_target, m_bufferHandle);
+	glBufferSubData(m_target, offset, data.size() * sizeof(T), data.data());
 }
 
 template<typename T>
-void Buffer::setStorage(const std::vector<T> &data, GLenum target, GLbitfield flags) {
+void Buffer::setStorage(const std::vector<T> &data, GLbitfield flags) {
     if (m_isImmutable)
         throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
-	m_target = target;
-	glBindBuffer(target, m_bufferHandle);
-	glBufferStorage(target, data.size() * sizeof(T), data.data(), flags);
+	glBindBuffer(m_target, m_bufferHandle);
+	glBufferStorage(m_target, data.size() * sizeof(T), data.data(), flags);
 	m_isImmutable = true;
 }
 
 template <typename T, std::size_t N>
-void Buffer::setStorage(const std::array<T, N> &data, GLenum target, GLbitfield flags) {
+void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) {
     if (m_isImmutable)
         throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
-	m_target = target;
-	glBindBuffer(target, m_bufferHandle);
-	glBufferStorage(target, data.size() * sizeof(T), data.data(), flags);
+	glBindBuffer(m_target, m_bufferHandle);
+	glBufferStorage(m_target, data.size() * sizeof(T), data.data(), flags);
 	m_isImmutable = true;
 
 }

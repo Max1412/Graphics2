@@ -177,12 +177,12 @@ int main(int argc, char* argv[]) {
     plane.setMaterialID(1);
 
     // create buffers for materials and lights
-    Buffer lightBuffer;
-    lightBuffer.setData(lvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
+    lightBuffer.setData(lvec, GL_DYNAMIC_DRAW);
     lightBuffer.bindBase(0);
 
-    Buffer materialBuffer;
-    materialBuffer.setData(mvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
+    materialBuffer.setData(mvec, GL_DYNAMIC_DRAW);
     materialBuffer.bindBase(1);
 
     FogInfo f;
@@ -192,8 +192,8 @@ int main(int argc, char* argv[]) {
     f.col = glm::vec3(0.1f);
     f.mode = 3;
     std::vector<FogInfo> fogvec{ f };
-    Buffer fogBuffer;
-    fogBuffer.setData(fogvec, GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW);
+    Buffer fogBuffer(GL_SHADER_STORAGE_BUFFER);
+    fogBuffer.setData(fogvec, GL_DYNAMIC_DRAW);
     fogBuffer.bindBase(2);
 
     glm::vec4 clear_color(0.1f);
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
                 // maps memory to access it by GUI -- probably very bad performance-wise
                 size_t positionOffset = i * sizeof(lvec.at(i));
                 lightBuffer.bind();
-                float *ptr = lightBuffer.mapBufferContet<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+                float *ptr = lightBuffer.mapBufferContent<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
                 ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
                 lightBuffer.unmapBuffer();
             }
