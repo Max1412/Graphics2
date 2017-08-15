@@ -1,4 +1,6 @@
 #include "Mesh.h"
+#include <iostream>
+#include <GLFW/glfw3.h>
 
 Mesh::Mesh(aiMesh* assimpMesh) {
 
@@ -11,7 +13,7 @@ Mesh::Mesh(aiMesh* assimpMesh) {
     //m_texCoords.resize(assimpMesh->mNumVertices);
 
     #pragma omp parallel for
-    for (int i = 0; i < assimpMesh->mNumVertices; i++) {
+    for (unsigned i = 0; i < assimpMesh->mNumVertices; i++) {
         aiVector3D aivec = assimpMesh->mVertices[i];
         glm::vec3 vertex(aivec.x, aivec.y, aivec.z);
         m_vertices.at(i) = vertex;
@@ -55,12 +57,6 @@ void Mesh::draw() const {
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
 }
 
-void Mesh::del() {
-    m_vertexBuffer.del();
-    m_normalBuffer.del();
-    m_indexBuffer.del();
-    m_vao.del();
-}
 
 void Mesh::setModelMatrix(const glm::mat4& modelMatrix) {
     m_modelMatrix = modelMatrix;

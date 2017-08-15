@@ -5,8 +5,11 @@ Timer::Timer() {
     glGenQueries(1, &m_query);
 }
 
-void Timer::del() {
-    glDeleteQueries(1, &m_query);
+Timer::~Timer() {
+    if (glfwGetCurrentContext() != nullptr) {
+        glDeleteQueries(1, &m_query);
+    }
+    util::getGLerror(__LINE__, __FUNCTION__);
 }
 
 void Timer::start() {

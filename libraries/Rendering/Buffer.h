@@ -9,7 +9,7 @@ class Buffer
 {
 public:
 	Buffer();
-
+    ~Buffer();
     /**
 	 * \brief returns the OpenGL buffer handle
 	 * \return buffer handle
@@ -26,11 +26,6 @@ public:
 	 * \param binding 
 	 */
 	void bindBase(unsigned int binding);
-
-    /**
-	 * \brief current destructor workaround
-	 */
-	void del();
 
     /**
 	 * \brief binds the buffer, uses glBufferData to allocate & move data to GPU

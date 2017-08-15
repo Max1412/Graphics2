@@ -1,15 +1,20 @@
 #include "Buffer.h"
 
 #include "Utils/UtilCollection.h"
+#include <iostream>
 
 
 Buffer::Buffer() {
 	glGenBuffers(1, &m_bufferHandle);
 }
 
-void Buffer::del() {
-	glDeleteBuffers(1, &m_bufferHandle);
-	util::getGLerror(__LINE__, __FUNCTION__);
+
+Buffer::~Buffer() {
+    if (glfwGetCurrentContext() != nullptr) {
+        glDeleteBuffers(1, &m_bufferHandle);
+    }
+    util::getGLerror(__LINE__, __FUNCTION__);
+    std::cout << "buffer destructor called" << std::endl;
 }
 
 GLuint Buffer::getHandle() {

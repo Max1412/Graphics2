@@ -59,13 +59,15 @@ void ShaderProgram::changeShader(const Shader &shader) {
 }
 
 
-void ShaderProgram::del() {
-	// delete all shaders
-	for(auto shaderPair : m_shaderMap)
-		glDeleteShader(shaderPair.second.getHandle());
+ShaderProgram::~ShaderProgram() {
+    if (glfwGetCurrentContext() != nullptr) {
+        // delete all shaders
+        for (auto shaderPair : m_shaderMap)
+            glDeleteShader(shaderPair.second.getHandle());
 
-	// delete porgram
-	glDeleteProgram(m_shaderProgramHandle);
+        // delete porgram
+        glDeleteProgram(m_shaderProgramHandle);
+    }
 	util::getGLerror(__LINE__, __FUNCTION__);
 }
 

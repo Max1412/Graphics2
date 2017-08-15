@@ -5,8 +5,10 @@ VertexArray::VertexArray() {
 	glGenVertexArrays(1, &m_vaoHandle);
 }
 
-void VertexArray::del() {
-	glDeleteVertexArrays(1, &m_vaoHandle);
+VertexArray::~VertexArray() {
+    if (glfwGetCurrentContext() != nullptr) {
+        glDeleteVertexArrays(1, &m_vaoHandle);
+    }
 	util::getGLerror(__LINE__, __FUNCTION__);
 }
 

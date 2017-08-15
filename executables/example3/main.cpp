@@ -61,10 +61,10 @@ int main(int argc, char* argv[]) {
 	ShaderProgram sp(vs, fs);
 
 	ModelImporter mi("bunny.obj");
-	std::vector<Mesh> meshes = mi.getMeshes();
-    std::vector<glm::vec3> vertices = meshes.at(0).getVertices();
-    std::vector<glm::vec3> normals = meshes.at(0).getNormals();
-    std::vector<unsigned int> indices = meshes.at(0).getIndices();
+	auto meshes = mi.getMeshes();
+    std::vector<glm::vec3> vertices = meshes.at(0)->getVertices();
+    std::vector<glm::vec3> normals = meshes.at(0)->getNormals();
+    std::vector<unsigned int> indices = meshes.at(0)->getIndices();
 
 
 	Buffer vBuffer;
@@ -139,12 +139,6 @@ int main(int argc, char* argv[]) {
 
 		glfwSwapBuffers(window);
 	}
-
-	vBuffer.del();
-	nBuffer.del();
-	iBuffer.del();
-	vao.del();
-	sp.del();
 
 	// close window
 	glfwDestroyWindow(window);

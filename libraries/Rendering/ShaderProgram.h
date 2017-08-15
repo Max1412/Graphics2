@@ -21,8 +21,8 @@ public:
 	ShaderProgram(std::string vspath, std::string fspath);
 	ShaderProgram(const Shader &shader1, const Shader &shader2);
 	ShaderProgram(const std::vector<Shader>& shaders);
+    ~ShaderProgram();
 
-	void del();
 	
 	void addShader(const Shader &shader);
 
@@ -35,7 +35,7 @@ public:
 
     void changeShader(const Shader &shader);
 
-	void addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform);
+    void addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform);
     void addUniform(std::shared_ptr<Uniform<glm::vec3>> uniform);
     void addUniform(std::shared_ptr<Uniform<glm::vec2>> uniform);
     void addUniform(std::shared_ptr<Uniform<bool>> uniform);

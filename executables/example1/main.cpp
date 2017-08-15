@@ -87,11 +87,6 @@ int main(int argc, char* argv[]) {
 		glfwSwapBuffers(window);
 	}
 
-	colorBuffer.del();
-	positionBuffer.del();
-	vao.del();
-	sp.del();
-
 	// close window
 	glfwDestroyWindow(window);
 }

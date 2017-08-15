@@ -219,7 +219,6 @@ int main(int argc, char* argv[]) {
         glfwSwapBuffers(window);
     }
 
-    sp.del();
     ImGui_ImplGlfwGL3_Shutdown();
 
     // close window

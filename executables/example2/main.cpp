@@ -105,12 +105,6 @@ int main(int argc, char* argv[]) {
 		glfwSwapBuffers(window);
 	}
 
-	vertexBuffer.del();
-	texCoordBuffer.del();
-	blobBuffer.del();
-	vao.del();
-	sp.del();
-
 	// close window
 	glfwDestroyWindow(window);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -10,13 +11,12 @@
 class ModelImporter {
 public:
 	ModelImporter(const std::string &filename);
-	~ModelImporter();
 
-	std::vector<Mesh> getMeshes();
+    std::vector<std::shared_ptr<Mesh>> getMeshes();
 
 private:
 	Assimp::Importer m_importer;
 	const aiScene* m_scene;
-	std::vector<Mesh> m_meshes;
+	std::vector<std::shared_ptr<Mesh>> m_meshes;
 
 };

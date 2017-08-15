@@ -9,11 +9,8 @@
 class Timer {
 public:
     Timer();
+    ~Timer();
 
-    /**
-     * \brief current destructor workaround
-     */
-    void del();
 
     /**
      * \brief starts the GPU timer
@@ -34,6 +31,6 @@ public:
 private:
     std::vector<float> m_ftimes;
     GLuint m_query;
-    GLuint m_elapsedTime;
+    GLuint m_elapsedTime = 0U;
     int m_done = false;
 };

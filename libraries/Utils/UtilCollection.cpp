@@ -48,7 +48,7 @@ namespace util
 	}
 
 	void getGLerror(int line, std::string function) {
-		if(debugmode) {
+		if(debugmode && glfwGetCurrentContext() != nullptr) {
 			GLenum err;
 			while ((err = glGetError()) != GL_NO_ERROR) {
 				std::cout << "OpenGL Error: " << err << std::endl;

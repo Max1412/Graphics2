@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         glfwSwapBuffers(window);
     }
     std::cout << std::endl;
-    sp.del();
+
     ImGui_ImplGlfwGL3_Shutdown();
 
     // close window

@@ -5,16 +5,12 @@
 class VertexArray {
 public:
 	VertexArray();
+    ~VertexArray();
 
     /**
 	 * \brief binds the VAO
 	 */
 	void bind() const;
-
-    /**
-	 * \brief current destructor workaround
-	 */
-	void del();
 
     /**
 	 * \brief connects a buffer to this vao, assumes stride/pointer = 0

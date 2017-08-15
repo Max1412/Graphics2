@@ -17,16 +17,14 @@ ModelImporter::ModelImporter(const std::string &filename) {
 	}
 
 	if (m_scene->HasMeshes()) {
-		const unsigned int numMeshes = m_scene->mNumMeshes;
-		for (int i = 0; i < numMeshes; i++) {
-			m_meshes.push_back(Mesh(m_scene->mMeshes[i]));
+		const auto numMeshes = m_scene->mNumMeshes;
+        m_meshes.reserve(numMeshes);
+		for (unsigned i = 0; i < numMeshes; i++) {
+			m_meshes.emplace_back(std::make_shared<Mesh>(m_scene->mMeshes[i]));
 		}
 	}
 }
 
-ModelImporter::~ModelImporter() {
-}
-
-std::vector<Mesh> ModelImporter::getMeshes() {
+std::vector<std::shared_ptr<Mesh>> ModelImporter::getMeshes() {
 	return m_meshes;
 }

@@ -9,13 +9,8 @@
 
 class Mesh {
 public:
-    Mesh(aiMesh* assimpMesh);
+    explicit Mesh(aiMesh* assimpMesh);
     Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices);
-
-    /**
-     * \brief current destructor workaround
-     */
-    void del();
     
     /**
      * \brief returns vertices as vector of vec3

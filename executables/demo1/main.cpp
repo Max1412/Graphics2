@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     ShaderProgram sp(vs, fs);
 
     ModelImporter mi("bunny.obj");
-    std::vector<Mesh> meshes = mi.getMeshes();
-    Mesh bunny = meshes.at(0);
+    auto meshes = mi.getMeshes();
+    auto bunny = meshes.at(0);
 
     // create a plane
     std::vector<glm::vec3> planePositions = {
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
     //model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-    bunny.setModelMatrix(model);
+    bunny->setModelMatrix(model);
 
     glm::mat4 PlaneModel(1.0f);
     PlaneModel = glm::translate(PlaneModel, glm::vec3(0.0f, -1.34f, 0.0f));
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     mvec.push_back(m2);
 
     // first material is for bunny, second for plane
-    bunny.setMaterialID(0);
+    bunny->setMaterialID(0);
     plane.setMaterialID(1);
 
     // create buffers for materials and lights
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
     auto flatUniform = std::make_shared<Uniform<bool>>("useFlat", flat);
     auto toonUniform = std::make_shared<Uniform<bool>>("useToon", toon);
     auto levelsUniform = std::make_shared<Uniform<int>>("levels", levels);
-    auto MaterialIDUniform = std::make_shared<Uniform<int>>("matIndex", bunny.getMaterialID());
+    auto MaterialIDUniform = std::make_shared<Uniform<int>>("matIndex", bunny->getMaterialID());
 
     sp.addUniform(flatUniform);
     sp.addUniform(toonUniform);
@@ -228,8 +228,8 @@ int main(int argc, char* argv[]) {
     while (!glfwWindowShouldClose(window)) {
 
         timer.start();
-        glm::mat4 newModel = glm::rotate(bunny.getModelMatrix(), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
-        bunny.setModelMatrix(newModel);
+        glm::mat4 newModel = glm::rotate(bunny->getModelMatrix(), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        bunny->setModelMatrix(newModel);
 
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
@@ -306,11 +306,11 @@ int main(int argc, char* argv[]) {
         viewUniform->setContent(camera.getView());
 
         // prepare first mesh (bunny)
-        modelUniform->setContent(bunny.getModelMatrix());
-        MaterialIDUniform->setContent(bunny.getMaterialID());
+        modelUniform->setContent(bunny->getModelMatrix());
+        MaterialIDUniform->setContent(bunny->getMaterialID());
         sp.updateUniforms();
 
-        bunny.draw();
+        bunny->draw();
 
         // prepare plane
         modelUniform->setContent(plane.getModelMatrix());
@@ -326,9 +326,6 @@ int main(int argc, char* argv[]) {
         glfwSwapBuffers(window);
     }
 
-    lightBuffer.del();
-    materialBuffer.del();
-    sp.del();
     ImGui_ImplGlfwGL3_Shutdown();
 
     // close window
