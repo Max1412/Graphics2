@@ -3,7 +3,7 @@
 OpenGL project to test things and to implement things from the OpenGL 4 Cookbook (improved) / CG lectures / own ideas
 
 OpenGL-Version:
-* 4.3 and up should work (right now)
+* 4.5 and up should work
 
 Used libraries:
 * ImGui: https://github.com/ocornut/imgui
