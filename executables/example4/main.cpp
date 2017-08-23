@@ -59,6 +59,7 @@ int main(int argc, char* argv[]) {
     Shader vs("phong.vert", GL_VERTEX_SHADER);
     Shader fs("phong.frag", GL_FRAGMENT_SHADER);
     ShaderProgram sp(vs, fs);
+    sp.use();
 
     ModelImporter mi("bunny.obj");
     auto meshes = mi.getMeshes();
@@ -82,8 +83,6 @@ int main(int argc, char* argv[]) {
     vao.connectIndexBuffer(iBuffer);
     vao.bind();
     //iBuffer.bind();
-
-    sp.use();
 
     SimpleTrackball camera(width, height, 10.0f);
     glm::mat4 view = camera.getView();

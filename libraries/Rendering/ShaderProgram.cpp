@@ -131,7 +131,6 @@ void ShaderProgram::use() {
 }
 
 void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform) {
-	use();
 	GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
 	if(location < 0)
 		throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
@@ -139,7 +138,6 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::mat4>> uniform) {
 }
 
 void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::vec3>> uniform) {
-    use();
     GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
     if (location < 0)
         throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
@@ -147,7 +145,6 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::vec3>> uniform) {
 }
 
 void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::vec2>> uniform) {
-    use();
     GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
     if (location < 0)
         throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
@@ -155,7 +152,6 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<glm::vec2>> uniform) {
 }
 
 void ShaderProgram::addUniform(std::shared_ptr<Uniform<bool>> uniform) {
-    use();
     GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
     if (location < 0)
         throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
@@ -163,7 +159,6 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<bool>> uniform) {
 }
 
 void ShaderProgram::addUniform(std::shared_ptr<Uniform<int>> uniform) {
-    use();
     GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
     if (location < 0)
         throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
@@ -171,7 +166,6 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<int>> uniform) {
 }
 
 void ShaderProgram::addUniform(std::shared_ptr<Uniform<float>> uniform) {
-    use();
     GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
     if (location < 0)
         throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
@@ -182,42 +176,42 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<float>> uniform) {
 void ShaderProgram::updateUniforms() {
     for (auto n : m_mat4Uniforms) {
         if (n.first->getChangeFlag()) {
-            glUniformMatrix4fv(n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
+            glProgramUniformMatrix4fv(m_shaderProgramHandle, n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
             n.first->hasBeenUpdated();
         }
     }
     for (auto n : m_boolUniforms) {
         if (n.first->getChangeFlag()) {
             if (n.first->getContent()) {
-                glUniform1i(n.second, 1);
+                glProgramUniform1i(m_shaderProgramHandle, n.second, 1);
             }
             else {
-                glUniform1i(n.second, 0);
+                glProgramUniform1i(m_shaderProgramHandle, n.second, 0);
             }
             n.first->hasBeenUpdated();
         }
     }
     for (auto n : m_intUniforms) {
         if (n.first->getChangeFlag()) {
-            glUniform1i(n.second, n.first->getContent());
+            glProgramUniform1i(m_shaderProgramHandle, n.second, n.first->getContent());
             n.first->hasBeenUpdated();
         }
     }
     for (auto n : m_floatUniforms) {
         if (n.first->getChangeFlag()) {
-            glUniform1f(n.second, n.first->getContent());
+            glProgramUniform1f(m_shaderProgramHandle, n.second, n.first->getContent());
             n.first->hasBeenUpdated();
         }
     }
     for (auto n : m_vec3Uniforms) {
         if (n.first->getChangeFlag()) {
-            glUniform3fv(n.second, 1, glm::value_ptr(n.first->getContent()));
+            glProgramUniform3fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(n.first->getContent()));
             n.first->hasBeenUpdated();
         }
     }
     for (auto n : m_vec2Uniforms) {
         if (n.first->getChangeFlag()) {
-            glUniform2fv(n.second, 1, glm::value_ptr(n.first->getContent()));
+            glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(n.first->getContent()));
             n.first->hasBeenUpdated();
         }
     }
@@ -225,28 +219,28 @@ void ShaderProgram::updateUniforms() {
 
 void ShaderProgram::forceUpdateUniforms() {
         for (auto n : m_mat4Uniforms) {
-            glUniformMatrix4fv(n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
+            glProgramUniformMatrix4fv(m_shaderProgramHandle, n.second, 1, GL_FALSE, glm::value_ptr(n.first->getContent()));
         }
         for (auto n : m_boolUniforms) {
             if (n.first->getContent()) {
-                glUniform1i(n.second, 1);
+                glProgramUniform1i(m_shaderProgramHandle, n.second, 1);
             }
             else {
-                glUniform1i(n.second, 0);
+                glProgramUniform1i(m_shaderProgramHandle, n.second, 0);
             }
         }
 
         for (auto n : m_intUniforms) {
-            glUniform1i(n.second, n.first->getContent());
+            glProgramUniform1i(m_shaderProgramHandle, n.second, n.first->getContent());
         }
         for (auto n : m_floatUniforms) {
-            glUniform1f(n.second, n.first->getContent());
+            glProgramUniform1f(m_shaderProgramHandle, n.second, n.first->getContent());
         }
         for (auto n : m_vec3Uniforms) {
-            glUniform3fv(n.second, 1, glm::value_ptr(n.first->getContent()));
+            glProgramUniform3fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(n.first->getContent()));
         }
         for (auto n : m_vec2Uniforms) {
-            glUniform2fv(n.second, 1, glm::value_ptr(n.first->getContent()));
+            glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(n.first->getContent()));
         }
 }
 
