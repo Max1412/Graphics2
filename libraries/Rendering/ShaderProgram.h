@@ -37,7 +37,7 @@ public:
     /**
      * \brief links the shader program
      */
-    void linkProgram();
+    void linkProgram() const;
 
     /**
 	 * \brief retruns the shader program handle
