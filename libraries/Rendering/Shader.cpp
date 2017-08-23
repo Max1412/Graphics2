@@ -114,7 +114,7 @@ std::string Shader::loadShaderFile(const std::string& fileName) const {
 	if (file.is_open()) {
 		while (!file.eof()) {
 			getline(file, line);
-			fileContent += line + "\n";
+			fileContent += line + '\n';
 		}
 		file.close();
 		std::cout << "SUCCESS: Opened file " << fileName << std::endl;
