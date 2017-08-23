@@ -2,7 +2,7 @@
 #include "imgui/imgui.h"
 
 Timer::Timer() {
-    glGenQueries(1, &m_query);
+    glCreateQueries(GL_TIME_ELAPSED, 1, &m_query);
 }
 
 Timer::~Timer() {
