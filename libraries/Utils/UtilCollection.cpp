@@ -59,7 +59,7 @@ namespace util
 
 	void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
 		const GLchar *message, const void *userParam) {
-		std::cout << "OpenGL debug callback called!" << "\n";
+		std::cout << "OpenGL debug callback called!" << '\n';
 		std::cout << "Source: ";
 		switch (source) {
 		case GL_DEBUG_SOURCE_API:
@@ -78,8 +78,8 @@ namespace util
 			std::cout << "Some other source";
 			break;
 		}
-		std::cout << "\n";
-		std::cout << "message: " << message << "\n";
+		std::cout << '\n';
+		std::cout << "message: " << message << '\n';
 		std::cout << "type: ";
 		// converting GLenums is tedious :(
 		switch (type) {
@@ -111,8 +111,8 @@ namespace util
 			std::cout << "OTHER";
 			break;
 		}
-		std::cout << "\n";
-		std::cout << "id: " << id << "\n";
+		std::cout << '\n';
+		std::cout << "id: " << id << '\n';
 		std::cout << "severity: ";
 		switch (severity) {
 		case GL_DEBUG_SEVERITY_LOW:
@@ -128,15 +128,22 @@ namespace util
 			std::cout << "NOTIFICATION";
 			break;
 		}
-		std::cout << "\n";
+		std::cout << '\n';
 		std::cout << std::endl;
 	}
 
-	void enableDebugCallback() {
-		glDebugMessageCallback(debugCallback, NULL);
-		// TODO set ifs/elses for enabling notification, low, high..
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_FALSE);
-	}
+    void enableDebugCallback() {
+        glDebugMessageCallback(debugCallback, nullptr);
+
+        // disable notifications and memory info
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+
+        // enable more severe errors
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr, GL_TRUE);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, GL_TRUE);
+
+    }
 
     void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height) {
         // flip
