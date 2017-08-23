@@ -97,8 +97,7 @@ void ShaderProgram::createProgram() {
 		glAttachShader(m_shaderProgramHandle, n.second.getHandle());
 }
 
-void ShaderProgram::linkProgram()
-{
+void ShaderProgram::linkProgram() const {
     // link program
     glLinkProgram(m_shaderProgramHandle);
 
@@ -114,7 +113,7 @@ void ShaderProgram::linkProgram()
             std::string log;
             log.resize(logLen);
             GLsizei written;
-            glGetShaderInfoLog(m_shaderProgramHandle, logLen, &written, &log[0]);
+            glGetProgramInfoLog(m_shaderProgramHandle, logLen, &written, &log[0]);
             std::cout << "Program log: " << log << std::endl;
         }
         util::getGLerror(__LINE__, __FUNCTION__);
@@ -122,7 +121,7 @@ void ShaderProgram::linkProgram()
     }
 }
 
-GLuint ShaderProgram::getShaderProgramHandle() const{
+GLuint ShaderProgram::getShaderProgramHandle() const {
 	return m_shaderProgramHandle;
 }
 
