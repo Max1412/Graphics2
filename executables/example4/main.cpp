@@ -79,15 +79,16 @@ int main(int argc, char* argv[]) {
     VertexArray vao;
     vao.connectBuffer(vBuffer, 0, 3, GL_FLOAT, GL_FALSE);
     vao.connectBuffer(nBuffer, 1, 3, GL_FLOAT, GL_FALSE);
+    vao.connectIndexBuffer(iBuffer);
     vao.bind();
-    iBuffer.bind();
+    //iBuffer.bind();
 
     sp.use();
 
     SimpleTrackball camera(width, height, 10.0f);
     glm::mat4 view = camera.getView();
 
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / (float)height, 1.0f, 1000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / static_cast<float>(height), 1.0f, 1000.0f);
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
     model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));

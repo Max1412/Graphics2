@@ -91,6 +91,7 @@ int main(int argc, char* argv[]) {
     QuadBuffer.setData(quadData, GL_STATIC_DRAW);
     VertexArray quadVAO;
     quadVAO.connectBuffer(QuadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
+    quadVAO.bind();
 
     sp.use();
 
@@ -198,7 +199,7 @@ int main(int argc, char* argv[]) {
                 }
                 // maps memory to access it by GUI -- probably very bad performance-wise
                 size_t positionOffset = i * sizeof(lvec.at(i));
-                lightBuffer.bind();
+                //lightBuffer.bind();
                 float *ptr = lightBuffer.mapBufferContent<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
                 ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
                 lightBuffer.unmapBuffer();

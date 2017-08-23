@@ -2,7 +2,7 @@
 #include "Utils/UtilCollection.h"
 
 VertexArray::VertexArray() {
-	glGenVertexArrays(1, &m_vaoHandle);
+	glCreateVertexArrays(1, &m_vaoHandle);
 }
 
 VertexArray::~VertexArray() {
@@ -16,16 +16,24 @@ void VertexArray::bind() const {
 	glBindVertexArray(m_vaoHandle);
 }
 
-void VertexArray::connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const {
-	bind();
-	glEnableVertexAttribArray(index);
-	buffer.bind();
-	glVertexAttribPointer(index, size, type, normalized, 0, (GLubyte *)nullptr);
+void VertexArray::connectIndexBuffer(Buffer &buffer) const {
+    if (buffer.getTarget() != GL_ELEMENT_ARRAY_BUFFER)
+        throw std::runtime_error("Only index buffers can be conntected using connectIndexBuffer");
+    glVertexArrayElementBuffer(m_vaoHandle, buffer.getHandle());
 }
 
-void VertexArray::connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, const GLvoid* pointer) const {
-	bind();
-	glEnableVertexAttribArray(index);
-	buffer.bind();
-	glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+
+void VertexArray::connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const {
+    glEnableVertexArrayAttrib(m_vaoHandle, index);
+    glVertexArrayVertexBuffer(m_vaoHandle, index, buffer.getHandle(), 0, 4 * size); // only works for 32 bit types for now
+    glVertexArrayAttribFormat(m_vaoHandle, index, size, type, normalized, 0);
+    glVertexArrayAttribBinding(m_vaoHandle, index, index);
+}
+
+
+void VertexArray::connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLuint offset, GLuint relativeOffset) const {
+    glEnableVertexArrayAttrib(m_vaoHandle, index);
+    glVertexArrayVertexBuffer(m_vaoHandle, index, buffer.getHandle(), offset, stride);
+    glVertexArrayAttribFormat(m_vaoHandle, index, size, type, normalized, relativeOffset);
+    glVertexArrayAttribBinding(m_vaoHandle, index, index);
 }

@@ -39,6 +39,7 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
     m_indexBuffer.setData(m_indices, GL_STATIC_DRAW);
     m_vao.connectBuffer(m_vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectBuffer(m_normalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
+    m_vao.connectIndexBuffer(m_indexBuffer);
 }
 
 Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices)
@@ -50,11 +51,11 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
     m_indexBuffer.setData(m_indices, GL_STATIC_DRAW);
     m_vao.connectBuffer(m_vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectBuffer(m_normalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
+    m_vao.connectIndexBuffer(m_indexBuffer);
 }
 
 void Mesh::draw() const {
     m_vao.bind();
-    m_indexBuffer.bind();
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
 }
 

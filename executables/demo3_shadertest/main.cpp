@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
     QuadBuffer.setData(quadData, GL_STATIC_DRAW);
     VertexArray quadVAO;
     quadVAO.connectBuffer(QuadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
+    quadVAO.bind();
 
     auto resolutionUniform = std::make_shared<Uniform<glm::vec2>>("u_resolution", glm::vec2(width, height));
     sp.addUniform(resolutionUniform);

@@ -75,8 +75,9 @@ int main(int argc, char* argv[]) {
 	VertexArray vao;
 	vao.connectBuffer(vBuffer, 0, 3, GL_FLOAT, GL_FALSE);
 	vao.connectBuffer(nBuffer, 1, 3, GL_FLOAT, GL_FALSE);
+    vao.connectIndexBuffer(iBuffer);
 	vao.bind();
-	iBuffer.bind();
+	//iBuffer.bind();
 
 	sp.use();
 
