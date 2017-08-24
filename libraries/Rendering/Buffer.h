@@ -171,5 +171,5 @@ template<typename S>
 void Buffer::setPartialContentMapped(const S& data, int startOffset) {
     S* ptr = static_cast<S*>(glMapNamedBufferRange(m_bufferHandle, startOffset, sizeof(data), GL_MAP_WRITE_BIT));
     *ptr = data;
-    glUnmapBuffer(m_target);
+    unmapBuffer();
 }
