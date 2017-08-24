@@ -12,7 +12,7 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
     //m_texCoords.resize(assimpMesh->mNumVertices);
 
     #pragma omp parallel for
-    for (unsigned i = 0; i < assimpMesh->mNumVertices; i++) {
+    for (auto i = 0; i < assimpMesh->mNumVertices; i++) {
         aiVector3D aivec = assimpMesh->mVertices[i];
         glm::vec3 vertex(aivec.x, aivec.y, aivec.z);
         m_vertices.at(i) = vertex;
