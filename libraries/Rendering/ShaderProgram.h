@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <any>
 
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -62,6 +63,7 @@ public:
     void addUniform(std::shared_ptr<Uniform<bool>> uniform);
     void addUniform(std::shared_ptr<Uniform<int>> uniform);
     void addUniform(std::shared_ptr<Uniform<float>> uniform);
+    void updateAnyUniforms();
 
     /**
 	 * \brief updates all uniforms depending on their flags
@@ -80,6 +82,15 @@ public:
      */
     void showReloadShaderGUI(const Shader& vshader, const Shader& fshader);
 
+    template<typename UniformType>
+    void addAnyUniform(std::shared_ptr<Uniform<UniformType>> uniform)
+    {
+        GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
+        if (location < 0)
+            throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
+        m_anyUniforms.push_back(std::make_pair(std::make_any<std::shared_ptr<Uniform<UniformType>>>(uniform), location));
+    }
+
 private:
 	GLuint m_shaderProgramHandle;
     std::map<GLuint, Shader> m_shaderMap;
@@ -91,6 +102,8 @@ private:
     std::vector<std::pair<std::shared_ptr<Uniform<bool>>, GLint>> m_boolUniforms;
     std::vector<std::pair<std::shared_ptr<Uniform<int>>, GLint>> m_intUniforms;
     std::vector<std::pair<std::shared_ptr<Uniform<float>>, GLint>> m_floatUniforms;
+
+    std::vector<std::pair<std::any, GLint>> m_anyUniforms;
 
 
 

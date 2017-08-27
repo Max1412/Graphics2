@@ -119,9 +119,9 @@ int main(int argc, char* argv[]) {
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("ViewMatrix", view);
     auto modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", model);
 
-    sp.addUniform(projUniform);
-    sp.addUniform(viewUniform);
-    sp.addUniform(modelUniform);
+    sp.addAnyUniform(projUniform);
+    sp.addAnyUniform(viewUniform);
+    sp.addAnyUniform(modelUniform);
 
     glm::vec3 ambient(0.5f);
     auto ambientLightUniform = std::make_shared<Uniform<glm::vec3>>("lightAmbient", ambient);
@@ -209,10 +209,10 @@ int main(int argc, char* argv[]) {
     auto levelsUniform = std::make_shared<Uniform<int>>("levels", levels);
     auto MaterialIDUniform = std::make_shared<Uniform<int>>("matIndex", bunny->getMaterialID());
 
-    sp.addUniform(flatUniform);
-    sp.addUniform(toonUniform);
-    sp.addUniform(levelsUniform);
-    sp.addUniform(MaterialIDUniform);
+    sp.addAnyUniform(flatUniform);
+    sp.addAnyUniform(toonUniform);
+    sp.addAnyUniform(levelsUniform);
+    sp.addAnyUniform(MaterialIDUniform);
 
     Timer timer;
 
@@ -308,14 +308,14 @@ int main(int argc, char* argv[]) {
         // prepare first mesh (bunny)
         modelUniform->setContent(bunny->getModelMatrix());
         MaterialIDUniform->setContent(bunny->getMaterialID());
-        sp.updateUniforms();
-
+        sp.updateAnyUniforms();
+         
         bunny->draw();
 
         // prepare plane
         modelUniform->setContent(plane.getModelMatrix());
         MaterialIDUniform->setContent(plane.getMaterialID());
-        sp.updateUniforms();
+        sp.updateAnyUniforms();
 
         plane.draw();
 
