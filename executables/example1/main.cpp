@@ -1,4 +1,3 @@
-#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include <GLFW/glfw3.h>
@@ -7,10 +6,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-#include <exception>
-#include <string>
-#include <sstream>
 #include <memory>
 
 #include "Utils/UtilCollection.h"
@@ -20,7 +15,7 @@
 #include "Rendering/VertexArray.h"
 #include "Rendering/Uniform.h"
 
-int main(int argc, char* argv[]) {
+int main() {
 	// init glfw, open window, manage context
 	GLFWwindow* window = util::setupGLFWwindow(1600, 980, "Example 1");
 	

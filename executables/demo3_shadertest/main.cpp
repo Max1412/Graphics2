@@ -1,4 +1,3 @@
-#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include <GLFW/glfw3.h>
@@ -22,7 +21,7 @@
 const unsigned int width = 800;
 const unsigned int height = 800;
 
-int main(int argc, char* argv[]) {
+int main() {
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Demo 3");
     glfwSwapInterval(0);
@@ -107,7 +106,7 @@ int main(int argc, char* argv[]) {
         timeUniform->setContent(duration);
         sp.updateUniforms();
 
-        glDrawArrays(GL_TRIANGLES, 0, quadData.size());
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(quadData.size()));
 
         timer.stop();
         timer.drawGuiWindow(window);

@@ -74,7 +74,7 @@ public:
      * \param startOffset offset in the buffer in bytes to write the data
      */
     template<typename S>
-    void setPartialContentMapped(const S& data, int startOffset);
+    void setPartialContentMapped(const S& data, unsigned startOffset);
 
     /**
      * \brief maps the buffer, returns mapped pointer
@@ -85,7 +85,7 @@ public:
      * \return 
      */
     template <class S>
-    S* mapBufferContent(int size, int startOffset, GLbitfield flags);
+    S* mapBufferContent(int size, unsigned startOffset, GLbitfield flags);
 
     /**
      * \brief unmaps the buffer
@@ -99,7 +99,7 @@ public:
      * \param startOffset offset in the buffer in bytes to write the data
      */
     template<typename S>
-    void setContentSubData(const S& data, int startOffset);
+    void setContentSubData(const S& data, unsigned startOffset);
 
 private:
 	GLuint m_bufferHandle;
@@ -156,19 +156,19 @@ void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) {
 
 // set the buffer data by using SubData
 template<typename S>
-void Buffer::setContentSubData(const S& data, int startOffset) {
+void Buffer::setContentSubData(const S& data, unsigned startOffset) {
     glNamedBufferSubData(m_bufferHandle, startOffset, sizeof(data), &data);
 }
 
 // return a mapped pointer in order to set data in the buffer
 template<typename S>
-S* Buffer::mapBufferContent(int size, int startOffset, GLbitfield flags) {
+S* Buffer::mapBufferContent(int size, unsigned startOffset, GLbitfield flags) {
     return static_cast<S*>(glMapNamedBufferRange(m_bufferHandle, startOffset, size, flags));
 }
 
 // set the buffer data by mapping
 template<typename S>
-void Buffer::setPartialContentMapped(const S& data, int startOffset) {
+void Buffer::setPartialContentMapped(const S& data, unsigned startOffset) {
     S* ptr = static_cast<S*>(glMapNamedBufferRange(m_bufferHandle, startOffset, sizeof(data), GL_MAP_WRITE_BIT));
     *ptr = data;
     unmapBuffer();

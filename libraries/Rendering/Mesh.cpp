@@ -56,7 +56,7 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
 
 void Mesh::draw() const {
     m_vao.bind();
-    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
 }
 
 

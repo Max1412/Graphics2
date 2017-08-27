@@ -1,4 +1,3 @@
-#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include <GLFW/glfw3.h>
@@ -7,10 +6,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-#include <exception>
-#include <string>
-#include <sstream>
 #include <memory>
 
 #include "Utils/UtilCollection.h"
@@ -41,7 +36,7 @@ struct MaterialInfo {
     float Shininess; // Specular shininess factor
 };
 
-int main(int argc, char* argv[]) {
+int main() {
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Example 1");
 
@@ -118,8 +113,6 @@ int main(int argc, char* argv[]) {
     materialBuffer.setData(std::vector<MaterialInfo>{m}, GL_DYNAMIC_DRAW);
     materialBuffer.bindBase(1);
 
-    float angle = 0.01f;
-
     glEnable(GL_DEPTH_TEST);
 
     // render loop
@@ -135,7 +128,7 @@ int main(int argc, char* argv[]) {
         sp.updateUniforms();
 
         //glDrawArrays(GL_TRIANGLES, 0, numVertices);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
     }
