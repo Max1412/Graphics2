@@ -9,7 +9,7 @@
 
 class Mesh {
 public:
-    explicit Mesh(aiMesh* assimpMesh);
+    Mesh(aiMesh* assimpMesh);
     Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices);
     
     /**

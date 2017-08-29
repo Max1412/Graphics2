@@ -8,7 +8,7 @@
 class Buffer
 {
 public:
-	Buffer(GLenum target);
+	explicit Buffer(GLenum target);
     ~Buffer();
 
     /**
