@@ -24,6 +24,12 @@ public:
     GLuint getTarget() const;
 
     /**
+     * \brief returns the size of the type of the data elemts in the buffer (e.g. sizeof(glm::vec3))
+     * \return size of underlying data type
+     */
+    size_t getTypeSize() const;
+
+    /**
 	 * \brief binds the buffer to a binding layout
 	 * \param binding 
 	 */
@@ -105,6 +111,8 @@ private:
 	GLuint m_bufferHandle;
 	GLenum m_target;
 
+    size_t m_typeSize = 0;
+
 	bool m_isImmutable = false;
 };
 
@@ -121,6 +129,7 @@ void Buffer::setData(const std::vector<T> &data, GLenum drawType) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
 	glNamedBufferData(m_bufferHandle, data.size() * sizeof(T), data.data(), drawType);
+    m_typeSize = sizeof(T);
 }
 
 template <typename T, std::size_t N>
@@ -128,6 +137,7 @@ void Buffer::setData(const std::array<T, N> &data, GLenum drawType) {
 	if (m_isImmutable)
 		throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
 	glNamedBufferData(m_bufferHandle, data.size() * sizeof(T), data.data(), drawType);
+    m_typeSize = sizeof(T);
 }
 
 //
@@ -140,6 +150,7 @@ void Buffer::setStorage(const std::vector<T> &data, GLbitfield flags) {
         throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
     glNamedBufferStorage(m_bufferHandle, data.size() * sizeof(T), data.data(), flags);
     m_isImmutable = true;
+    m_typeSize = sizeof(T);
 }
 
 template <typename T, std::size_t N>
@@ -148,6 +159,7 @@ void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) {
         throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
     glNamedBufferStorage(m_bufferHandle, data.size() * sizeof(T), data.data(), flags);
     m_isImmutable = true;
+    m_typeSize = sizeof(T);
 }
 
 /*
