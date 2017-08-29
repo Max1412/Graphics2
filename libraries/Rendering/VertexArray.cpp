@@ -23,7 +23,7 @@ void VertexArray::connectIndexBuffer(Buffer &buffer) const {
 }
 
 
-void VertexArray::connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const {
+void VertexArray::connectBuffer(const Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const {
     glEnableVertexArrayAttrib(m_vaoHandle, index);
     // only works for non-integer, non-long/double types
     // use the overloaded function below for custom strides/offsets
@@ -33,7 +33,7 @@ void VertexArray::connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenu
 }
 
 
-void VertexArray::connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLuint offset, GLuint relativeOffset) const {
+void VertexArray::connectBuffer(const Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLuint offset, GLuint relativeOffset) const {
     glEnableVertexArrayAttrib(m_vaoHandle, index);
     glVertexArrayVertexBuffer(m_vaoHandle, index, buffer.getHandle(), offset, stride);
     glVertexArrayAttribFormat(m_vaoHandle, index, size, type, normalized, relativeOffset);
