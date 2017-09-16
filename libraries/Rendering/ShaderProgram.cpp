@@ -137,9 +137,7 @@ void ShaderProgram::updateUniforms()
         // case int
         if(n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<int>>).hash_code())
         {
-            //TODO use if with initialization when it becomes available
-            auto a = std::any_cast<std::shared_ptr<Uniform<int>>>(n.first);
-            if (a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<int>>>(n.first); a->getChangeFlag())
             {
                 glProgramUniform1i(m_shaderProgramHandle, n.second, a->getContent());
                 a->hasBeenUpdated();
@@ -148,8 +146,7 @@ void ShaderProgram::updateUniforms()
         // case float
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<float>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first);
-            if (a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first); a->getChangeFlag())
             {
                 glProgramUniform1f(m_shaderProgramHandle, n.second, a->getContent());
                 a->hasBeenUpdated();
@@ -158,8 +155,7 @@ void ShaderProgram::updateUniforms()
         // case bool
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<bool>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first);
-            if (a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first); a->getChangeFlag())
             {
                 if (a->getContent()) {
                     glProgramUniform1i(m_shaderProgramHandle, n.second, 1);
@@ -173,8 +169,7 @@ void ShaderProgram::updateUniforms()
         // case mat4
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::mat4>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first);
-            if (a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first); a->getChangeFlag())
             {
                 glProgramUniformMatrix4fv(m_shaderProgramHandle, n.second, 1, GL_FALSE, glm::value_ptr(a->getContent()));
                 a->hasBeenUpdated();
@@ -183,8 +178,7 @@ void ShaderProgram::updateUniforms()
         // case vec3
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec3>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first);
-            if (a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first); a->getChangeFlag())
             {
                 glProgramUniform3fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
                 a->hasBeenUpdated();
@@ -193,8 +187,8 @@ void ShaderProgram::updateUniforms()
         // case vec2
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec2>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first);
-            if (a->getChangeFlag())
+            
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first); a->getChangeFlag())
             {
                 glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
                 a->hasBeenUpdated();
