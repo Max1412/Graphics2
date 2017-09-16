@@ -25,3 +25,13 @@ Used libraries:
 * raymarching distance fields: soft shadows, simple distance field ambient occlusion
 * Shader live reloading
 * heavily inspired by http://www.iquilezles.org/, university lectures
+
+### demo 3: shaders
+* work in progress
+* testing some shader-only drawing stuff, "the book of shaders"-style
+
+### demo 4: color palette
+* work in progress
+* goal: extract a color palette from an image using k-means on GPU
+* requires ARB_bindless texture
+* uses image load/store
