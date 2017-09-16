@@ -60,5 +60,5 @@ namespace util
 	 */
 	void enableDebugCallback();
 
-	const bool debugmode = true;
+	static constexpr bool debugmode = true;
 }

@@ -10,11 +10,11 @@ include(${CMAKE_MODULE_PATH}/macros.cmake)
 
 set(CMAKE_CONFIGURATION_TYPES Debug;Release)
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
+	add_compile_options("/std:c++latest")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
+		add_compile_options("-std=c++1z")
 endif()
 
 find_package(OpenGL3 REQUIRED)

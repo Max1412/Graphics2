@@ -8,7 +8,7 @@ class Shader
 {
 public:
 	Shader(const std::string& path, GLuint shaderType);
-    Shader::Shader(GLuint shaderType);
+    explicit Shader::Shader(GLuint shaderType);
 	~Shader();
 
     /**

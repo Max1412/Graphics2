@@ -25,6 +25,10 @@ GLuint Buffer::getTarget() const {
     return m_target;
 }
 
+size_t Buffer::getTypeSize() const {
+    return m_typeSize;
+}
+
 void Buffer::bindBase(unsigned int binding) const {
 	glBindBufferBase(m_target, binding, m_bufferHandle);
 }

@@ -28,7 +28,7 @@ public:
 	 * \param normalized specifies if fixed point attributes should be normalized
 	 * \warning only works for 32 bit (because of stride) floating point (because of missing I or L) types for now. 
 	 */
-	void connectBuffer(Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const;
+	void connectBuffer(const Buffer& buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const;
 
    
     /**
@@ -42,7 +42,7 @@ public:
 	 * \param offset offset of the first element of the buffer
 	 * \param relativeOffset distance between elements within the buffer
 	 */
-    void connectBuffer(Buffer & buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLuint offset, GLuint relativeOffset) const;
+    void connectBuffer(const Buffer& buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLuint offset, GLuint relativeOffset) const;
 private:
 	GLuint m_vaoHandle;
 };

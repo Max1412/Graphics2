@@ -48,12 +48,14 @@ namespace util
 	}
 
 	void getGLerror(int line, std::string function) {
-		if(debugmode && glfwGetCurrentContext() != nullptr) {
-			GLenum err;
-			while ((err = glGetError()) != GL_NO_ERROR) {
-				std::cout << "OpenGL Error: " << err << std::endl;
-				std::cout << "Last error check in function " << function << " at line " << line << std::endl;
-			}
+		if constexpr(debugmode) {
+            if (glfwGetCurrentContext() != nullptr) {
+                GLenum err;
+                while ((err = glGetError()) != GL_NO_ERROR) {
+                    std::cout << "OpenGL Error: " << err << std::endl;
+                    std::cout << "Last error check in function " << function << " at line " << line << std::endl;
+                }
+            }
 		}
 	}
 
@@ -133,16 +135,17 @@ namespace util
 	}
 
     void enableDebugCallback() {
-        glDebugMessageCallback(debugCallback, nullptr);
+        if constexpr(debugmode) {
+            glDebugMessageCallback(debugCallback, nullptr);
 
-        // disable notifications and memory info
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
+            // disable notifications and memory info
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
 
-        // enable more severe errors
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr, GL_TRUE);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, GL_TRUE);
-
+            // enable more severe errors
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr, GL_TRUE);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, GL_TRUE);
+        }
     }
 
     void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height) {
@@ -161,7 +164,7 @@ namespace util
             }
         }
         std::stringstream path;
-        path << (RESOURCES_PATH) << "../../../" << name << "_" << time(0) << ".png";
+        path << (RESOURCES_PATH) << "../../../" << name << "_" << time(nullptr) << ".png";
         
         int err = stbi_write_png(path.str().c_str(), width, height, 4, image.data(), 4 * width);
         if (err == 0) throw std::runtime_error("error writing image");
