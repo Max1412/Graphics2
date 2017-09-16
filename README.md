@@ -7,7 +7,7 @@ OpenGL-Version:
 
 Used libraries:
 * ImGui: https://github.com/ocornut/imgui
-* stb_image_write: https://github.com/nothings/stb
+* stb_image & stb_image_write: https://github.com/nothings/stb
 * Assimp (tested with 3.3.1)
 * glfw3 (tested with 3.2.1)
 * glew (tested with 2.0.0)
