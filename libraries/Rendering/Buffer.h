@@ -36,7 +36,7 @@ public:
 	void bindBase(unsigned int binding) const;
 
     /**
-	 * \brief binds the buffer, uses glBufferData to allocate & move data to GPU
+	 * \brief uses glBufferData to allocate & move data to GPU
 	 * \tparam T data type
 	 * \param data input data as vector
 	 * \param drawType gl draw type (GL_..._DRAW)
@@ -45,7 +45,7 @@ public:
 	void setData(const std::vector<T> &data,  GLenum drawType);
 
     /**
-	 * \brief binds the buffer, uses glBufferData to allocate & move data to GPU
+	 * \brief uses glBufferData to allocate & move data to GPU
 	 * \tparam T data type
 	 * \tparam N array size
 	 * \param data input data as array
@@ -55,7 +55,7 @@ public:
 	void setData(const std::array<T, N> &data, GLenum drawType);
 
     /**
-	 * \brief binds the buffer, uses glBufferStorage, buffer will be immutable
+	 * \brief uses glBufferStorage, buffer will be immutable
 	 * \tparam T data type
 	 * \param data input data as vector
 	 * \param flags buffer flags
@@ -64,10 +64,10 @@ public:
 	void setStorage(const std::vector<T> &data, GLbitfield flags);
 
     /**
-	 * \brief binds the buffer, uses glBufferStorage, buffer will be immutable
+	 * \brief uses glBufferStorage, buffer will be immutable
 	 * \tparam T data type
 	 * \tparam N array size
-	 * \param data input data as vector
+	 * \param data input data as array
 	 * \param flags buffer flags
 	 */
 	template<typename T, std::size_t N>
@@ -140,6 +140,7 @@ void Buffer::setData(const std::array<T, N> &data, GLenum drawType) {
     m_typeSize = sizeof(T);
 }
 
+
 //
 // BufferStorage Functions (immutable)
 // call these only once on the same buffer
@@ -161,6 +162,7 @@ void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) {
     m_isImmutable = true;
     m_typeSize = sizeof(T);
 }
+
 
 /*
 *  Non-Initializing template functions
