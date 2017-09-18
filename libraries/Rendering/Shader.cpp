@@ -31,7 +31,7 @@ Shader::Shader(GLuint shaderType) : m_shaderType(shaderType)
 void Shader::init(const std::string& path) const
 {
     // load shader file and use it
-    std::string shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + path);
+    auto shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + path);
     std::array<const GLchar*, 1> codeArray{ shaderCode.c_str() };
     glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 
@@ -66,7 +66,7 @@ void Shader::init() const
         throw std::runtime_error("No path given");
     }
     // load shader file and use it
-    std::string shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + m_path);
+    auto shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + m_path);
     std::array<const GLchar*, 1> codeArray{ shaderCode.c_str() };
     glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 

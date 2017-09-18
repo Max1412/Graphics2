@@ -47,7 +47,7 @@ public:
      * \brief returns the material ID
      * \return material ID
      */
-    const unsigned getMaterialID() const;
+    unsigned getMaterialID() const;
 
 
     /**

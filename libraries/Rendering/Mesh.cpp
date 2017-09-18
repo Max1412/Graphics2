@@ -13,12 +13,12 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
 
     #pragma omp parallel for
     for (auto i = 0; i < assimpMesh->mNumVertices; i++) {
-        aiVector3D aivec = assimpMesh->mVertices[i];
-        glm::vec3 vertex(aivec.x, aivec.y, aivec.z);
+        const auto aivec = assimpMesh->mVertices[i];
+        const glm::vec3 vertex(aivec.x, aivec.y, aivec.z);
         m_vertices.at(i) = vertex;
 
-        aiVector3D ainorm = assimpMesh->mNormals[i];
-        glm::vec3 normal(ainorm.x, ainorm.y, ainorm.z);
+        const auto ainorm = assimpMesh->mNormals[i];
+        const glm::vec3 normal(ainorm.x, ainorm.y, ainorm.z);
         m_normals.at(i) = normal;
 
         /*
@@ -28,7 +28,7 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
         */
     }
     for (unsigned int i = 0; i < assimpMesh->mNumFaces; i++) {
-        aiFace face = assimpMesh->mFaces[i];
+        const auto face = assimpMesh->mFaces[i];
         for (unsigned int j = 0; j < face.mNumIndices; j++) {
             m_indices.push_back(face.mIndices[j]);
         }
@@ -68,7 +68,7 @@ const glm::mat4& Mesh::getModelMatrix() const {
     return m_modelMatrix;
 }
 
-const unsigned Mesh::getMaterialID() const {
+unsigned Mesh::getMaterialID() const {
     return m_materialID;
 }
 

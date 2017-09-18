@@ -33,7 +33,7 @@ ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithSha
 
 void ShaderProgram::changeShader(const Shader &shader) {
     // find out which shader has to be changed and detach it
-    auto search = m_shaderMap.find(shader.getShaderType());
+    const auto search = m_shaderMap.find(shader.getShaderType());
     if(search == m_shaderMap.end())
     {
         throw std::runtime_error("No matching shader found");
@@ -204,19 +204,19 @@ void ShaderProgram::forceUpdateUniforms()
         // case int
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<int>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<int>>>(n.first);
+            const auto a = std::any_cast<std::shared_ptr<Uniform<int>>>(n.first);
             glProgramUniform1i(m_shaderProgramHandle, n.second, a->getContent());
         }
         // case float
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<float>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first);
+            const auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first);
             glProgramUniform1f(m_shaderProgramHandle, n.second, a->getContent());
         }
         // case bool
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<bool>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first);
+            const auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first);
             if (a->getContent()) {
                 glProgramUniform1i(m_shaderProgramHandle, n.second, 1);
             }
@@ -227,19 +227,19 @@ void ShaderProgram::forceUpdateUniforms()
         // case mat4
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::mat4>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first);
+            const auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first);
             glProgramUniformMatrix4fv(m_shaderProgramHandle, n.second, 1, GL_FALSE, glm::value_ptr(a->getContent()));
         }
         // case vec3
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec3>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first);
+            const auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first);
             glProgramUniform3fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
         }
         // case vec2
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec2>>).hash_code())
         {
-            auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first);
+            const auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first);
             glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
         }
     }

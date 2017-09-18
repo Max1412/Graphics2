@@ -33,9 +33,9 @@ void Timer::drawGuiWindow(GLFWwindow* window) {
     ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Performance");
     ImGui::PlotLines("Frametime", m_ftimes.data(), static_cast<int>(m_ftimes.size()), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
-    float flaccTime = 0.0f;
+    auto flaccTime = 0.0f;
     if (m_ftimes.size() > 21) {
-        for (size_t i = m_ftimes.size() - 21; i < m_ftimes.size(); ++i) {
+        for (auto i = m_ftimes.size() - 21; i < m_ftimes.size(); ++i) {
             flaccTime += m_ftimes.at(i);
         }
         flaccTime /= 20.0f;

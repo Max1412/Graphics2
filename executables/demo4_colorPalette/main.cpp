@@ -39,7 +39,7 @@ int main() {
     ImGui_ImplGlfwGL3_Init(window, true);
 
     // get list of OpenGL extensions (can be searched later if needed)
-    std::vector<std::string> extensions = util::getGLExtenstions();
+    auto extensions = util::getGLExtenstions();
 
     Shader vs("texSFQ.vert", GL_VERTEX_SHADER);
     Shader fs("texSFQ.frag", GL_FRAGMENT_SHADER);
@@ -55,7 +55,7 @@ int main() {
         { 1.0, 1.0 }
     };
 
-    std::vector<glm::vec2> quadTexCoordData = {
+    const std::vector<glm::vec2> quadTexCoordData = {
         { 0.0, 0.0 },
         { 1.0, 0.0 },
         { 0.0, 1.0 },
@@ -85,7 +85,7 @@ int main() {
     // load an image from disk
     auto imageFilename(RESOURCES_PATH + std::string("/image.png"));
     int imageWidth, imageHeight, numChannels;
-    auto imageData = stbi_load(imageFilename.c_str(), &imageWidth, &imageHeight, &numChannels, 4);
+    const auto imageData = stbi_load(imageFilename.c_str(), &imageWidth, &imageHeight, &numChannels, 4);
 
     if (!imageData)
         throw std::runtime_error("Image couldn't be loaded");
@@ -97,7 +97,7 @@ int main() {
     glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureStorage2D(texture, 1, GL_RGBA8, imageWidth, imageHeight);
     glTextureSubImage2D(texture, 0, 0, 0, imageWidth, imageHeight, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-    auto textureHandle = glGetTextureHandleARB(texture);
+    const auto textureHandle = glGetTextureHandleARB(texture);
     if (textureHandle == 0)
         throw std::runtime_error("Texture handle could not be returned");
     glMakeTextureHandleResidentARB(textureHandle);
@@ -119,7 +119,7 @@ int main() {
     glClearTexImage(image, 0, GL_RED, GL_UNSIGNED_BYTE, &clearVal);
 
     // do bindless image stuff
-    auto imageHandle = glGetImageHandleARB(image, 0, GL_FALSE, 0, GL_R8UI);
+    const auto imageHandle = glGetImageHandleARB(image, 0, GL_FALSE, 0, GL_R8UI);
     if (imageHandle == 0)
         throw std::runtime_error("Texture handle could not be returned");
     glMakeImageHandleResidentARB(imageHandle, GL_READ_WRITE);

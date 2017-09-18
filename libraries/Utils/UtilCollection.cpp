@@ -27,7 +27,7 @@ namespace util
 	}
 
 	void initGLEW() {
-		GLenum err = glewInit();
+	    const auto err = glewInit();
 		if (GLEW_OK != err)
 		{
 			std::stringstream ss;
@@ -153,11 +153,11 @@ namespace util
 #pragma omp parallel for
         for (int yi = 0; yi < (height / 2); yi++) {
             for (int xi = 0; xi < width; xi++) {
-                unsigned int offset1 = (xi + (yi * width)) * 4;
-                unsigned int offset2 = (xi + ((height - 1 - yi) * width)) * 4;
+                const unsigned int offset1 = (xi + (yi * width)) * 4;
+                const unsigned int offset2 = (xi + ((height - 1 - yi) * width)) * 4;
                 for (int bi = 0; bi < 4; bi++) {
-                    unsigned char byte1 = image[offset1 + bi];
-                    unsigned char byte2 = image[offset2 + bi];
+                    const unsigned char byte1 = image[offset1 + bi];
+                    const unsigned char byte2 = image[offset2 + bi];
                     image[offset1 + bi] = byte2;
                     image[offset2 + bi] = byte1;
                 }
@@ -165,10 +165,10 @@ namespace util
         }
         std::stringstream path;
         path << (RESOURCES_PATH) << "../../../" << name << "_" << time(nullptr) << ".png";
-        
-        int err = stbi_write_png(path.str().c_str(), width, height, 4, image.data(), 4 * width);
-        if (err == 0) throw std::runtime_error("error writing image");
 
+        const auto err = stbi_write_png(path.str().c_str(), width, height, 4, image.data(), 4 * width);
+        if (err == 0)
+            throw std::runtime_error("error writing image");
     }
 
     void saveFBOtoFile(std::string name, GLFWwindow* window) {
