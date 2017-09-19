@@ -8,19 +8,19 @@ class Shader
 {
 public:
 	Shader(const std::string& path, GLuint shaderType);
-    explicit Shader::Shader(GLuint shaderType);
+    explicit Shader(GLuint shaderType);
 	~Shader();
 
     /**
      * \brief inits with a given path (loading the shader)
      * \param path relative to SHADERS_PATH
      */
-    void Shader::init(const std::string& path) const;
+    void init(const std::string& path) const;
 
     /**
      * \brief inits with the path given in the constructor
      */
-    void Shader::init() const;
+    void init() const;
 
     /**
 	 * \brief returns the shader handle
@@ -40,6 +40,6 @@ private:
     GLuint m_shaderType;
     std::string m_path;
 
-	std::string Shader::loadShaderFile(const std::string& fileName) const;
+	std::string loadShaderFile(const std::string& fileName) const;
 
 };
