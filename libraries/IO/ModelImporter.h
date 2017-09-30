@@ -7,12 +7,13 @@
 #include <assimp/scene.h>
 
 #include "Rendering/Mesh.h"
+#include <filesystem>
 
 class ModelImporter {
 public:
-	ModelImporter(const std::string &filename);
+	ModelImporter(const std::experimental::filesystem::path& filename);
 
-    std::vector<std::shared_ptr<Mesh>> getMeshes();
+    std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 
 private:
 	Assimp::Importer m_importer;

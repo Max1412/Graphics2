@@ -7,7 +7,7 @@
 
 #include "Utils/Timer.h"
 
-Shader::Shader(const std::string& path, GLuint shaderType) : m_shaderType(shaderType), m_path(path)
+Shader::Shader(const std::experimental::filesystem::path& path, GLuint shaderType) : m_shaderType(shaderType), m_path(path)
 {
 	// create shader and check for errors
 	m_shaderHandle = glCreateShader(shaderType);
@@ -28,10 +28,10 @@ Shader::Shader(GLuint shaderType) : m_shaderType(shaderType)
     }
 }
 
-void Shader::init(const std::string& path) const
+void Shader::init(const std::experimental::filesystem::path& path) const
 {
     // load shader file and use it
-    auto shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + path);
+    auto shaderCode = loadShaderFile(std::experimental::filesystem::path(SHADERS_PATH) /= path);
     std::array<const GLchar*, 1> codeArray{ shaderCode.c_str() };
     glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 
@@ -66,7 +66,7 @@ void Shader::init() const
         throw std::runtime_error("No path given");
     }
     // load shader file and use it
-    auto shaderCode = loadShaderFile(SHADERS_PATH + std::string("/") + m_path);
+    auto shaderCode = loadShaderFile(std::experimental::filesystem::path(SHADERS_PATH) /= m_path);
     std::array<const GLchar*, 1> codeArray{ shaderCode.c_str() };
     glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 
@@ -105,7 +105,7 @@ GLuint Shader::getShaderType() const {
     return m_shaderType;
 }
 
-std::string Shader::loadShaderFile(const std::string& fileName) const {
+std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const {
 	std::string fileContent;
 	std::string line;
 
@@ -120,7 +120,7 @@ std::string Shader::loadShaderFile(const std::string& fileName) const {
 		std::cout << "SUCCESS: Opened file " << fileName << std::endl;
 	}
 	else
-		throw std::runtime_error("ERROR: Unable to open file " + fileName);
+		throw std::runtime_error("ERROR: Unable to open file " + fileName.string());
 
 	// return file as string
 	return fileContent;

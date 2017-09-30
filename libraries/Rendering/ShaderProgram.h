@@ -18,7 +18,7 @@
 class ShaderProgram
 {
 public:
-	ShaderProgram(std::string vspath, std::string fspath);
+	ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath);
 	ShaderProgram(const Shader &shader1, const Shader &shader2);
 	ShaderProgram(const std::vector<Shader>& shaders);
     ~ShaderProgram();

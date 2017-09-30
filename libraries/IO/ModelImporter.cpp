@@ -4,17 +4,15 @@
 
 #include <assimp/postprocess.h>
 
-ModelImporter::ModelImporter(const std::string &filename) {
-	m_scene = m_importer.ReadFile(RESOURCES_PATH + std::string("/") + filename,
+ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename) {
+	m_scene = m_importer.ReadFile(RESOURCES_PATH + std::string("/") + filename.string(),
 		aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords);
 
 	if (!m_scene || m_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-		std::string err = m_importer.GetErrorString();
+		const std::string err = m_importer.GetErrorString();
 		throw std::runtime_error("Assimp import failed: " + err);
 	}
-	else {
-		std::cout << "Model succesfully loaded from " << filename << std::endl;
-	}
+	std::cout << "Model succesfully loaded from " << filename.string() << std::endl;
 
 	if (m_scene->HasMeshes()) {
 		const auto numMeshes = m_scene->mNumMeshes;
@@ -25,6 +23,6 @@ ModelImporter::ModelImporter(const std::string &filename) {
 	}
 }
 
-std::vector<std::shared_ptr<Mesh>> ModelImporter::getMeshes() {
+std::vector<std::shared_ptr<Mesh>> ModelImporter::getMeshes() const {
 	return m_meshes;
 }

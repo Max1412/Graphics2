@@ -1,13 +1,14 @@
 #pragma once
 
 #include <vector>
+#include <filesystem>
 
 #include <GL/glew.h>
 
 class Shader
 {
 public:
-	Shader(const std::string& path, GLuint shaderType);
+	Shader(const std::experimental::filesystem::path& path, GLuint shaderType);
     explicit Shader(GLuint shaderType);
 	~Shader();
 
@@ -15,7 +16,7 @@ public:
      * \brief inits with a given path (loading the shader)
      * \param path relative to SHADERS_PATH
      */
-    void init(const std::string& path) const;
+    void init(const std::experimental::filesystem::path& path) const;
 
     /**
      * \brief inits with the path given in the constructor
@@ -38,8 +39,8 @@ public:
 private:
 	GLuint m_shaderHandle;
     GLuint m_shaderType;
-    std::string m_path;
+    std::experimental::filesystem::path m_path;
 
-	std::string loadShaderFile(const std::string& fileName) const;
+	std::string loadShaderFile(const std::experimental::filesystem::path& fileName) const;
 
 };
