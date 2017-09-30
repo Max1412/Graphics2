@@ -19,9 +19,18 @@
 #include "IO/stb_image.h"
 
 #include "imgui/imgui_impl_glfw_gl3.h"
+#include "Rendering/Texture.h"
+#include "Rendering/Image.h"
 
 const unsigned int width = 1600;
 const unsigned int height = 900;
+
+struct Centroid
+{
+    GLuint64 imageHandle;
+    glm::vec3 color;
+    int pad1, pad2, pad3;
+};
 
 int main() {
     // init glfw, open window, manage context
@@ -82,25 +91,11 @@ int main() {
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
 
-    // load an image from disk
-    auto imageFilename(RESOURCES_PATH + std::string("/image.png"));
-    int imageWidth, imageHeight, numChannels;
-    const auto imageData = stbi_load(imageFilename.c_str(), &imageWidth, &imageHeight, &numChannels, 4);
-
-    if (!imageData)
-        throw std::runtime_error("Image couldn't be loaded");
-    
-    // create a DSA-texture (immutable) and set its content. Size: actual texture size
-    GLuint texture;
-    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureStorage2D(texture, 1, GL_RGBA8, imageWidth, imageHeight);
-    glTextureSubImage2D(texture, 0, 0, 0, imageWidth, imageHeight, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-    const auto textureHandle = glGetTextureHandleARB(texture);
-    if (textureHandle == 0)
-        throw std::runtime_error("Texture handle could not be returned");
-    glMakeTextureHandleResidentARB(textureHandle);
+    Texture tex;
+    tex.loadFromFile(RESOURCES_PATH + std::string("/image.png"));
+    tex.generateHandle();
+   
+    const auto textureHandle = tex.getHandle();
 
     // put the texture handle into a SSBO
     Buffer textureHandleBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -108,31 +103,20 @@ int main() {
     textureHandleBuffer.bindBase(0);
 
     // create a DSA-image (immutable) and set its content. Size: Window size
-    GLuint image;
-    glCreateTextures(GL_TEXTURE_2D, 1, &image);
-    glTextureParameteri(image, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(image, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureStorage2D(image, 1, GL_R8, width, height);
-
-    // set all image contents to 0
-    unsigned char clearVal = 0;
-    glClearTexImage(image, 0, GL_RED, GL_UNSIGNED_BYTE, &clearVal);
-
-    // do bindless image stuff
-    const auto imageHandle = glGetImageHandleARB(image, 0, GL_FALSE, 0, GL_R8UI);
-    if (imageHandle == 0)
-        throw std::runtime_error("Texture handle could not be returned");
-    glMakeImageHandleResidentARB(imageHandle, GL_READ_WRITE);
+    Image image;
+    image.initWithoutData(width, height, GL_R8);
+    const unsigned char clearVal = 0;
+    image.clearTexture(GL_RED, GL_UNSIGNED_BYTE, clearVal);
+    
+    image.generateImageHandle(GL_R8UI);
+    const auto imageHandle = image.getHandle();
+   
 
     // put the image handle into a SSBO
     Buffer imageHandleBuffer(GL_SHADER_STORAGE_BUFFER);
     imageHandleBuffer.setData(std::array<GLuint64, 1>{imageHandle}, GL_STATIC_DRAW);
     imageHandleBuffer.bindBase(1);
 
-
-    // let the cpu data of the image go
-    stbi_image_free(imageData);
-    
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
