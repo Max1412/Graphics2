@@ -2,7 +2,7 @@
 
 void Image::generateImageHandle(GLuint format, GLboolean layered, int layer)
 {
-    const auto m_handle = glGetImageHandleARB(m_name, 0, layered, layer, format);
+    m_handle = glGetImageHandleARB(m_name, 0, layered, layer, format);
     if (m_handle == 0)
         throw std::runtime_error("iamge handle could not be returned");
     glMakeImageHandleResidentARB(m_handle, GL_READ_WRITE);

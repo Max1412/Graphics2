@@ -54,6 +54,9 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
     m_vao.connectIndexBuffer(m_indexBuffer);
 }
 
+
+
+
 void Mesh::draw() const {
     m_vao.bind();
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
@@ -78,17 +81,29 @@ void Mesh::setMaterialID(const unsigned materialID) {
 
 
 const std::vector<glm::vec3>& Mesh::getVertices() const {
+    if (m_vertices.empty())
+        throw std::runtime_error("This mesh has no vertices!");
+
     return m_vertices;
 }
 
 const std::vector<glm::vec3>& Mesh::getNormals() const {
+    if (m_vertices.empty())
+        throw std::runtime_error("This mesh has no normals!");
+
     return m_normals;
 }
 
 const std::vector<glm::vec3>& Mesh::getTexCoords() const {
+    if (m_vertices.empty())
+        throw std::runtime_error("This mesh has no texture coordinates!");
+
     return m_texCoords;
 }
 
 const std::vector<unsigned int>& Mesh::getIndices() const {
+    if (m_vertices.empty())
+        throw std::runtime_error("This mesh has no indices!");
+
     return m_indices;
 }

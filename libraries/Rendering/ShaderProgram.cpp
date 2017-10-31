@@ -129,7 +129,7 @@ GLuint ShaderProgram::getShaderProgramHandle() const {
 
 void ShaderProgram::use() {
 	glUseProgram(m_shaderProgramHandle);
-	updateUniforms();
+	forceUpdateUniforms();
 }
 
 void ShaderProgram::updateUniforms()

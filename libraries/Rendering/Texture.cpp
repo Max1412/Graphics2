@@ -1,4 +1,5 @@
 #include "Texture.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "IO/stb_image.h"
 
 
@@ -11,9 +12,8 @@ Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
 
 void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type) const
 {
-    auto imageFilename(RESOURCES_PATH + std::string("/image.png"));
     int imageWidth, imageHeight, numChannels;
-    const auto imageData = stbi_load(imageFilename.c_str(), &imageWidth, &imageHeight, &numChannels, 4);
+    const auto imageData = stbi_load(texturePath.string().c_str(), &imageWidth, &imageHeight, &numChannels, 4);
 
     if (!imageData)
         throw std::runtime_error("Image couldn't be loaded");
