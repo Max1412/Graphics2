@@ -78,3 +78,8 @@ const glm::mat4& SimpleTrackball::getView() const {
 glm::mat4& SimpleTrackball::getView() {
     return m_viewMatrix;
 }
+
+glm::vec3& SimpleTrackball::getPosition()
+{
+    return m_pos;
+}

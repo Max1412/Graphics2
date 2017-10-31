@@ -27,6 +27,8 @@ public:
      */
     glm::mat4& getView();
 
+    glm::vec3& getPosition();
+
 private:
 	glm::mat4 m_viewMatrix;
 	glm::vec3 m_center;
