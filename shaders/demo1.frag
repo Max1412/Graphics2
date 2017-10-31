@@ -1,8 +1,11 @@
 #version 430
+#extension GL_ARB_bindless_texture : require
 
 in vec3 passPosition;
 in vec3 interpNormal;
 flat in vec3 flatNormal;
+in vec3 modelNormal;
+in vec3 Position;
 
 struct Light
 {
@@ -21,6 +24,7 @@ struct Material
 	float ks;
 	float shininess;
 	float kt;
+	int reflective;
 };
 
 layout (std430, binding = 0) restrict readonly buffer LightBuffer {
@@ -39,8 +43,14 @@ layout (std430, binding = 2) restrict readonly buffer FogParams{
     int mode; // 1 = linear, 2 = exp, 3 = exp2
 } fog;
 
+layout(binding = 3, std430) buffer textureBuffer
+{
+    samplerCube skybox;
+};
+
 uniform mat4 ViewMatrix;
 uniform vec3 lightAmbient;
+uniform vec3 cameraPos;
 uniform int matIndex;
 
 uniform int useFlat;
@@ -128,4 +138,11 @@ void main() {
     }
 
 	fragmentColor.a = diffuse_alpha;
+
+	if(mat.reflective == 1)
+	{
+    	vec3 I = normalize(Position - cameraPos);
+		vec3 R = reflect(I, normalize(modelNormal));
+		fragmentColor.rgb = texture(skybox, R).rgb;
+	}
 }

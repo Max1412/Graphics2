@@ -23,6 +23,8 @@
 #include "Rendering/SimpleTrackball.h"
 
 #include "imgui/imgui_impl_glfw_gl3.h"
+#include "Rendering/SkyBoxCube.h"
+#include "Rendering/Cubemap.h"
 
 const unsigned int width = 1600;
 const unsigned int height = 900;
@@ -42,7 +44,8 @@ struct MaterialInfo {
     float ks;
     float shininess;
     float kt;
-    float pad1, pad2;
+    int reflective;
+    float pad2 = 0.0f;
 };
 
 struct FogInfo {
@@ -51,7 +54,7 @@ struct FogInfo {
     float end;
     float density;
     int mode;
-    float pad;
+    float pad = 0.0f;
 };
 
 int main() {
@@ -72,8 +75,23 @@ int main() {
     // get list of OpenGL extensions (can be searched later if needed)
     std::vector<std::string> extensions = util::getGLExtenstions();
 
-    Shader vs("demo1.vert", GL_VERTEX_SHADER);
-    Shader fs("demo1.frag", GL_FRAGMENT_SHADER);
+    // skybox stuff
+    const Shader skyboxVS("cubemap.vert", GL_VERTEX_SHADER);
+    const Shader skyboxFS("cubemap.frag", GL_FRAGMENT_SHADER);
+    ShaderProgram skyboxSP(skyboxVS, skyboxFS);
+    SkyBoxCube cube;
+
+    Cubemap CubemapSkybox;
+    CubemapSkybox.loadFromFile(RESOURCES_PATH + std::string("/skybox/skybox.jpg"));
+    CubemapSkybox.generateHandle();
+    // put the texture handle into a SSBO
+    Buffer textureHandleBuffer(GL_SHADER_STORAGE_BUFFER);
+    textureHandleBuffer.setData(std::array<GLuint64, 1>{CubemapSkybox.getHandle()}, GL_STATIC_DRAW);
+    textureHandleBuffer.bindBase(3);
+
+    // actual stuff
+    const Shader vs("demo1.vert", GL_VERTEX_SHADER);
+    const Shader fs("demo1.frag", GL_FRAGMENT_SHADER);
     ShaderProgram sp(vs, fs);
 
     ModelImporter mi("bunny.obj");
@@ -101,8 +119,9 @@ int main() {
     // create matrices for uniforms
     SimpleTrackball camera(width, height, 10.0f);
     glm::mat4 view = camera.getView();
+    glm::vec3 cameraPos(camera.getPosition());
 
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / (float)height, 1.0f, 1000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), width /static_cast<float>(height), 0.1f, 1000.0f);
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
     //model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
@@ -114,23 +133,28 @@ int main() {
     plane.setModelMatrix(PlaneModel);
 
     // create matrix uniforms and add them to the shader program
-    auto projUniform = std::make_shared<Uniform<glm::mat4>>("ProjectionMatrix", proj);
+    const auto projUniform = std::make_shared<Uniform<glm::mat4>>("ProjectionMatrix", proj);
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("ViewMatrix", view);
     auto modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", model);
+    auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", cameraPos);
 
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
     sp.addUniform(modelUniform);
+    sp.addUniform(cameraPosUniform);
+
+    skyboxSP.addUniform(projUniform);
+    skyboxSP.addUniform(viewUniform);
 
     glm::vec3 ambient(0.5f);
-    auto ambientLightUniform = std::make_shared<Uniform<glm::vec3>>("lightAmbient", ambient);
+    const auto ambientLightUniform = std::make_shared<Uniform<glm::vec3>>("lightAmbient", ambient);
     sp.addUniform(ambientLightUniform);
 
     // "generate" lights
     std::vector<LightInfo> lvec;
     for (int i = 0; i < 5; i++) {
         LightInfo li;
-        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+        const glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
         li.pos = rotMat * (glm::vec4(i*3.0f, i*3.0f, i*3.0f, 1.0f) + glm::vec4(0.0001f, 0.0001f, 0.0001f, 0.0f));
         li.col = glm::normalize(glm::vec3((i) % 5,(i+1) % 5, (i + 2) % 5));
         if (i % 2) {
@@ -160,6 +184,7 @@ int main() {
     m.ks = 3.0f;
     m.shininess = 100.0f;
     m.kt = 0.0f;
+    m.reflective = 0;
     mvec.push_back(m);
 
     MaterialInfo m2;
@@ -168,7 +193,8 @@ int main() {
     m2.specColor = glm::vec3(0.9f);
     m2.ks = 0.3f;
     m2.shininess = 20.0f;
-    m.kt = 0.0f;
+    m2.kt = 0.0f;
+    m2.reflective = 1;
     mvec.push_back(m2);
 
     // first material is for bunny, second for plane
@@ -195,7 +221,7 @@ int main() {
     fogBuffer.setData(fogvec, GL_DYNAMIC_DRAW);
     fogBuffer.bindBase(2);
 
-    glm::vec4 clear_color(0.1f);
+    const glm::vec4 clearColor(0.1f);
 
     // values for GUI-controllable uniforms
     bool flat = false;
@@ -221,13 +247,13 @@ int main() {
 
     std::vector<glm::vec3> rotations(5, glm::vec3(0.0f));
 
-    float angle = 0.1f;
+    const float deltaAngle = 0.1f;
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
 
         timer.start();
-        glm::mat4 newModel = glm::rotate(bunny->getModelMatrix(), glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        const glm::mat4 newModel = glm::rotate(bunny->getModelMatrix(), glm::radians(deltaAngle), glm::vec3(0.0f, 1.0f, 0.0f));
         bunny->setModelMatrix(newModel);
 
         glfwPollEvents();
@@ -243,7 +269,7 @@ int main() {
                     levelsUniform->setContent(levels);
             }
             if (ImGui::SliderInt("Fog Mode", &fogvec.at(0).mode, 0, 3)) {
-                auto fogModeOffset = sizeof(f.col) + sizeof(f.start) + sizeof(f.end) + sizeof(f.density);
+                const auto fogModeOffset = sizeof(f.col) + sizeof(f.start) + sizeof(f.end) + sizeof(f.density);
                 fogBuffer.setPartialContentMapped(fogvec.at(0).mode, fogModeOffset);
             }
             if(ImGui::SliderFloat3("Fog Color", glm::value_ptr(fogvec.at(0).col), 0.0f, 1.0f)){
@@ -263,30 +289,30 @@ int main() {
                 n << i;
                 ImGui::Text((std::string("Light ") + n.str()).c_str());
                 if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), glm::value_ptr(lvec.at(i).col), 0.0f, 1.0f)) {
-                    auto colOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, col);
+                    const auto colOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, col);
                     lightBuffer.setContentSubData(lvec.at(i).col, colOffset);
                 }
                 if(ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)){
-                    auto spotCutoffOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_cutoff);
+                    const auto spotCutoffOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_cutoff);
                     lightBuffer.setContentSubData(lvec.at(i).spot_cutoff, spotCutoffOffset);
                 }
                 if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i).spot_exponent, 0.0f, 100.0f)) {
-                    auto spotCutoffExpOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_exponent);
+                    const auto spotCutoffExpOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_exponent);
                     lightBuffer.setContentSubData(lvec.at(i).spot_exponent, spotCutoffExpOffset);
                 }
                 if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), glm::value_ptr(rotations.at(i)), 0.0f, 360.0f)) {
-                    auto posOffset = i * sizeof(lvec.at(i));
-                    glm::mat4 rotx = glm::rotate(glm::mat4(1.0f), glm::radians(rotations.at(i).x), glm::vec3(1.0f, 0.0f, 0.0f));
-                    glm::mat4 rotxy = glm::rotate(rotx, glm::radians(rotations.at(i).y), glm::vec3(0.0f, 1.0f, 0.0f));
-                    glm::mat4 rotxyz = glm::rotate(rotxy, glm::radians(rotations.at(i).z), glm::vec3(0.0f, 0.0f, 1.0f));
-                    glm::vec3 newPos = rotxyz * lvec.at(i).pos;
+                    const auto posOffset = i * sizeof(lvec.at(i));
+                    const glm::mat4 rotx = glm::rotate(glm::mat4(1.0f), glm::radians(rotations.at(i).x), glm::vec3(1.0f, 0.0f, 0.0f));
+                    const glm::mat4 rotxy = glm::rotate(rotx, glm::radians(rotations.at(i).y), glm::vec3(0.0f, 1.0f, 0.0f));
+                    const glm::mat4 rotxyz = glm::rotate(rotxy, glm::radians(rotations.at(i).z), glm::vec3(0.0f, 0.0f, 1.0f));
+                    const glm::vec3 newPos = rotxyz * lvec.at(i).pos;
                     lightBuffer.setContentSubData(newPos, posOffset);
                     lvec.at(i).spot_direction = glm::normalize(glm::vec3(0.0f) - newPos);
-                    auto spotDirOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_direction);
+                    const auto spotDirOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_direction);
                     lightBuffer.setContentSubData(lvec.at(i).spot_direction, spotDirOffset);
                 }
                 // maps memory to access it by GUI -- probably very bad performance-wise
-                auto positionOffset = i * sizeof(lvec.at(i));
+                const auto positionOffset = i * sizeof(lvec.at(i));
                 //lightBuffer.bind();
                 float *ptr = lightBuffer.mapBufferContent<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
                 ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
@@ -297,12 +323,15 @@ int main() {
 
         //ImGui::ShowTestWindow();
 
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.update(window);
+
         viewUniform->setContent(camera.getView());
+        cameraPosUniform->setContent(camera.getPosition());
+        sp.use();
 
         // prepare first mesh (bunny)
         modelUniform->setContent(bunny->getModelMatrix());
@@ -318,6 +347,15 @@ int main() {
 
         plane.draw();
 
+        // render skybox last
+        glDepthFunc(GL_LEQUAL);
+        glDisable(GL_CULL_FACE);
+        skyboxSP.use();
+        cube.draw();
+        glEnable(GL_CULL_FACE);
+        glDepthFunc(GL_LEQUAL);
+
+        
         timer.stop();
         timer.drawGuiWindow(window);
 
