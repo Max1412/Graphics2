@@ -8,9 +8,10 @@ Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
     glCreateTextures(target, 1, &m_name);
     glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
     glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, maxFilter);
+    glObjectLabel(GL_TEXTURE, m_name, 1, "test");
 }
 
-void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type) const
+void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type)
 {
     int imageWidth, imageHeight, numChannels;
     const auto imageData = stbi_load(texturePath.string().c_str(), &imageWidth, &imageHeight, &numChannels, 4);
@@ -23,6 +24,9 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
 
     // let the cpu data of the image go
     stbi_image_free(imageData);
+
+    m_width = imageWidth;
+    m_height = imageHeight;
 }
 
 void Texture::generateHandle()
@@ -33,9 +37,11 @@ void Texture::generateHandle()
     glMakeTextureHandleResidentARB(m_handle);
 }
 
-void Texture::initWithoutData(int width, int height, GLenum internalFormat) const
+void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 {
     glTextureStorage2D(m_name, 1, internalFormat, width, height);
+    m_width = width;
+    m_height = height;
 }
 
 GLuint64 Texture::getHandle() const
@@ -45,4 +51,19 @@ GLuint64 Texture::getHandle() const
         throw std::runtime_error("Texture handle not availabe. Did you create a handle yet?");
     }
     return m_handle;
+}
+
+GLuint Texture::getName() const
+{
+    return m_name;
+}
+
+int Texture::getWidth() const
+{
+    return m_width;
+}
+
+int Texture::getHeight() const
+{
+    return m_height;
 }

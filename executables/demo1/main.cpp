@@ -25,6 +25,8 @@
 #include "imgui/imgui_impl_glfw_gl3.h"
 #include "Rendering/SkyBoxCube.h"
 #include "Rendering/Cubemap.h"
+#include "Rendering/Quad.h"
+#include "Rendering/FrameBuffer.h"
 
 const unsigned int width = 1600;
 const unsigned int height = 900;
@@ -74,6 +76,40 @@ int main() {
 
     // get list of OpenGL extensions (can be searched later if needed)
     std::vector<std::string> extensions = util::getGLExtenstions();
+
+    // FBO stuff
+    const Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
+    const Shader fboFS("postProcess.frag", GL_FRAGMENT_SHADER);
+    ShaderProgram fboSP(fboVS, fboFS);
+    fboSP.use();
+    
+    bool useGrayscale = false;
+    auto grayscaleuniform = std::make_shared<Uniform<bool>>("useGrayscale", useGrayscale);
+    bool useBlur = false;
+    auto blurUniform = std::make_shared<Uniform<bool>>("useBlur", useBlur);
+    bool useSharpen = false;
+    auto sharpenUniform = std::make_shared<Uniform<bool>>("useSharpen", useSharpen);
+
+    const auto dimUniform = std::make_shared<Uniform<glm::vec2>>("dimensions", glm::vec2(width, height));
+
+    fboSP.addUniform(grayscaleuniform);
+    fboSP.addUniform(dimUniform);
+    fboSP.addUniform(blurUniform);
+    fboSP.addUniform(sharpenUniform);
+
+    Quad fboQuad;
+
+    Texture fboTex;
+    fboTex.initWithoutData(width, height, GL_RGBA8);
+    fboTex.generateHandle();
+
+    // put the texture handle into a SSBO
+    const auto fboTexHandle = fboTex.getHandle();
+    Buffer fboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
+    fboTexHandleBuffer.setData(std::array<GLuint64, 1>{fboTexHandle}, GL_STATIC_DRAW);
+    fboTexHandleBuffer.bindBase(6);
+
+    FrameBuffer fbo({ fboTex });
 
     // skybox stuff
     const Shader skyboxVS("cubemap.vert", GL_VERTEX_SHADER);
@@ -248,6 +284,9 @@ int main() {
     std::vector<glm::vec3> rotations(5, glm::vec3(0.0f));
 
     const float deltaAngle = 0.1f;
+    
+    bool useFBO = true;
+    bool renderSkyBox = true;
 
     // render loop
     while (!glfwWindowShouldClose(window)) {
@@ -317,17 +356,50 @@ int main() {
                 float *ptr = lightBuffer.mapBufferContent<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
                 ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
                 lightBuffer.unmapBuffer();
+
             }
             ImGui::End();
-        }
 
+            ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+            ImGui::Begin("Rendering Settings");
+            if (ImGui::Checkbox("Render to FBO", &useFBO));
+            if(useFBO)
+            {
+                if (ImGui::Checkbox("Grayscale", &useGrayscale))
+                    grayscaleuniform->setContent(useGrayscale);
+                if (ImGui::Checkbox("Blur", &useBlur))
+                {
+                    blurUniform->setContent(useBlur);
+                    if (useBlur && useSharpen)
+                    {
+                        useSharpen = false;
+                        sharpenUniform->setContent(useSharpen);
+                    }
+                }
+                if (ImGui::Checkbox("Sharpen", &useSharpen))
+                {
+                    sharpenUniform->setContent(useSharpen);
+                    if(useBlur && useSharpen)
+                    {
+                        useBlur = false;
+                        blurUniform->setContent(useBlur);
+                    }
+                }
+            }
+            if (ImGui::Checkbox("Render Skybox", &renderSkyBox));
+            ImGui::End();
+        }
+        
         //ImGui::ShowTestWindow();
+        if(useFBO)
+            fbo.bind(); // render into fbo
 
         glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.update(window);
+
 
         viewUniform->setContent(camera.getView());
         cameraPosUniform->setContent(camera.getPosition());
@@ -347,14 +419,28 @@ int main() {
 
         plane.draw();
 
-        // render skybox last
-        glDepthFunc(GL_LEQUAL);
-        glDisable(GL_CULL_FACE);
-        skyboxSP.use();
-        cube.draw();
-        glEnable(GL_CULL_FACE);
-        glDepthFunc(GL_LEQUAL);
+        if (renderSkyBox)
+        {
+            // render skybox last
+            glDepthFunc(GL_LEQUAL);
+            glDisable(GL_CULL_FACE);
+            skyboxSP.use();
+            cube.draw();
+            glEnable(GL_CULL_FACE);
+            glDepthFunc(GL_LEQUAL);
+        }
+            
 
+        if (useFBO)
+        {
+            fbo.unbind(); // render to screen now
+            glDisable(GL_DEPTH_TEST);
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            fboSP.use();
+            fboQuad.draw();
+            glEnable(GL_DEPTH_TEST);
+        }
         
         timer.stop();
         timer.drawGuiWindow(window);

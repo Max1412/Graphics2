@@ -7,7 +7,7 @@ Cubemap::Cubemap(GLenum minFilter, GLenum maxFilter) : Texture(GL_TEXTURE_CUBE_M
     
 }
 
-void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type) const
+void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type)
 {
     // load the first image to get the width, height
     std::string path(texturePath.string());
@@ -18,6 +18,9 @@ void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePat
 
     if (!imageData)
         throw std::runtime_error("Cubemap Image couldn't be loaded");
+
+    m_width = imageWidth;
+    m_height = imageHeight;
 
     glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
 

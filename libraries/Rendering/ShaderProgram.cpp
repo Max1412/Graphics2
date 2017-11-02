@@ -26,7 +26,7 @@ ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_i
 }
 
 ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithShaders(true) {
-    for(auto n : shaders)
+    for(const auto& n : shaders)
         m_shaderMap.insert(std::make_pair(n.getShaderType(), n));
 
 	createProgram();
@@ -64,7 +64,7 @@ void ShaderProgram::changeShader(const Shader &shader) {
 ShaderProgram::~ShaderProgram() {
     if (glfwGetCurrentContext() != nullptr) {
         // delete all shaders
-        for (auto shaderPair : m_shaderMap)
+        for (const auto& shaderPair : m_shaderMap)
             glDeleteShader(shaderPair.second.getHandle());
 
         // delete porgram
@@ -95,7 +95,7 @@ void ShaderProgram::createProgram() {
 	}
 
 	// attach all shaders
-	for(auto n : m_shaderMap)
+	for(const auto& n : m_shaderMap)
 		glAttachShader(m_shaderProgramHandle, n.second.getHandle());
 }
 
@@ -129,7 +129,7 @@ GLuint ShaderProgram::getShaderProgramHandle() const {
 
 void ShaderProgram::use() {
 	glUseProgram(m_shaderProgramHandle);
-	forceUpdateUniforms();
+	forceUpdateUniforms(); // TODO temporary hack to make it possible to use the same uniform in different shaderprograms
 }
 
 void ShaderProgram::updateUniforms()
