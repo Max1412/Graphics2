@@ -188,7 +188,7 @@ int main() {
 
     // "generate" lights
     std::vector<LightInfo> lvec;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 5; i++) {
         LightInfo li;
         const glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
         li.pos = rotMat * (glm::vec4(i*3.0f, i*3.0f, i*3.0f, 1.0f) + glm::vec4(1.0f, 1.0f, 1.0f, 0.0f));
@@ -230,7 +230,7 @@ int main() {
     m2.ks = 0.3f;
     m2.shininess = 20.0f;
     m2.kt = 0.0f;
-    m2.reflective = 0;
+    m2.reflective = 1;
     mvec.push_back(m2);
 
     // first material is for bunny, second for plane
