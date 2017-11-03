@@ -81,7 +81,7 @@ public:
      * \param vshader the vertex shader to be changed/reloaded
      * \param fshader the fragment shader to be changed/reloaded
      */
-    void showReloadShaderGUI(const Shader& vshader, const Shader& fshader);
+    void showReloadShaderGUI(const Shader& vshader, const Shader& fshader, std::string_view name = "Generic Shaderprogram");
 
 private:
 	GLuint m_shaderProgramHandle;

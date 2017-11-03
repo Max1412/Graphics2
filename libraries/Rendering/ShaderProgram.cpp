@@ -246,10 +246,10 @@ void ShaderProgram::forceUpdateUniforms()
         }
     }
 }
-void ShaderProgram::showReloadShaderGUI(const Shader& vshader, const Shader& fshader)
+void ShaderProgram::showReloadShaderGUI(const Shader& vshader, const Shader& fshader, std::string_view name)
 {
         ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
-        ImGui::Begin("Shader Settings");
+        ImGui::Begin(name.data());
         if (ImGui::Button("Reload Vertex Shader"))
         {
             try {

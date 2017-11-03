@@ -52,7 +52,7 @@ void main() {
     {
         float kernel[9] = float[](
                 -1, -1, -1,
-                -1,  5, -1,
+                -1,  9, -1,
                 -1, -1, -1
         );
         currentColor.rgb = applyKernel3x3(kernel, 1.0);
