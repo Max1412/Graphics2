@@ -5,7 +5,7 @@ in vec2 passTexCoord;
 
 out vec4 fragColor;
 
-layout(binding = 0, std430) buffer textureBuffer
+layout(binding = 6, std430) buffer textureBuffer
 {
     sampler2D inputTexture;
 };
