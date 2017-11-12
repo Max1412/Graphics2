@@ -13,6 +13,8 @@ public:
 
     void initWithoutData(int width, int height, GLenum internalFormat);
 
+    void setWrap(GLenum wrapS, GLenum wrapT) const;
+
     template <typename T>
     void clearTexture(GLenum format, GLenum type, T data) const
     {
@@ -31,4 +33,3 @@ protected:
     int m_width = 0;
     int m_height = 0;
 };
-

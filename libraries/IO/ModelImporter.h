@@ -11,7 +11,7 @@
 
 class ModelImporter {
 public:
-	ModelImporter(const std::experimental::filesystem::path& filename);
+	explicit ModelImporter(const std::experimental::filesystem::path& filename);
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 

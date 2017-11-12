@@ -26,6 +26,20 @@ FrameBuffer::FrameBuffer(std::vector<Texture> rendertargets, const bool useDepth
     unbind();
 }
 
+FrameBuffer::FrameBuffer(GLenum attachmentType, Texture depthAttachment)
+{
+    if (attachmentType != GL_DEPTH_ATTACHMENT)
+        throw std::runtime_error("This constructor is for using deoth attachments only");
+
+    glCreateFramebuffers(1, &m_name);
+    bind();
+    glNamedFramebufferTexture(m_name, GL_DEPTH_ATTACHMENT, depthAttachment.getName(), 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    unbind();
+
+}
+
 FrameBuffer::FrameBuffer(const int width, const int height, const bool useDepthStencil, const GLenum renderbufferFormat)
 {
     glCreateFramebuffers(1, &m_name);

@@ -141,6 +141,7 @@ int main() {
     const auto ambientLightUniform = std::make_shared<Uniform<glm::vec3>>("lightAmbient", ambient);
     sp.addUniform(ambientLightUniform);
 
+
     // "generate" lights
     std::vector<LightInfo> lvec;
     for (int i = 0; i < 1; i++) {
@@ -208,6 +209,48 @@ int main() {
 
     sp.addUniform(MaterialIDUniform);
 
+
+    // Shadow Mapping stuff ////////////////////////////////////////////////////
+    const int shadowWidth = width, shadowHeight = height;
+    Texture shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
+    shadowTexture.initWithoutData(shadowWidth, shadowHeight, GL_DEPTH_COMPONENT32F);
+    shadowTexture.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+    shadowTexture.generateHandle();
+
+    FrameBuffer shadowMapFBO(GL_DEPTH_ATTACHMENT, { shadowTexture });
+
+    const float nearPlane = 3.0f, farPlane = 18.0f;
+    const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+
+    glm::mat4 lightView = glm::lookAt(glm::vec3(lvec.at(0).pos),
+        glm::vec3(0.0f), // aimed at the center
+        glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+    auto lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", lightSpaceMatrix);
+
+    const Shader shadowMapVS("lightTransform.vert", GL_VERTEX_SHADER);
+    const Shader shadowMapFS("nothing.frag", GL_FRAGMENT_SHADER);
+    ShaderProgram shadowMapSP(shadowMapVS, shadowMapVS);
+
+    shadowMapSP.addUniform(modelUniform);
+    shadowMapSP.addUniform(lightSpaceUniform);
+    sp.addUniform(lightSpaceUniform);
+
+    // shadow map displaying stuff //////////
+    // FBO stuff
+    const Shader smfboFS("smfbo.frag", GL_FRAGMENT_SHADER);
+    ShaderProgram smfboSP(fboVS, smfboFS);
+    smfboSP.use();
+
+    // put the sm texture handle into a SSBO
+    const auto smfboTexHandle = shadowTexture.getHandle();
+    Buffer smfboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
+    smfboTexHandleBuffer.setData(std::array<GLuint64, 1>{smfboTexHandle}, GL_STATIC_DRAW);
+    smfboTexHandleBuffer.bindBase(7);
+    bool displayShadowMap = false;
+
+    // regular stuff
     Timer timer;
 
     glEnable(GL_CULL_FACE);
@@ -217,6 +260,7 @@ int main() {
     std::vector<glm::vec3> rotations(5, glm::vec3(0.0f));
 
     const float deltaAngle = 0.1f;
+    bool rotate = true;
 
     bool useFBO = true;
 
@@ -225,8 +269,11 @@ int main() {
     {
 
         timer.start();
-        const glm::mat4 newModel = glm::rotate(bunny->getModelMatrix(), glm::radians(deltaAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-        bunny->setModelMatrix(newModel);
+        if(rotate)
+        {
+            const glm::mat4 newModel = glm::rotate(bunny->getModelMatrix(), glm::radians(deltaAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+            bunny->setModelMatrix(newModel);   
+        }
 
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
@@ -237,6 +284,8 @@ int main() {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("FBO settings");
             if (ImGui::Checkbox("Render to FBO", &useFBO));
+            if (ImGui::Checkbox("Display Shadow Map", &displayShadowMap));
+            if (ImGui::Checkbox("Rotate Model", &rotate));
             ImGui::End();
         }
         
@@ -271,6 +320,13 @@ int main() {
                     lvec.at(i).spot_direction = glm::normalize(glm::vec3(0.0f) - newPos);
                     const auto spotDirOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_direction);
                     lightBuffer.setContentSubData(lvec.at(i).spot_direction, spotDirOffset);
+
+                    lightView = glm::lookAt(newPos,
+                                            glm::vec3(0.0f), // aimed at the center
+                                            glm::vec3(0.0f, 1.0f, 0.0f));
+
+                    lightSpaceMatrix = lightProjection * lightView;
+                    lightSpaceUniform->setContent(lightSpaceMatrix);
                 }
                 // maps memory to access it by GUI -- probably very bad performance-wise
                 const auto positionOffset = i * sizeof(lvec.at(i));
@@ -281,7 +337,36 @@ int main() {
             }
             ImGui::End();
         }
-        
+
+        // shadow mapping pass ///////
+        {
+            // set shadow mapping settings
+            shadowMapSP.use();
+            glViewport(0, 0, shadowWidth, shadowHeight);
+            shadowMapFBO.bind();
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glCullFace(GL_FRONT);
+
+
+            // render scene to shadow map
+            modelUniform->setContent(bunny->getModelMatrix());
+            MaterialIDUniform->setContent(bunny->getMaterialID());
+            shadowMapSP.forceUpdateUniforms();
+            bunny->draw();
+            modelUniform->setContent(plane.getModelMatrix());
+            MaterialIDUniform->setContent(plane.getMaterialID());
+            shadowMapSP.forceUpdateUniforms();
+            plane.draw();
+
+            // reset settings
+            shadowMapFBO.unbind();
+            glViewport(0, 0, width, height);
+            glCullFace(GL_BACK);
+
+
+        }
+        // end shadow mapping pass /////////////
+
 
         //ImGui::ShowTestWindow();
         if (useFBO)
@@ -318,6 +403,17 @@ int main() {
             glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             fboSP.use();
+            fboQuad.draw();
+            glEnable(GL_DEPTH_TEST);
+        }
+
+        if (displayShadowMap)
+        {
+            fbo.unbind(); // render to screen now
+            glDisable(GL_DEPTH_TEST);
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            smfboSP.use();
             fboQuad.draw();
             glEnable(GL_DEPTH_TEST);
         }

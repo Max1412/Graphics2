@@ -2,6 +2,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "IO/stb_image.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.inl>
+
 
 Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
 {
@@ -42,6 +45,17 @@ void Texture::initWithoutData(int width, int height, GLenum internalFormat)
     glTextureStorage2D(m_name, 1, internalFormat, width, height);
     m_width = width;
     m_height = height;
+}
+
+void Texture::setWrap(const GLenum wrapS, const GLenum wrapT) const
+{
+    glTextureParameteri(m_name, GL_TEXTURE_WRAP_S, wrapS);
+    glTextureParameteri(m_name, GL_TEXTURE_WRAP_T, wrapT);
+    if(wrapS == GL_CLAMP_TO_BORDER && wrapT == GL_CLAMP_TO_BORDER)
+    {
+        glm::vec4 borderColor(1.0f);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(borderColor));
+    }
 }
 
 GLuint64 Texture::getHandle() const
