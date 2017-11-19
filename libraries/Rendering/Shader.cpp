@@ -114,6 +114,10 @@ std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fi
 	if (file.is_open()) {
 		while (!file.eof()) {
 			getline(file, line);
+            if(line.substr(0, 8) == "#include")
+            {
+                line = loadShaderFile(fileName.parent_path().string() + "/" + line.substr(10, line.size() - 11));
+            }
 			fileContent += line + '\n';
 		}
 		file.close();
