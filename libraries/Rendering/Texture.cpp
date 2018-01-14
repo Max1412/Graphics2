@@ -14,19 +14,39 @@ Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
     glObjectLabel(GL_TEXTURE, m_name, 1, "test");
 }
 
-void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type)
+void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
     int imageWidth, imageHeight, numChannels;
-    const auto imageData = stbi_load(texturePath.string().c_str(), &imageWidth, &imageHeight, &numChannels, 4);
+    if(type != GL_FLOAT)
+    {
+        const auto imageData = stbi_load(texturePath.string().c_str(), &imageWidth, &imageHeight, &numChannels, desiredChannels);
 
-    if (!imageData)
-        throw std::runtime_error("Image couldn't be loaded");
+        if (!imageData)
+            throw std::runtime_error("Image couldn't be loaded");
 
-    glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
-    glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageData);
+        glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+        glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageData);
 
-    // let the cpu data of the image go
-    stbi_image_free(imageData);
+        // let the cpu data of the image go
+        stbi_image_free(imageData);
+
+    }
+    else
+    {
+        stbi_set_flip_vertically_on_load(true);
+        const auto imageFloat = stbi_loadf(texturePath.string().c_str(), &imageWidth, &imageHeight, &numChannels, desiredChannels);
+
+        if (!imageFloat)
+            throw std::runtime_error("Image couldn't be loaded");
+
+        glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+        glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageFloat);
+
+        // let the cpu data of the image go
+        stbi_image_free(imageFloat);
+        stbi_set_flip_vertically_on_load(false);
+    }
+
 
     m_width = imageWidth;
     m_height = imageHeight;
@@ -56,6 +76,17 @@ void Texture::setWrap(const GLenum wrapS, const GLenum wrapT) const
         glm::vec4 borderColor(1.0f);
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(borderColor));
     }
+}
+
+void Texture::setMinMagFilter(GLenum minFilter, GLenum magFilter) const
+{
+    glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, magFilter);
+}
+
+void Texture::generateMipmap() const
+{
+    glGenerateTextureMipmap(m_name);
 }
 
 GLuint64 Texture::getHandle() const

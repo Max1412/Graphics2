@@ -29,7 +29,7 @@ FrameBuffer::FrameBuffer(std::vector<Texture> rendertargets, const bool useDepth
 FrameBuffer::FrameBuffer(GLenum attachmentType, Texture depthAttachment)
 {
     if (attachmentType != GL_DEPTH_ATTACHMENT)
-        throw std::runtime_error("This constructor is for using deoth attachments only");
+        throw std::runtime_error("This constructor is for using depth textures only");
 
     glCreateFramebuffers(1, &m_name);
     bind();
@@ -67,9 +67,17 @@ void FrameBuffer::unbind() const
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+GLuint FrameBuffer::getName() const
+{
+    return m_name;
+}
+
 void FrameBuffer::attachDepthStencil(const int width, const int height, const GLenum renderbufferFormat)
 {
     glCreateRenderbuffers(1, &m_rbo);
     glNamedRenderbufferStorage(m_rbo, renderbufferFormat, width, height);
-    glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+    if(renderbufferFormat == GL_DEPTH_COMPONENT16 || renderbufferFormat == GL_DEPTH_COMPONENT24 || renderbufferFormat == GL_DEPTH_COMPONENT32)
+        glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+    else
+        glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
 }

@@ -7,13 +7,14 @@ class Texture
 public:
     explicit Texture(GLenum target = GL_TEXTURE_2D, GLenum minFilter = GL_LINEAR, GLenum maxFilter = GL_LINEAR);
 
-    virtual void loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
-
+    virtual void loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4);
     virtual void generateHandle();
 
-    void initWithoutData(int width, int height, GLenum internalFormat);
+    virtual void initWithoutData(int width, int height, GLenum internalFormat);
 
     void setWrap(GLenum wrapS, GLenum wrapT) const;
+    void setMinMagFilter(GLenum minFilter, GLenum magFilter) const;
+    void generateMipmap() const;
 
     template <typename T>
     void clearTexture(GLenum format, GLenum type, T data) const
