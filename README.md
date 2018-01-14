@@ -37,7 +37,7 @@ Also contains some demos and examples.
 * work in progress
 * testing some shader-only drawing stuff, "the book of shaders"-style
 
-### demo 4:shadowmapping
+### demo 4: shadowmapping
 * work in progress
 * shadow mapping with PCF
 
@@ -48,5 +48,5 @@ Also contains some demos and examples.
 
 ### Resources/Licensing
 
-* PBR & IBL code adapted (with changes), skybox texture from [Joey de Vries'](https://twitter.com/JoeyDeVriez) learnopengl.com, licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by/4.0/legalcode).
+* PBR & IBL code adapted (with changes), skybox texture from [Joey de Vries](https://twitter.com/JoeyDeVriez)' [learnopengl.com](learnopengl.com), licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by/4.0/legalcode).
 * IBL Textures are from the [sIBL archive](http://www.hdrlabs.com/sibl/archive.html), licensed under [CC BY-NC-SA 3.0 US](https://creativecommons.org/licenses/by-nc-sa/3.0/us/legalcode).
