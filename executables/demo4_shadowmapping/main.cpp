@@ -87,8 +87,8 @@ int main() {
     FrameBuffer fbo({ fboTex });
 
     // actual stuff
-    const Shader vs("testing.vert", GL_VERTEX_SHADER);
-    const Shader fs("testing.frag", GL_FRAGMENT_SHADER);
+    const Shader vs("shadowmapping.vert", GL_VERTEX_SHADER);
+    const Shader fs("shadowmapping.frag", GL_FRAGMENT_SHADER);
     ShaderProgram sp(vs, fs);
 
     ModelImporter mi("bunny.obj");
