@@ -2,9 +2,9 @@
 
 Quad::Quad() : m_quadBuffer(GL_ARRAY_BUFFER), m_texCoordBuffer(GL_ARRAY_BUFFER)
 {
-    m_quadBuffer.setData(quadVertices, GL_STATIC_DRAW);
+    m_quadBuffer.setStorage(quadVertices, GL_DYNAMIC_STORAGE_BIT);
 
-    m_texCoordBuffer.setData(quadTexCoords, GL_STATIC_DRAW);
+    m_texCoordBuffer.setStorage(quadTexCoords, GL_DYNAMIC_STORAGE_BIT);
 
     m_quadVAO.connectBuffer(m_quadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
     m_quadVAO.connectBuffer(m_texCoordBuffer, 1, 2, GL_FLOAT, GL_FALSE);

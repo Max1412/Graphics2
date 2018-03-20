@@ -87,7 +87,7 @@ int main() {
     };
 
     Buffer QuadBuffer(GL_ARRAY_BUFFER);
-    QuadBuffer.setData(quadData, GL_STATIC_DRAW);
+    QuadBuffer.setStorage(quadData, GL_DYNAMIC_STORAGE_BIT);
     VertexArray quadVAO;
     quadVAO.connectBuffer(QuadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
     quadVAO.bind();
@@ -137,7 +137,7 @@ int main() {
     }
     // create buffers for materials and lights
     Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
-    lightBuffer.setData(lvec, GL_DYNAMIC_DRAW);
+    lightBuffer.setStorage(lvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
     lightBuffer.bindBase(0);
 
     glm::vec4 clear_color(0.1f);

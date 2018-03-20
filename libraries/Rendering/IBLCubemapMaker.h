@@ -35,7 +35,4 @@ private:
     std::shared_ptr<Uniform<glm::mat4>> m_viewUniform;
 
     Texture m_brdfLUT;
-
-
-
 };

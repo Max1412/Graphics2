@@ -39,4 +39,7 @@ std::vector<unsigned> SkyBoxCube::cubeIndices = {
     6, 7, 3,
 };
 
-std::vector<glm::vec3> SkyBoxCube::noNormals;
+std::vector<glm::vec3> SkyBoxCube::noNormals =
+{
+    { 0.0, 0.0, 0.0 },
+};

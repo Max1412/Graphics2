@@ -54,7 +54,7 @@ int main() {
     };
 
     Buffer QuadBuffer(GL_ARRAY_BUFFER);
-    QuadBuffer.setData(quadData, GL_STATIC_DRAW);
+    QuadBuffer.setStorage(quadData, GL_DYNAMIC_STORAGE_BIT);
     VertexArray quadVAO;
     quadVAO.connectBuffer(QuadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
     quadVAO.bind();

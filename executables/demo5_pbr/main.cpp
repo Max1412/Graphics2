@@ -109,7 +109,7 @@ int main() {
     }
 
     Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
-    materialBuffer.setData(mvec, GL_DYNAMIC_DRAW);
+    materialBuffer.setStorage(mvec, GL_DYNAMIC_STORAGE_BIT);
     materialBuffer.bindBase(1);
 
     std::vector<Light> lightVec = {
@@ -119,7 +119,7 @@ int main() {
         Light{ glm::vec4(10.0f, -10.0f, 10.0f, 1.0f), glm::vec4(300.0f) }
     };
     Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
-    lightBuffer.setData(lightVec, GL_DYNAMIC_DRAW);
+    lightBuffer.setStorage(lightVec, GL_DYNAMIC_STORAGE_BIT);
     lightBuffer.bindBase(2);
 
     // IBL STUFF
@@ -127,7 +127,7 @@ int main() {
     glViewport(0, 0, width, height);
 
     Buffer lightingTextureBuffer(GL_SHADER_STORAGE_BUFFER);
-    lightingTextureBuffer.setData(std::array<GLuint64, 3>{cubemapMaker.getIrradianceCubemap().getHandle(), cubemapMaker.getSpecularCubemap().getHandle(), cubemapMaker.getBRDFLUT().getHandle()}, GL_STATIC_DRAW);
+    lightingTextureBuffer.setStorage(std::array<GLuint64, 3>{cubemapMaker.getIrradianceCubemap().getHandle(), cubemapMaker.getSpecularCubemap().getHandle(), cubemapMaker.getBRDFLUT().getHandle()}, GL_DYNAMIC_STORAGE_BIT);
     lightingTextureBuffer.bindBase(7);
 
     SkyBoxCube cube;

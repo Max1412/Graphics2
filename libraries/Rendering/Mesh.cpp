@@ -34,9 +34,9 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
         }
     }
 
-    m_vertexBuffer.setData(m_vertices, GL_STATIC_DRAW);
-    m_normalBuffer.setData(m_normals, GL_STATIC_DRAW);
-    m_indexBuffer.setData(m_indices, GL_STATIC_DRAW);
+    m_vertexBuffer.setStorage(m_vertices, GL_DYNAMIC_STORAGE_BIT);
+    m_normalBuffer.setStorage(m_normals, GL_DYNAMIC_STORAGE_BIT);
+    m_indexBuffer.setStorage(m_indices, GL_DYNAMIC_STORAGE_BIT);
     m_vao.connectBuffer(m_vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectBuffer(m_normalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectIndexBuffer(m_indexBuffer);
@@ -46,15 +46,14 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
         : m_vertices(vertices), m_normals(normals), m_indices(indices),
         m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
 {
-    m_vertexBuffer.setData(m_vertices, GL_STATIC_DRAW);
-    m_normalBuffer.setData(m_normals, GL_STATIC_DRAW);
-    m_indexBuffer.setData(m_indices, GL_STATIC_DRAW);
+    // TODO add version without normals (?) currently "faking" no normals because no empty buffers are allowed
+    m_vertexBuffer.setStorage(m_vertices, GL_DYNAMIC_STORAGE_BIT);
+    m_normalBuffer.setStorage(m_normals, GL_DYNAMIC_STORAGE_BIT);
+    m_indexBuffer.setStorage(m_indices, GL_DYNAMIC_STORAGE_BIT);
     m_vao.connectBuffer(m_vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectBuffer(m_normalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectIndexBuffer(m_indexBuffer);
 }
-
-
 
 
 void Mesh::draw() const {

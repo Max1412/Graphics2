@@ -29,7 +29,7 @@ IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& file
     iblTexture.generateHandle();
 
     Buffer iblTextureBuffer(GL_SHADER_STORAGE_BUFFER);
-    iblTextureBuffer.setData(std::array<GLuint64, 1>{iblTexture.getHandle()}, GL_STATIC_DRAW);
+    iblTextureBuffer.setStorage(std::array<GLuint64, 1>{iblTexture.getHandle()}, GL_DYNAMIC_STORAGE_BIT);
     iblTextureBuffer.bindBase(5);
 
     const Shader IBLtoCubeVS("IBLtoCube.vert", GL_VERTEX_SHADER);
@@ -84,7 +84,7 @@ IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& file
     /////// Intermediate Step
     // Setup to draw the cubemap in draw()
     ///////
-    m_iblSkyboxTextureBuffer.setData(std::array<GLuint64, 1>{m_targetCubemap.getHandle()}, GL_STATIC_DRAW);
+    m_iblSkyboxTextureBuffer.setStorage(std::array<GLuint64, 1>{m_targetCubemap.getHandle()}, GL_DYNAMIC_STORAGE_BIT);
     m_iblSkyboxTextureBuffer.bindBase(6);
 
     m_iblSkyboxSP.addUniform(m_projUniform);

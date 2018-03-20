@@ -81,7 +81,7 @@ int main() {
     // put the texture handle into a SSBO
     const auto fboTexHandle = fboTex.getHandle();
     Buffer fboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
-    fboTexHandleBuffer.setData(std::array<GLuint64, 1>{fboTexHandle}, GL_STATIC_DRAW);
+    fboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{fboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
     fboTexHandleBuffer.bindBase(6);
 
     FrameBuffer fbo({ fboTex });
@@ -195,11 +195,11 @@ int main() {
 
     // create buffers for materials and lights
     Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
-    lightBuffer.setData(lvec, GL_DYNAMIC_DRAW);
+    lightBuffer.setStorage(lvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
     lightBuffer.bindBase(0);
 
     Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
-    materialBuffer.setData(mvec, GL_DYNAMIC_DRAW);
+    materialBuffer.setStorage(mvec, GL_DYNAMIC_STORAGE_BIT);
     materialBuffer.bindBase(1);
 
     const glm::vec4 clearColor(0.1f);
@@ -246,7 +246,7 @@ int main() {
     // put the sm texture handle into a SSBO
     const auto smfboTexHandle = shadowTexture.getHandle();
     Buffer smfboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
-    smfboTexHandleBuffer.setData(std::array<GLuint64, 1>{smfboTexHandle}, GL_STATIC_DRAW);
+    smfboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{smfboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
     smfboTexHandleBuffer.bindBase(7);
     bool displayShadowMap = false;
 
