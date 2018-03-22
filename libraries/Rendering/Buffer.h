@@ -142,9 +142,12 @@ void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) {
 template<typename S>
 void Buffer::setContentSubData(const S& data, unsigned startOffset) {
     // TODO turn thse into asserts, only check them in debug mode
-    if(!(m_bufferFlags & GL_DYNAMIC_STORAGE_BIT))
+    if constexpr(util::debugmode)
     {
-        throw std::runtime_error("Buffer lacks GL_DYNAMIC_STORAGE_BIT flag for using SubData");
+        if (!(m_bufferFlags & GL_DYNAMIC_STORAGE_BIT))
+        {
+            throw std::runtime_error("Buffer lacks GL_DYNAMIC_STORAGE_BIT flag for using SubData");
+        }
     }
     glNamedBufferSubData(m_bufferHandle, startOffset, sizeof(data), &data);
 }
@@ -154,20 +157,28 @@ template<typename S>
 S* Buffer::mapBufferContent(int size, unsigned startOffset, GLbitfield flags) {
     // TODO turn thse into asserts, only check them in debug mode
     // TODO what about COHERENT_BIT, PERSISTENT_BIT
-    if (!(m_bufferFlags & GL_MAP_WRITE_BIT) && !(m_bufferFlags & GL_MAP_READ_BIT))
+    if constexpr(util::debugmode)
     {
-        throw std::runtime_error("Buffer needs GL_MAP_WRITE_BIT or GL_MAP_READ_BIT to use mapping");
-    }
-    if(!((m_bufferFlags & flags) == flags))
-    {
-        throw std::runtime_error("Buffer needs to have the flags set that mapBuffer gets called with");
+        if (!(m_bufferFlags & GL_MAP_WRITE_BIT) && !(m_bufferFlags & GL_MAP_READ_BIT))
+        {
+            throw std::runtime_error("Buffer needs GL_MAP_WRITE_BIT or GL_MAP_READ_BIT to use mapping");
+        }
+        if (!((m_bufferFlags & flags) == flags))
+        {
+            throw std::runtime_error("Buffer needs to have the flags set that mapBuffer gets called with");
+        }
     }
     S* ptr = static_cast<S*>(glMapNamedBufferRange(m_bufferHandle, startOffset, size, flags));
     util::getGLerror(__LINE__, __FUNCTION__);
-    if(!ptr)
+
+    if constexpr(util::debugmode)
     {
-        throw std::runtime_error("Mapping the buffer failed");
+        if (!ptr)
+        {
+            throw std::runtime_error("Mapping the buffer failed");
+        }
     }
+
     return ptr;
 }
 
@@ -176,14 +187,20 @@ template<typename S>
 void Buffer::setPartialContentMapped(const S& data, unsigned startOffset) {
     // TODO turn thse into asserts, only check them in debug mode
     // TODO what about COHERENT_BIT, PERSISTENT_BIT
-    if (!(m_bufferFlags & GL_MAP_WRITE_BIT))
+    if constexpr(util::debugmode)
     {
-        throw std::runtime_error("Buffer lacks GL_MAP_WRITE_BIT to write through mapping");
+        if (!(m_bufferFlags & GL_MAP_WRITE_BIT))
+        {
+            throw std::runtime_error("Buffer lacks GL_MAP_WRITE_BIT to write through mapping");
+        }
     }
     S* ptr = static_cast<S*>(glMapNamedBufferRange(m_bufferHandle, startOffset, sizeof(data), GL_MAP_WRITE_BIT));
-    if (!ptr)
+    if constexpr(util::debugmode)
     {
-        throw std::runtime_error("Mapping the buffer failed");
+        if (!ptr)
+        {
+            throw std::runtime_error("Mapping the buffer failed");
+        }
     }
     *ptr = data;
     unmapBuffer();
