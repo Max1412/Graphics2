@@ -18,22 +18,22 @@
 class ShaderProgram
 {
 public:
-	ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath);
-	ShaderProgram(const Shader &shader1, const Shader &shader2);
-	ShaderProgram(const std::vector<Shader>& shaders);
+    ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath);
+    ShaderProgram(const Shader &shader1, const Shader &shader2);
+    ShaderProgram(const std::vector<Shader>& shaders);
     ~ShaderProgram();
 
-	
+    
     /**
-	 * \brief adds a shaderto the program
-	 * \param shader the shader that is to be added
-	 */
-	void addShader(const Shader &shader);
+     * \brief adds a shaderto the program
+     * \param shader the shader that is to be added
+     */
+    void addShader(const Shader &shader);
 
     /**
-	 * \brief creates a shader program with all shaders from the map
-	 */
-	void createProgram();
+     * \brief creates a shader program with all shaders from the map
+     */
+    void createProgram();
 
     /**
      * \brief links the shader program
@@ -41,15 +41,15 @@ public:
     void linkProgram() const;
 
     /**
-	 * \brief retruns the shader program handle
-	 * \return shader program handle
-	 */
-	GLuint getShaderProgramHandle() const;
+     * \brief retruns the shader program handle
+     * \return shader program handle
+     */
+    GLuint getShaderProgramHandle() const;
 
     /**
-	 * \brief sets the shader program as the currently used shader program
-	 */
-	void use();
+     * \brief sets the shader program as the currently used shader program
+     */
+    void use();
 
     /**
      * \brief swaps current shader of the same kind with the given shader
@@ -67,9 +67,9 @@ public:
 
 
     /**
-	 * \brief updates all uniforms depending on their flags
-	 */
-	void updateUniforms();
+     * \brief updates all uniforms depending on their flags
+     */
+    void updateUniforms();
 
     /**
      * \brief forces update of all uniforms (ignores flag)
@@ -84,9 +84,9 @@ public:
     void showReloadShaderGUI(const Shader& vshader, const Shader& fshader, std::string_view name = "Generic Shaderprogram");
 
 private:
-	GLuint m_shaderProgramHandle;
+    GLuint m_shaderProgramHandle;
     std::unordered_map<GLuint, Shader> m_shaderMap;
-	bool m_initWithShaders = false;
+    bool m_initWithShaders = false;
 
     std::vector<std::pair<std::any, GLint>> m_anyUniforms;
 };

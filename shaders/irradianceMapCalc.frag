@@ -13,7 +13,7 @@ layout(binding = 6, std430) buffer textureBuffer
 const float PI = 3.14159265359;
 
 void main()
-{		
+{        
     // the sample direction equals the hemisphere's orientation 
     vec3 normal = normalize(localPos);
   

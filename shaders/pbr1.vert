@@ -12,8 +12,8 @@ uniform mat4 ProjectionMatrix;
 
 void main()
 {
-	Normal = mat3(ModelMatrix) * VertexNormal;
-	passPosition = vec3( ModelMatrix * 	vec4(VertexPosition, 1.0));
+    Normal = mat3(ModelMatrix) * VertexNormal;
+    passPosition = vec3( ModelMatrix *     vec4(VertexPosition, 1.0));
 
-	gl_Position = ProjectionMatrix * ViewMatrix * ModelMatrix * vec4(VertexPosition, 1.0);
+    gl_Position = ProjectionMatrix * ViewMatrix * ModelMatrix * vec4(VertexPosition, 1.0);
 }

@@ -8,9 +8,9 @@
 class Shader
 {
 public:
-	Shader(const std::experimental::filesystem::path& path, GLuint shaderType);
+    Shader(const std::experimental::filesystem::path& path, GLuint shaderType);
     explicit Shader(GLuint shaderType);
-	~Shader();
+    ~Shader();
 
     /**
      * \brief inits with a given path (loading the shader)
@@ -24,10 +24,10 @@ public:
     void init() const;
 
     /**
-	 * \brief returns the shader handle
-	 * \return shader handle
-	 */
-	GLuint getHandle() const;
+     * \brief returns the shader handle
+     * \return shader handle
+     */
+    GLuint getHandle() const;
 
     /**
      * \brief returns the shader type (vertex, fragment, ...)
@@ -37,10 +37,10 @@ public:
 
 
 private:
-	GLuint m_shaderHandle;
+    GLuint m_shaderHandle;
     GLuint m_shaderType;
     std::experimental::filesystem::path m_path;
 
-	std::string loadShaderFile(const std::experimental::filesystem::path& fileName) const;
+    std::string loadShaderFile(const std::experimental::filesystem::path& fileName) const;
 
 };

@@ -11,13 +11,13 @@
 
 class ModelImporter {
 public:
-	explicit ModelImporter(const std::experimental::filesystem::path& filename);
+    explicit ModelImporter(const std::experimental::filesystem::path& filename);
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 
 private:
-	Assimp::Importer m_importer;
-	const aiScene* m_scene;
-	std::vector<std::shared_ptr<Mesh>> m_meshes;
+    Assimp::Importer m_importer;
+    const aiScene* m_scene;
+    std::vector<std::shared_ptr<Mesh>> m_meshes;
 
 };

@@ -16,16 +16,16 @@ uniform mat4 ProjectionMatrix;
 
 void main()
 {
-	mat4 ModelViewMatrix = ViewMatrix * ModelMatrix;
-	mat3 NormalMatrix = mat3(transpose(inverse(ModelViewMatrix)));
+    mat4 ModelViewMatrix = ViewMatrix * ModelMatrix;
+    mat3 NormalMatrix = mat3(transpose(inverse(ModelViewMatrix)));
 
-	vec3 Normal = normalize( NormalMatrix * VertexNormal);
-	interpNormal = Normal;
-	flatNormal = Normal;
-	passPosition = vec3( ModelViewMatrix * 	vec4(VertexPosition, 1.0));
+    vec3 Normal = normalize( NormalMatrix * VertexNormal);
+    interpNormal = Normal;
+    flatNormal = Normal;
+    passPosition = vec3( ModelViewMatrix *     vec4(VertexPosition, 1.0));
 
     modelNormal = mat3(transpose(inverse(ModelMatrix))) * VertexNormal;
     Position = vec3(ModelMatrix * vec4(VertexPosition, 1.0));
 
-	gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(VertexPosition, 1.0);
+    gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(VertexPosition, 1.0);
 }

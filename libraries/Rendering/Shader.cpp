@@ -9,12 +9,12 @@
 
 Shader::Shader(const std::experimental::filesystem::path& path, GLuint shaderType) : m_shaderType(shaderType), m_path(path)
 {
-	// create shader and check for errors
-	m_shaderHandle = glCreateShader(shaderType);
-	if (0 == m_shaderHandle)
-	{
-		throw std::runtime_error("Error creating shader.");
-	}
+    // create shader and check for errors
+    m_shaderHandle = glCreateShader(shaderType);
+    if (0 == m_shaderHandle)
+    {
+        throw std::runtime_error("Error creating shader.");
+    }
     init();
 }
 
@@ -98,7 +98,7 @@ Shader::~Shader() {
 }
 
 GLuint Shader::getHandle() const {
-	return m_shaderHandle;
+    return m_shaderHandle;
 }
 
 GLuint Shader::getShaderType() const {
@@ -106,26 +106,26 @@ GLuint Shader::getShaderType() const {
 }
 
 std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const {
-	std::string fileContent;
-	std::string line;
+    std::string fileContent;
+    std::string line;
 
-	// open file and concatenate input
-	std::ifstream file(fileName);
-	if (file.is_open()) {
-		while (!file.eof()) {
-			getline(file, line);
+    // open file and concatenate input
+    std::ifstream file(fileName);
+    if (file.is_open()) {
+        while (!file.eof()) {
+            getline(file, line);
             if(line.substr(0, 8) == "#include")
             {
                 line = loadShaderFile(fileName.parent_path().string() + "/" + line.substr(10, line.size() - 11));
             }
-			fileContent += line + '\n';
-		}
-		file.close();
-		std::cout << "SUCCESS: Opened file " << fileName << std::endl;
-	}
-	else
-		throw std::runtime_error("ERROR: Unable to open file " + fileName.string());
+            fileContent += line + '\n';
+        }
+        file.close();
+        std::cout << "SUCCESS: Opened file " << fileName << std::endl;
+    }
+    else
+        throw std::runtime_error("ERROR: Unable to open file " + fileName.string());
 
-	// return file as string
-	return fileContent;
+    // return file as string
+    return fileContent;
 }

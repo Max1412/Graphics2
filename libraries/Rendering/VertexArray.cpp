@@ -2,18 +2,18 @@
 #include "Utils/UtilCollection.h"
 
 VertexArray::VertexArray() {
-	glCreateVertexArrays(1, &m_vaoHandle);
+    glCreateVertexArrays(1, &m_vaoHandle);
 }
 
 VertexArray::~VertexArray() {
     if (glfwGetCurrentContext() != nullptr) {
         glDeleteVertexArrays(1, &m_vaoHandle);
     }
-	util::getGLerror(__LINE__, __FUNCTION__);
+    util::getGLerror(__LINE__, __FUNCTION__);
 }
 
 void VertexArray::bind() const {
-	glBindVertexArray(m_vaoHandle);
+    glBindVertexArray(m_vaoHandle);
 }
 
 void VertexArray::connectIndexBuffer(Buffer &buffer) const {

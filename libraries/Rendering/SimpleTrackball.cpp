@@ -7,23 +7,23 @@
 
 SimpleTrackball::SimpleTrackball(int width, int height, float radius) {
 
-	m_pos = glm::vec3(0.0f, 0.0f, 5.0);
-	m_center = glm::vec3(0.0f, 0.0f, 0.0f);
-	m_up = glm::vec3(0.0f, 1.0f, 0.0f);
+    m_pos = glm::vec3(0.0f, 0.0f, 5.0);
+    m_center = glm::vec3(0.0f, 0.0f, 0.0f);
+    m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	m_sensitivity = 0.010f;
-	m_theta = glm::pi<float>() / 2.0f;
-	m_phi = 0.f;
-	m_radius = radius;
+    m_sensitivity = 0.010f;
+    m_theta = glm::pi<float>() / 2.0f;
+    m_phi = 0.f;
+    m_radius = radius;
 
-	m_viewMatrix = glm::lookAt(m_center + m_pos, m_center, m_up);
+    m_viewMatrix = glm::lookAt(m_center + m_pos, m_center, m_up);
 
-	m_oldX = width / 2.f;
-	m_oldY = height / 2.f;
+    m_oldX = width / 2.f;
+    m_oldY = height / 2.f;
 }
 
 void SimpleTrackball::update(GLFWwindow* window) {
-	
+    
     if (!ImGui::GetIO().WantCaptureMouse) {
         double x, y;
         glfwGetCursorPos(window, &x, &y);
@@ -72,7 +72,7 @@ void SimpleTrackball::update(GLFWwindow* window) {
 }
 
 const glm::mat4& SimpleTrackball::getView() const {
-	return m_viewMatrix;
+    return m_viewMatrix;
 }
 
 glm::mat4& SimpleTrackball::getView() {

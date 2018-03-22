@@ -5,14 +5,14 @@
 template<typename T>
 class Uniform {
 public:
-	Uniform(const std::string& name, T content) :
-		m_name(name), m_content(content) {};
+    Uniform(const std::string& name, T content) :
+        m_name(name), m_content(content) {};
 
     /**
-	 * \brief returns the uniform name
-	 * \return uniform name
-	 */
-	const std::string& getName() const;
+     * \brief returns the uniform name
+     * \return uniform name
+     */
+    const std::string& getName() const;
 
     /**
      * \brief returns the current content
@@ -27,10 +27,10 @@ public:
     bool getChangeFlag() const;
 
     /**
-	 * \brief sets the (cpu-sided) content and the change flag
-	 * \param content 
-	 */
-	void setContent(const T &content);
+     * \brief sets the (cpu-sided) content and the change flag
+     * \param content 
+     */
+    void setContent(const T &content);
 
     /**
      * \brief resets the change flag
@@ -39,13 +39,13 @@ public:
 
 private:
     bool m_hasChanged = true;
-	std::string m_name;
-	T m_content;
+    std::string m_name;
+    T m_content;
 };
 
 template<typename T>
 const std::string& Uniform<T>::getName() const {
-	return m_name;
+    return m_name;
 }
 
 template<typename T>
@@ -66,5 +66,5 @@ T Uniform<T>::getContent() const {
 template<typename T>
 void Uniform<T>::setContent(const T &content) {
     m_hasChanged = true;
-	m_content = content;
+    m_content = content;
 }

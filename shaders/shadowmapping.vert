@@ -18,13 +18,13 @@ out vec4 fragPosLightspace;
 
 void main()
 {
-	mat4 ModelViewMatrix = ViewMatrix * ModelMatrix;
-	mat3 NormalMatrix = mat3(transpose(inverse(ModelViewMatrix)));
+    mat4 ModelViewMatrix = ViewMatrix * ModelMatrix;
+    mat3 NormalMatrix = mat3(transpose(inverse(ModelViewMatrix)));
 
-	interpNormal = normalize( NormalMatrix * VertexNormal);
-	passPosition = vec3( ModelViewMatrix * 	vec4(VertexPosition, 1.0));
-	gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(VertexPosition, 1.0);
+    interpNormal = normalize( NormalMatrix * VertexNormal);
+    passPosition = vec3( ModelViewMatrix *     vec4(VertexPosition, 1.0));
+    gl_Position = ProjectionMatrix * ModelViewMatrix * vec4(VertexPosition, 1.0);
 
-	// Shadow Mapping //////////
+    // Shadow Mapping //////////
     fragPosLightspace = lightSpaceMatrix * ModelMatrix * vec4(VertexPosition, 1.0);
 }
