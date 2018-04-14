@@ -72,14 +72,10 @@ public:
     void updateUniforms();
 
     /**
-     * \brief forces update of all uniforms (ignores flag)
-     */
-    void forceUpdateUniforms();
-
-    /**
      * \brief shows a "reload vertex/fragment shader" gui window using imgui
      * \param vshader the vertex shader to be changed/reloaded
      * \param fshader the fragment shader to be changed/reloaded
+     * \param name debug name in the GUI
      */
     void showReloadShaderGUI(const Shader& vshader, const Shader& fshader, std::string_view name = "Generic Shaderprogram");
 
@@ -89,6 +85,11 @@ private:
     bool m_initWithShaders = false;
 
     std::vector<std::pair<std::any, GLint>> m_anyUniforms;
+
+    /**
+    * \brief forces update of all uniforms (ignores flag)
+    */
+    void forceUpdateUniforms();
 };
 
 template <typename UniformType>
@@ -97,5 +98,6 @@ void ShaderProgram::addUniform(std::shared_ptr<Uniform<UniformType>> uniform)
     GLint location = glGetUniformLocation(m_shaderProgramHandle, uniform->getName().c_str());
     if (location < 0)
         throw std::runtime_error("Uniform " + uniform->getName() + " does not exist");
+    uniform->registerUniformWithShaderProgram(m_shaderProgramHandle);
     m_anyUniforms.push_back(std::make_pair(std::make_any<std::shared_ptr<Uniform<UniformType>>>(uniform), location));
 }

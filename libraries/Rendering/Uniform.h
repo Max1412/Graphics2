@@ -1,12 +1,18 @@
 #pragma once
 
 #include <string>
+#include <GL/glew.h>
+#include <unordered_map>
+
 
 template<typename T>
 class Uniform {
 public:
     Uniform(const std::string& name, T content) :
         m_name(name), m_content(content) {};
+
+    void registerUniformWithShaderProgram(GLuint);
+
 
     /**
      * \brief returns the uniform name
@@ -24,7 +30,7 @@ public:
      * \brief returns the 'content-has-been-changed'-flag
      * \return change flag
      */
-    bool getChangeFlag() const;
+    bool getChangeFlag(GLuint shaderProgramHandle) const;
 
     /**
      * \brief sets the (cpu-sided) content and the change flag
@@ -33,15 +39,30 @@ public:
     void setContent(const T &content);
 
     /**
-     * \brief resets the change flag
-     */
+    * \brief resets all change flags
+    */
     void hasBeenUpdated();
 
 private:
-    bool m_hasChanged = true;
     std::string m_name;
     T m_content;
+
+    // holds the shader program handles and the flag if the uniform is up-to-date in the corresponding shaderprogram
+    std::unordered_map<GLuint, bool> m_associatedShaderProgramUpdatedFlags;
+
 };
+
+template<typename T>
+void Uniform<T>::registerUniformWithShaderProgram(const GLuint shaderProgramHandle)
+{
+    m_associatedShaderProgramUpdatedFlags.insert({ shaderProgramHandle, true });
+}
+
+template<typename T>
+bool Uniform<T>::getChangeFlag(const GLuint shaderProgramHandle) const
+{
+    return m_associatedShaderProgramUpdatedFlags.at(shaderProgramHandle);
+}
 
 template<typename T>
 const std::string& Uniform<T>::getName() const {
@@ -49,13 +70,9 @@ const std::string& Uniform<T>::getName() const {
 }
 
 template<typename T>
-bool Uniform<T>::getChangeFlag() const {
-    return m_hasChanged;
-}
-
-template<typename T>
 void Uniform<T>::hasBeenUpdated() {
-    m_hasChanged = false;
+    for (auto& flags : m_associatedShaderProgramUpdatedFlags)
+        flags.second = false;
 }
 
 template<typename T>
@@ -65,6 +82,7 @@ T Uniform<T>::getContent() const {
 
 template<typename T>
 void Uniform<T>::setContent(const T &content) {
-    m_hasChanged = true;
+    for (auto& flags : m_associatedShaderProgramUpdatedFlags)
+        flags.second = true;
     m_content = content;
 }

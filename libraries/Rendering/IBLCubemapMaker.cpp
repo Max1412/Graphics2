@@ -108,7 +108,7 @@ IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& file
 
     irradiancePS.addUniform(m_projUniform);
     irradiancePS.addUniform(m_viewUniform);
-    irradiancePS.forceUpdateUniforms();
+    irradiancePS.updateUniforms();
     glViewport(0, 0, 32, 32);
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     for (unsigned int i = 0; i < 6; ++i)
@@ -161,7 +161,7 @@ IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& file
         for (unsigned int i = 0; i < 6; ++i)
         {
             m_viewUniform->setContent(captureViews.at(i));
-            specularSP.forceUpdateUniforms();
+            specularSP.updateUniforms();
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_specularCubemap.getName(), mip);
 
@@ -226,7 +226,7 @@ void IBLCubemapMaker::draw(glm::mat4 view, glm::mat4 proj)
     m_iblSkyboxSP.use();
     m_viewUniform->setContent(view);
     m_projUniform->setContent(proj);
-    m_iblSkyboxSP.forceUpdateUniforms();
+    m_iblSkyboxSP.updateUniforms();
     m_cube.draw();
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);

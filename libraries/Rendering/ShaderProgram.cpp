@@ -21,7 +21,7 @@ ShaderProgram::ShaderProgram(const Shader &shader1, const Shader &shader2) : m_i
     m_shaderMap.insert(std::make_pair(shader1.getShaderType(), shader1));
     m_shaderMap.insert(std::make_pair(shader2.getShaderType(), shader2));
 
-	createProgram();
+    createProgram();
     linkProgram();
 }
 
@@ -29,7 +29,7 @@ ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders) : m_initWithSha
     for(const auto& n : shaders)
         m_shaderMap.insert(std::make_pair(n.getShaderType(), n));
 
-	createProgram();
+    createProgram();
     linkProgram();
 }
 
@@ -70,33 +70,33 @@ ShaderProgram::~ShaderProgram() {
         // delete porgram
         glDeleteProgram(m_shaderProgramHandle);
     }
-	util::getGLerror(__LINE__, __FUNCTION__);
+    util::getGLerror(__LINE__, __FUNCTION__);
 }
 
 void ShaderProgram::addShader(const Shader &shader) {
-	if (m_initWithShaders) {
-		throw std::runtime_error("ShaderProgram was initalized with Shaders, adding later on is not allowed");
-	}
+    if (m_initWithShaders) {
+        throw std::runtime_error("ShaderProgram was initalized with Shaders, adding later on is not allowed");
+    }
     m_shaderMap.insert(std::make_pair(shader.getShaderType(), shader));
 }
 
 void ShaderProgram::createProgram() {
 
-	// check if there are shaders in this ShaderProgram
-	if (m_shaderMap.empty()) {
-		throw std::runtime_error("No shaders in this ShaderProgram! Please add shaders before calling createProgram()!");
-	}
+    // check if there are shaders in this ShaderProgram
+    if (m_shaderMap.empty()) {
+        throw std::runtime_error("No shaders in this ShaderProgram! Please add shaders before calling createProgram()!");
+    }
 
-	// create Program and check for errors
-	m_shaderProgramHandle = glCreateProgram();
-	if (0 == m_shaderProgramHandle)
-	{
-		throw std::runtime_error("Error creating program.");
-	}
+    // create Program and check for errors
+    m_shaderProgramHandle = glCreateProgram();
+    if (0 == m_shaderProgramHandle)
+    {
+        throw std::runtime_error("Error creating program.");
+    }
 
-	// attach all shaders
-	for(const auto& n : m_shaderMap)
-		glAttachShader(m_shaderProgramHandle, n.second.getHandle());
+    // attach all shaders
+    for(const auto& n : m_shaderMap)
+        glAttachShader(m_shaderProgramHandle, n.second.getHandle());
 }
 
 void ShaderProgram::linkProgram() const {
@@ -124,12 +124,12 @@ void ShaderProgram::linkProgram() const {
 }
 
 GLuint ShaderProgram::getShaderProgramHandle() const {
-	return m_shaderProgramHandle;
+    return m_shaderProgramHandle;
 }
 
 void ShaderProgram::use() {
-	glUseProgram(m_shaderProgramHandle);
-	forceUpdateUniforms(); // TODO temporary hack to make it possible to use the same uniform in different shaderprograms
+    glUseProgram(m_shaderProgramHandle);
+    updateUniforms(); // TODO temporary hack to make it possible to use the same uniform in different shaderprograms
 }
 
 void ShaderProgram::updateUniforms()
@@ -139,7 +139,7 @@ void ShaderProgram::updateUniforms()
         // case int
         if(n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<int>>).hash_code())
         {
-            if (auto a = std::any_cast<std::shared_ptr<Uniform<int>>>(n.first); a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<int>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform1i(m_shaderProgramHandle, n.second, a->getContent());
                 a->hasBeenUpdated();
@@ -148,7 +148,7 @@ void ShaderProgram::updateUniforms()
         // case float
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<float>>).hash_code())
         {
-            if (auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first); a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform1f(m_shaderProgramHandle, n.second, a->getContent());
                 a->hasBeenUpdated();
@@ -157,7 +157,7 @@ void ShaderProgram::updateUniforms()
         // case bool
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<bool>>).hash_code())
         {
-            if (auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first); a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 if (a->getContent()) {
                     glProgramUniform1i(m_shaderProgramHandle, n.second, 1);
@@ -171,7 +171,7 @@ void ShaderProgram::updateUniforms()
         // case mat4
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::mat4>>).hash_code())
         {
-            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first); a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniformMatrix4fv(m_shaderProgramHandle, n.second, 1, GL_FALSE, glm::value_ptr(a->getContent()));
                 a->hasBeenUpdated();
@@ -180,7 +180,7 @@ void ShaderProgram::updateUniforms()
         // case vec3
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec3>>).hash_code())
         {
-            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first); a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform3fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
                 a->hasBeenUpdated();
@@ -190,7 +190,7 @@ void ShaderProgram::updateUniforms()
         if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec2>>).hash_code())
         {
             
-            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first); a->getChangeFlag())
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
                 a->hasBeenUpdated();
