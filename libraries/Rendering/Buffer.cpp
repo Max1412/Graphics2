@@ -5,7 +5,7 @@
 
 
 Buffer::Buffer(GLenum target) : m_target(target) {
-	glCreateBuffers(1, &m_bufferHandle);
+    glCreateBuffers(1, &m_bufferHandle);
 }
 
 
@@ -18,7 +18,7 @@ Buffer::~Buffer() {
 }
 
 GLuint Buffer::getHandle() const {
-	return m_bufferHandle;
+    return m_bufferHandle;
 }
 
 GLuint Buffer::getTarget() const {
@@ -30,7 +30,7 @@ size_t Buffer::getTypeSize() const {
 }
 
 void Buffer::bindBase(unsigned int binding) const {
-	glBindBufferBase(m_target, binding, m_bufferHandle);
+    glBindBufferBase(m_target, binding, m_bufferHandle);
 }
 
 void Buffer::unmapBuffer() const {

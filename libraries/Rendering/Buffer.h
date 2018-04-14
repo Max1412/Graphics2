@@ -9,14 +9,14 @@
 class Buffer
 {
 public:
-	explicit Buffer(GLenum target);
+    explicit Buffer(GLenum target);
     ~Buffer();
 
     /**
-	 * \brief returns the OpenGL buffer handle
-	 * \return buffer handle
-	 */
-	GLuint getHandle() const;
+     * \brief returns the OpenGL buffer handle
+     * \return buffer handle
+     */
+    GLuint getHandle() const;
 
     /**
     * \brief returns the OpenGL buffer target (GL_*_BUFFER)
@@ -31,29 +31,29 @@ public:
     size_t getTypeSize() const;
 
     /**
-	 * \brief binds the buffer to a binding layout
-	 * \param binding 
-	 */
-	void bindBase(unsigned int binding) const;
+     * \brief binds the buffer to a binding layout
+     * \param binding 
+     */
+    void bindBase(unsigned int binding) const;
 
     /**
-	 * \brief uses glBufferStorage, buffer will be immutable
-	 * \tparam T data type
-	 * \param data input data as vector
-	 * \param flags buffer flags
-	 */
-	template<typename T>
-	void setStorage(const std::vector<T> &data, GLbitfield flags);
+     * \brief uses glBufferStorage, buffer will be immutable
+     * \tparam T data type
+     * \param data input data as vector
+     * \param flags buffer flags
+     */
+    template<typename T>
+    void setStorage(const std::vector<T> &data, GLbitfield flags);
 
     /**
-	 * \brief uses glBufferStorage, buffer will be immutable
-	 * \tparam T data type
-	 * \tparam N array size
-	 * \param data input data as array
-	 * \param flags buffer flags
-	 */
-	template<typename T, std::size_t N>
-	void setStorage(const std::array<T, N> &data, GLbitfield flags);
+     * \brief uses glBufferStorage, buffer will be immutable
+     * \tparam T data type
+     * \tparam N array size
+     * \param data input data as array
+     * \param flags buffer flags
+     */
+    template<typename T, std::size_t N>
+    void setStorage(const std::array<T, N> &data, GLbitfield flags);
 
     /**
      * \brief maps the buffer, writes data, unmaps the buffer
@@ -90,8 +90,8 @@ public:
     void setContentSubData(const S& data, unsigned startOffset);
 
 private:
-	GLuint m_bufferHandle;
-	GLenum m_target;
+    GLuint m_bufferHandle;
+    GLenum m_target;
 
     size_t m_typeSize = 0;
 
