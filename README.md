@@ -18,6 +18,17 @@ Also contains some demos and examples.
 * [glew](https://github.com/nigels-com/glew) (tested with 2.0.0)
 * [glm](https://glm.g-truc.net/0.9.8/index.html) (tested with 0.9.8.4)
 
+### Usage
+#### Windows
+* Please use vcpkg for dependency management when using windows to use this project
+* Install assimp:x64-windows, glfw3:x64-windows, glew:x64-windows and glm:x64-windows using vcpkg
+* Set the correct path to your installation of vcpkg in the CMakeSettings.json-file
+* Open the project folder in Visual Studio
+#### Linux
+* Currently not tested
+* Install assimp, glfw3, glew and glm using your package manager
+* Using CMake to generate makefiles might already work
+
 ### demo 1: cubemap, reflections, lighting
 * work in progress
 * phong lighting (spotlights, directional lights, specular & diffuse, fog)
