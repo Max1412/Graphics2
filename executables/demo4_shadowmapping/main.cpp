@@ -351,11 +351,11 @@ int main() {
             // render scene to shadow map
             modelUniform->setContent(bunny->getModelMatrix());
             MaterialIDUniform->setContent(bunny->getMaterialID());
-            shadowMapSP.forceUpdateUniforms();
+            shadowMapSP.updateUniforms();
             bunny->draw();
             modelUniform->setContent(plane.getModelMatrix());
             MaterialIDUniform->setContent(plane.getMaterialID());
-            shadowMapSP.forceUpdateUniforms();
+            shadowMapSP.updateUniforms();
             plane.draw();
 
             // reset settings
