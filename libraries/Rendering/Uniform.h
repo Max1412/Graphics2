@@ -41,7 +41,7 @@ public:
     /**
     * \brief resets all change flags
     */
-    void hasBeenUpdated();
+    void hasBeenUpdated(GLuint shaderProgramHandle);
 
 private:
     std::string m_name;
@@ -70,9 +70,8 @@ const std::string& Uniform<T>::getName() const {
 }
 
 template<typename T>
-void Uniform<T>::hasBeenUpdated() {
-    for (auto& flags : m_associatedShaderProgramUpdatedFlags)
-        flags.second = false;
+void Uniform<T>::hasBeenUpdated(const GLuint shaderProgramHandle) {
+    m_associatedShaderProgramUpdatedFlags.at(shaderProgramHandle) = false;
 }
 
 template<typename T>

@@ -142,7 +142,7 @@ void ShaderProgram::updateUniforms()
             if (auto a = std::any_cast<std::shared_ptr<Uniform<int>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform1i(m_shaderProgramHandle, n.second, a->getContent());
-                a->hasBeenUpdated();
+                a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
         // case float
@@ -151,7 +151,7 @@ void ShaderProgram::updateUniforms()
             if (auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform1f(m_shaderProgramHandle, n.second, a->getContent());
-                a->hasBeenUpdated();
+                a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
         // case bool
@@ -165,7 +165,7 @@ void ShaderProgram::updateUniforms()
                 else {
                     glProgramUniform1i(m_shaderProgramHandle, n.second, 0);
                 }
-                a->hasBeenUpdated();
+                a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
         // case mat4
@@ -174,7 +174,7 @@ void ShaderProgram::updateUniforms()
             if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniformMatrix4fv(m_shaderProgramHandle, n.second, 1, GL_FALSE, glm::value_ptr(a->getContent()));
-                a->hasBeenUpdated();
+                a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
         // case vec3
@@ -183,7 +183,7 @@ void ShaderProgram::updateUniforms()
             if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform3fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
-                a->hasBeenUpdated();
+                a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
         // case vec2
@@ -193,7 +193,7 @@ void ShaderProgram::updateUniforms()
             if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first); a->getChangeFlag(m_shaderProgramHandle))
             {
                 glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
-                a->hasBeenUpdated();
+                a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
     }
