@@ -29,7 +29,9 @@ Also contains some demos and examples.
 * Install assimp, glfw3, glew and glm using your package manager
 * Using CMake to generate makefiles might already work
 
-### demo 1: cubemap, reflections, lighting
+### Executables
+
+#### demo 1: cubemap, reflections, lighting
 * work in progress
 * phong lighting (spotlights, directional lights, specular & diffuse, fog)
 * toon shading
@@ -38,21 +40,21 @@ Also contains some demos and examples.
 * GUI-controllable parameters for basically everything in this demo
 * shader live reloading
 
-### demo 2: distance fields
+#### demo 2: distance fields
 * work in progress
 * raymarching distance fields: soft shadows, simple distance field ambient occlusion
 * shader live reloading
 * heavily inspired by http://www.iquilezles.org/, university lectures
 
-### demo 3: shaders
+#### demo 3: shaders
 * work in progress
 * testing some shader-only drawing stuff, "the book of shaders"-style
 
-### demo 4: shadowmapping
+#### demo 4: shadowmapping
 * work in progress
 * shadow mapping with PCF
 
-### demo 5: PBR & IBL
+#### demo 5: PBR & IBL
 * PBR using Cook-Torrance BRDF
 * IBL using HDR cubemaps
 * HDR texture -> cubemap -> specular & diffuse IBL
