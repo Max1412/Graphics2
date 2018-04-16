@@ -1,5 +1,5 @@
 #include "Cubemap.h"
-#include "IO/stb_image.h"
+#include "stb/stb_image.h"
 #include <sstream>
 
 Cubemap::Cubemap(GLenum minFilter, GLenum maxFilter) : Texture(GL_TEXTURE_CUBE_MAP, minFilter, maxFilter)

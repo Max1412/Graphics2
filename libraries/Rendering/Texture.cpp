@@ -1,6 +1,6 @@
 #include "Texture.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "IO/stb_image.h"
+#include "stb/stb_image.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.inl>

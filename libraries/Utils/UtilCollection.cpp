@@ -1,6 +1,6 @@
 #include "UtilCollection.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "IO/stb_image_write.h"
+#include "stb/stb_image_write.h"
 
 #include <ctime>
 #include <iostream>
@@ -183,7 +183,7 @@ namespace util
 
         //Encode the image
         try {
-            std::thread{ savePNG, name, image, width, height }.detach();
+            std::thread{ [&](){ savePNG(name, image, width, height); } }.detach();
         }
         catch (std::runtime_error& ex) {
             std::cout << ex.what() << std::endl;
