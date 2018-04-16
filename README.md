@@ -1,4 +1,4 @@
-# OpenGL-Playground
+# Graphics2
 
 ### Description
 OpenGL project for prototyping.
