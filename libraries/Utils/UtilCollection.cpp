@@ -150,21 +150,6 @@ namespace util
     }
 
     void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height) {
-       // flip
-       /* #pragma omp parallel for
-        for (int yi = 0; yi < (height / 2); yi++) {
-            for (int xi = 0; xi < width; xi++) {
-                const unsigned int offset1 = (xi + (yi * width)) * 4;
-                const unsigned int offset2 = (xi + ((height - 1 - yi) * width)) * 4;
-                for (int bi = 0; bi < 4; bi++) {
-                    const unsigned char byte1 = image[offset1 + bi];
-                    const unsigned char byte2 = image[offset2 + bi];
-                    image[offset1 + bi] = byte2;
-                    image[offset2 + bi] = byte1;
-                }
-            }
-        }*/
-
         std::stringstream path;
         path << (RESOURCES_PATH) << "../../" << name << "_" << time(nullptr) << ".png";
 
