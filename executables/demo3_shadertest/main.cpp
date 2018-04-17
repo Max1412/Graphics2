@@ -15,6 +15,7 @@
 #include "Rendering/Uniform.h"
 #include "Rendering/Mesh.h"
 
+#include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 #include <iostream>
 
@@ -34,6 +35,7 @@ int main() {
     util::enableDebugCallback();
 
     // set up imgui
+	ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
 
     // get list of OpenGL extensions (can be searched later if needed)
@@ -112,6 +114,7 @@ int main() {
         timer.drawGuiWindow(window);
 
         ImGui::Render();
+		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
     std::cout << std::endl;
