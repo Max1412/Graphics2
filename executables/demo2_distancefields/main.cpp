@@ -22,6 +22,7 @@
 #include "Rendering/Mesh.h"
 #include "Rendering/SimpleTrackball.h"
 
+#include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
 const unsigned int width = 1600;
@@ -67,6 +68,7 @@ int main() {
     util::enableDebugCallback();
 
     // set up imgui
+	ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
 
     // get list of OpenGL extensions (can be searched later if needed)
@@ -216,6 +218,7 @@ int main() {
         timer.drawGuiWindow(window);
 
         ImGui::Render();
+		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
 

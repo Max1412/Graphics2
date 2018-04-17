@@ -5,6 +5,7 @@
 #include <ctime>
 #include <iostream>
 #include <sstream>
+#include <future>
 
 namespace util
 {
@@ -149,23 +150,10 @@ namespace util
     }
 
     void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height) {
-        // flip
-        #pragma omp parallel for
-        for (int yi = 0; yi < (height / 2); yi++) {
-            for (int xi = 0; xi < width; xi++) {
-                const unsigned int offset1 = (xi + (yi * width)) * 4;
-                const unsigned int offset2 = (xi + ((height - 1 - yi) * width)) * 4;
-                for (int bi = 0; bi < 4; bi++) {
-                    const unsigned char byte1 = image[offset1 + bi];
-                    const unsigned char byte2 = image[offset2 + bi];
-                    image[offset1 + bi] = byte2;
-                    image[offset2 + bi] = byte1;
-                }
-            }
-        }
         std::stringstream path;
-        path << (RESOURCES_PATH) << "../../../" << name << "_" << time(nullptr) << ".png";
+        path << (RESOURCES_PATH) << "../../" << name << "_" << time(nullptr) << ".png";
 
+		stbi_flip_vertically_on_write(true);
         const auto err = stbi_write_png(path.str().c_str(), width, height, 4, image.data(), 4 * width);
         if (err == 0)
             throw std::runtime_error("error writing image");
@@ -183,7 +171,7 @@ namespace util
 
         //Encode the image
         try {
-            std::thread{ [&](){ savePNG(name, image, width, height); } }.detach();
+			std::async(std::launch::async, [&]() { savePNG(name, image, width, height); });
         }
         catch (std::runtime_error& ex) {
             std::cout << ex.what() << std::endl;
