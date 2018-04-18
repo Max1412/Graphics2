@@ -29,7 +29,7 @@ add_definitions(
 )
 
 if(MSVC)
-    add_compile_options(/std:c++latest /MP /openmp /permissive- /Zc:twoPhase-)
+    add_compile_options(/MP /openmp /permissive- /Zc:twoPhase-)
     set(G2_LINKER_FLAGS "/NODEFAULTLIB:libcmt /ignore:4098,4099 /MANIFEST:NO")
     list(APPEND G2_LIBRARIES opengl32)
 	file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Debug")
@@ -55,7 +55,8 @@ foreach(subdir ${children})
 
             list(APPEND G2_LIBRARIES ${subdir})
             set_target_properties(${subdir} PROPERTIES
-											LINKER_LANGUAGE CXX)
+											LINKER_LANGUAGE CXX
+											CXX_STANDARD_REQUIRED 17)
             target_include_directories(${subdir} PUBLIC ${G2_INCLUDE_DIRECTORIES})
         endif()
     endif()
@@ -78,7 +79,8 @@ foreach(subdir ${children})
             list(APPEND G2_LIBRARIES ${subdir})
 			target_link_libraries(${subdir} PRIVATE GLEW::GLEW)
             set_target_properties(${subdir} PROPERTIES
-											LINKER_LANGUAGE CXX)
+											LINKER_LANGUAGE CXX
+											CXX_STANDARD_REQUIRED 17)
             target_include_directories(${subdir} PUBLIC ${G2_INCLUDE_DIRECTORIES})
         endif()
     endif()
@@ -98,7 +100,8 @@ foreach(subdir ${children})
         #file(COPY ${G2_DLLS} DESTINATION "${G2_BINARIES_FOLDER}")
         set_target_properties(${subdir} PROPERTIES
 										LINKER_LANGUAGE CXX
-										RUNTIME_OUTPUT_DIRECTORY "${G2_BINARIES_FOLDER}")
+										RUNTIME_OUTPUT_DIRECTORY "${G2_BINARIES_FOLDER}"
+										CXX_STANDARD_REQUIRED 17)
         target_include_directories(${subdir} PUBLIC ${G2_INCLUDE_DIRECTORIES})
     endif()
 endforeach()
