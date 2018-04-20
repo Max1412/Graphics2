@@ -13,6 +13,7 @@ Also contains some demos and examples.
 ### Used libraries:
 * [ImGui](https://github.com/ocornut/imgui)
 * [stb_image & stb_image_write](https://github.com/nothings/stb)
+* GLshader by Johannes Braun
 * [Assimp](http://assimp.org/) (tested with 3.3.1)
 * [glfw3](http://www.glfw.org/) (tested with 3.2.1)
 * [glew](https://github.com/nigels-com/glew) (tested with 2.0.0)
