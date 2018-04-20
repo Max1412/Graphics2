@@ -20,20 +20,20 @@ list(APPEND G2_INCLUDE_DIRECTORIES ${GLEW_INCLUDE_PATH})
 
 add_definitions(
     -DGLFW_INCLUDE_NONE
-	-DSTBI_MSC_SECURE_CRT
-	-DGLM_FORCE_RADIANS -DGLM_ENABLE_EXPERIMENTAL
+    -DSTBI_MSC_SECURE_CRT
+    -DGLM_FORCE_RADIANS -DGLM_ENABLE_EXPERIMENTAL
     -DNOMINMAX
-	-DSOURCE_DIRECTORY="${CMAKE_SOURCE_DIR}/"
-	-DRESOURCES_PATH="${G2_RESOURCES_PATH}"
-	-DSHADERS_PATH="${G2_SHADERS_PATH}"
+    -DSOURCE_DIRECTORY="${CMAKE_SOURCE_DIR}/"
+    -DRESOURCES_PATH="${G2_RESOURCES_PATH}"
+    -DSHADERS_PATH="${G2_SHADERS_PATH}"
 )
 
 if(MSVC)
     add_compile_options(/MP /openmp /permissive- /Zc:twoPhase-)
     set(G2_LINKER_FLAGS "/NODEFAULTLIB:libcmt /ignore:4098,4099 /MANIFEST:NO")
     list(APPEND G2_LIBRARIES opengl32)
-	file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Debug")
-	file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Release")
+    file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Debug")
+    file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Release")
 else()
 endif()
 
@@ -51,7 +51,7 @@ foreach(subdir ${children})
             set(success 0)
         else()
             add_library(${subdir} ${G2_SOURCE_FILE})
-			target_link_libraries(${subdir} PRIVATE glfw GLEW::GLEW ${ASSIMP_LIBRARIES} glm)
+            target_link_libraries(${subdir} PRIVATE glfw GLEW::GLEW ${ASSIMP_LIBRARIES} glm)
 
             list(APPEND G2_LIBRARIES ${subdir})
             set_target_properties(${subdir} PROPERTIES
@@ -78,7 +78,7 @@ foreach(subdir ${children})
         else()
             add_library(${subdir} ${G2_SOURCE_FILE})
             list(APPEND G2_LIBRARIES ${subdir})
-			target_link_libraries(${subdir} PRIVATE GLEW::GLEW)
+            target_link_libraries(${subdir} PRIVATE GLEW::GLEW)
             set_target_properties(${subdir} PROPERTIES
 											LINKER_LANGUAGE CXX
 											CXX_STANDARD 17
@@ -98,7 +98,7 @@ foreach(subdir ${children})
 
         add_executable(${subdir} ${EXE_SOURCES})
         target_link_libraries(${subdir} PRIVATE ${G2_LIBRARIES})
-		target_link_libraries(${subdir} PRIVATE glfw GLEW::GLEW ${ASSIMP_LIBRARIES} glm)
+        target_link_libraries(${subdir} PRIVATE glfw GLEW::GLEW ${ASSIMP_LIBRARIES} glm)
         #file(COPY ${G2_DLLS} DESTINATION "${G2_BINARIES_FOLDER}")
         set_target_properties(${subdir} PROPERTIES
 										LINKER_LANGUAGE CXX
