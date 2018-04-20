@@ -4,11 +4,11 @@
 #include <typeinfo>
 #include "imgui/imgui.h"
 
-ShaderProgram::ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath)
+ShaderProgram::ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath, const std::vector<glsp::definition>& definitions)
     : m_initWithShaders(true)
-{
-    Shader vs(vspath, GL_VERTEX_SHADER);
-    Shader fs(fspath, GL_FRAGMENT_SHADER);
+{    
+    Shader vs(vspath, GL_VERTEX_SHADER, definitions);
+    Shader fs(fspath, GL_FRAGMENT_SHADER, definitions);
 
     m_shaderMap.insert(std::make_pair(vs.getShaderType(), vs));
     m_shaderMap.insert(std::make_pair(fs.getShaderType(), fs));

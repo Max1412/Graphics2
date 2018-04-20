@@ -4,23 +4,13 @@
 #include <filesystem>
 
 #include <GL/glew.h>
+#include "glshader/include/glsp/glsp.hpp"
 
 class Shader
 {
 public:
-    Shader(const std::experimental::filesystem::path& path, GLuint shaderType);
-    explicit Shader(GLuint shaderType);
-    ~Shader();
-
-    /**
-     * \brief inits with a given path (loading the shader)
-     * \param path relative to SHADERS_PATH
-     */
-    void init(const std::experimental::filesystem::path& path) const;
-
-    /**
-     * \brief inits with the path given in the constructor
-     */
+    Shader(const std::experimental::filesystem::path& path, GLuint shaderType, const std::vector<glsp::definition>& definitions = {});
+    
     void init() const;
 
     /**
@@ -39,6 +29,8 @@ private:
     GLuint m_shaderHandle;
     GLuint m_shaderType;
     std::experimental::filesystem::path m_path;
+
+    std::vector<glsp::definition> m_definitions;
 
     std::string loadShaderFile(const std::experimental::filesystem::path& fileName) const;
 };

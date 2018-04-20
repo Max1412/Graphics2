@@ -72,10 +72,17 @@ file(GLOB children RELATIVE ${G2_EXTERNAL_FOLDER} ${G2_EXTERNAL_FOLDER}/*)
 foreach(subdir ${children})
     if(IS_DIRECTORY ${G2_EXTERNAL_FOLDER}/${subdir})
         file(GLOB_RECURSE G2_SOURCE_FILE "${G2_EXTERNAL_FOLDER}/${subdir}/*.cpp")
+
         if(NOT G2_SOURCE_FILE)
             # Internal header only library
             set(success 0)
+
         else()
+            ### handle structures like: external/<something>/include as proper include paths
+            if(IS_DIRECTORY "${G2_EXTERNAL_FOLDER}/${subdir}/include")
+                list(APPEND G2_INCLUDE_DIRECTORIES "${G2_EXTERNAL_FOLDER}/${subdir}/include")
+            endif()
+
             add_library(${subdir} ${G2_SOURCE_FILE})
             list(APPEND G2_LIBRARIES ${subdir})
             target_link_libraries(${subdir} PRIVATE GLEW::GLEW)

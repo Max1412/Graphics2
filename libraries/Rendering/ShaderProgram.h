@@ -12,11 +12,13 @@
 #include "Shader.h"
 #include "Uniform.h"
 #include "Utils/UtilCollection.h"
+#include "glshader/include/glsp/glsp.hpp"
+
 
 class ShaderProgram
 {
 public:
-    ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath);
+    ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath, const std::vector<glsp::definition>& definitions = {});
     ShaderProgram(const Shader& shader1, const Shader& shader2);
     ShaderProgram(const std::vector<Shader>& shaders);
     ~ShaderProgram();
