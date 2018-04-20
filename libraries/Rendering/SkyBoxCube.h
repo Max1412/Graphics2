@@ -5,10 +5,9 @@
 class SkyBoxCube : public Mesh
 {
 public:
-    SkyBoxCube();
+	SkyBoxCube();
 private:
-    static std::vector<glm::vec3> cubeVertices;
-    static std::vector<unsigned> cubeIndices;
-    static std::vector<glm::vec3> noNormals;
-
+	static std::vector<glm::vec3> cubeVertices;
+	static std::vector<unsigned> cubeIndices;
+	static std::vector<glm::vec3> noNormals;
 };

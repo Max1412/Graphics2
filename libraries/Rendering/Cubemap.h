@@ -5,7 +5,7 @@
 class Cubemap : public Texture
 {
 public:
-    explicit Cubemap(GLenum minFilter = GL_LINEAR, GLenum maxFilter = GL_LINEAR);
-    void loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4) override;
-    void initWithoutData(int width, int height, GLenum internalFormat, GLenum format, GLenum type, const int levels = 1);
+	explicit Cubemap(GLenum minFilter = GL_LINEAR, GLenum maxFilter = GL_LINEAR);
+	void loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4) override;
+	void initWithoutData(int width, int height, GLenum internalFormat, GLenum format, GLenum type, const int levels = 1);
 };
