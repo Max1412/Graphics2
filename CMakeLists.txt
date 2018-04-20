@@ -56,7 +56,7 @@ foreach(subdir ${children})
             list(APPEND G2_LIBRARIES ${subdir})
             set_target_properties(${subdir} PROPERTIES
                                             LINKER_LANGUAGE CXX
-                                            CXX_STANDARD_REQUIRED 17)
+                                            CXX_STANDARD 17)
             target_include_directories(${subdir} PUBLIC ${G2_INCLUDE_DIRECTORIES})
         endif()
     endif()
@@ -80,7 +80,7 @@ foreach(subdir ${children})
             target_link_libraries(${subdir} PRIVATE GLEW::GLEW)
             set_target_properties(${subdir} PROPERTIES
                                             LINKER_LANGUAGE CXX
-                                            CXX_STANDARD_REQUIRED 17)
+                                            CXX_STANDARD 17)
             target_include_directories(${subdir} PUBLIC ${G2_INCLUDE_DIRECTORIES})
         endif()
     endif()
@@ -101,7 +101,7 @@ foreach(subdir ${children})
         set_target_properties(${subdir} PROPERTIES
                                         LINKER_LANGUAGE CXX
                                         RUNTIME_OUTPUT_DIRECTORY "${G2_BINARIES_FOLDER}"
-                                        CXX_STANDARD_REQUIRED 17)
+                                        CXX_STANDARD 17)
         target_include_directories(${subdir} PUBLIC ${G2_INCLUDE_DIRECTORIES})
     endif()
 endforeach()
