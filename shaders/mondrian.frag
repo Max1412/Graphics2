@@ -26,8 +26,8 @@ vec3 positionedRectangle(in vec2 st, in float borderWidth, in vec4 borderPositio
     float right = 1.0;
     float top = 1.0;
     if(st.x < borderPositions.y && st.x > borderPositions.x
-		&& st.y < borderPositions.w && st.y > borderPositions.z) 
-	{
+        && st.y < borderPositions.w && st.y > borderPositions.z) 
+    {
         left = step(borderPositions.x + borderWidth, st.x);
         right = step(borderWidth, borderPositions.y - st.x);
         bottom = step(borderPositions.z + borderWidth, st.y);
@@ -44,7 +44,7 @@ vec3 positionedSmoothRectangle(in vec2 st, in float start, in float end, in vec4
     float top = 1.0;
     if(st.x < borderPositions.y && st.x > borderPositions.x
         && st.y < borderPositions.w && st.y > borderPositions.z)
-	{
+    {
         left = smoothstep(borderPositions.x + start, borderPositions.x + end, st.x);
         right = smoothstep(start, end, borderPositions.y - st.x);
         bottom = smoothstep(borderPositions.z + start, borderPositions.z + end, st.y);
@@ -57,7 +57,7 @@ vec3 TDline(in vec2 st, in float width, in float xpos)
 {
     float line = 1.0;
     if(st.x < xpos && st.x > xpos - width) 
-	{
+    {
         line = step(xpos + width, st.x);
     }
     return vec3(line);
@@ -67,7 +67,7 @@ vec3 RLline(in vec2 st, in float width, in float ypos)
 {
     float line = 1.0;
     if(st.y < ypos && st.y > ypos - width) 
-	{
+    {
         line = step(width, ypos - st.y);
     }
     return vec3(line);
@@ -77,8 +77,8 @@ vec3 ClampedRLline(in vec2 st, in float width, in float ypos, in float minX, in 
 {
     float line = 1.0;
     if(st.y < ypos && st.y > ypos - width
-		&& st.x > minX && st.x < maxX) 
-	{
+        && st.x > minX && st.x < maxX) 
+    {
         line = step(width, ypos - st.y);
     }
     return vec3(line);
@@ -88,8 +88,8 @@ vec3 ClampedTDline(in vec2 st, in float width, in float xpos, in float minY, in 
 {
     float line = 1.0;
     if(st.x < xpos && st.x > xpos - width
-		&& st.y > minY && st.y < maxY) 
-	{
+        && st.y > minY && st.y < maxY) 
+    {
         line = step(xpos + width, st.x);
     }
     return vec3(line);
@@ -104,17 +104,17 @@ void main()
     vec4 borderPos2 = vec4(0.3, 0.5, 0.3, 0.5);
 
     if(st.x < 0.2 && st.y < 1.0 && st.y > 0.7)
-	{
+    {
         color = vec3(0.8, 0.2, 0.2);
     }
 
     if(st.x > 0.95 && st.y > 0.7)
-	{
+    {
         color = vec3(1.0, 0.8, 0.2);
     }
 
     if(st.x > 0.8 && st.y < 0.1)
-	{
+    {
         color = vec3(0.2, 0.2, 1.0);
     }
 

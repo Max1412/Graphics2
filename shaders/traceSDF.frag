@@ -162,12 +162,12 @@ float raymarch(vec3 p, vec3 d)
     int i = 0;                    // current step count
     
     for (; i < maxSteps; i++) 
-	{
+    {
         vec3 point = p + t * d;
         float radius = distancefield(point); // Freier Bereich
         
         if (radius < eps) 
-		{
+        {
             break;                // Beende, falls nah genug
         }
         
@@ -176,11 +176,11 @@ float raymarch(vec3 p, vec3 d)
     
     // return position if an object was hit, infinity otherwise
     if (i == maxSteps) 
-	{
+    {
         return INFINITY;
     } 
-	else 
-	{
+    else 
+    {
         return t;
     }
 }
@@ -250,7 +250,7 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
     vec3 matSpecColor = vec3(0.9);
     vec3 fragmentColor = matkd * vec3(0.9) * lightAmbient;
     for ( int i = 0; i < light.length(); i++) 
-	{
+    {
         light_camcoord = (light[i].pos).xyz;
         if (light[i].pos.w > 0.001f)
             lightVector = normalize(light_camcoord - p);
@@ -262,7 +262,7 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
         if (light[i].spot_cutoff < 0.001f)
                     spot = 1.0;
         else 
-		{
+        {
             float cos_phi_spot = max( dot( -lightVector, normalize(light[i].spot_direction)), 0.000001f);
             if( cos_phi_spot >= cos( light[i].spot_cutoff))
                 spot = pow( cos_phi_spot, light[i].spot_exponent);

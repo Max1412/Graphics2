@@ -5,13 +5,13 @@
 class Quad
 {
 public:
-	Quad();
-	void draw() const;
+    Quad();
+    void draw() const;
 private:
-	VertexArray m_quadVAO;
-	Buffer m_quadBuffer;
-	Buffer m_texCoordBuffer;
+    VertexArray m_quadVAO;
+    Buffer m_quadBuffer;
+    Buffer m_texCoordBuffer;
 
-	static std::vector<glm::vec2> quadVertices;
-	static std::vector<glm::vec2> quadTexCoords;
+    static std::vector<glm::vec2> quadVertices;
+    static std::vector<glm::vec2> quadTexCoords;
 };

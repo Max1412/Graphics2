@@ -117,7 +117,7 @@ void main()
 
 
     for ( int i = 0; i < light.length(); i++) 
-	{
+    {
         vec3 light_camcoord = (ViewMatrix * light[i].pos).xyz;
         if (light[i].pos.w > 0.001f)
             lightVector = normalize( light_camcoord - passPosition);
@@ -132,7 +132,7 @@ void main()
         if (light[i].spot_cutoff < 0.001f)
             spot = 1.0;
         else 
-		{
+        {
             float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spot_direction)), 0.000001f);
             if( cos_phi_spot >= cos( light[i].spot_cutoff))
                 spot = pow( cos_phi_spot, light[i].spot_exponent);
