@@ -22,7 +22,8 @@
 const unsigned int width = 800;
 const unsigned int height = 800;
 
-int main() {
+int main() 
+{
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Demo 3");
     glfwSwapInterval(0);
@@ -46,7 +47,8 @@ int main() {
     ShaderProgram sp(vs, fs);
     sp.use();
 
-    std::vector<glm::vec2> quadData = {
+    std::vector<glm::vec2> quadData = 
+	{
         { -1.0, -1.0 },
         { 1.0, -1.0 },
         { -1.0, 1.0 },
@@ -89,7 +91,8 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window)) 
+	{
 
         timer.start();
 

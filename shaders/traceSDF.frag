@@ -21,7 +21,8 @@ struct Light
 
 uniform vec3 lightAmbient;
 
-layout (std430, binding = 0) restrict readonly buffer LightBuffer {
+layout (std430, binding = 0) restrict readonly buffer LightBuffer 
+{
     Light light[];
 };
 
@@ -142,7 +143,8 @@ float distancefield(vec3 p)
     return d;
 }
 
-vec3 normal(vec3 p) {
+vec3 normal(vec3 p) 
+{
     // compute discrete normal at point p
     vec2 epsilon = vec2(0.0005, 0.);
 
@@ -154,15 +156,18 @@ vec3 normal(vec3 p) {
     return normalize(n);
 }
 
-float raymarch(vec3 p, vec3 d) {
+float raymarch(vec3 p, vec3 d) 
+{
     float t = 0.0;                 // ray position
     int i = 0;                    // current step count
     
-    for (; i < maxSteps; i++) {
+    for (; i < maxSteps; i++) 
+	{
         vec3 point = p + t * d;
         float radius = distancefield(point); // Freier Bereich
         
-        if (radius < eps) {
+        if (radius < eps) 
+		{
             break;                // Beende, falls nah genug
         }
         
@@ -170,9 +175,12 @@ float raymarch(vec3 p, vec3 d) {
     }
     
     // return position if an object was hit, infinity otherwise
-    if (i == maxSteps) {
+    if (i == maxSteps) 
+	{
         return INFINITY;
-    } else {
+    } 
+	else 
+	{
         return t;
     }
 }
@@ -241,7 +249,8 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
     float matks = 3.0f;
     vec3 matSpecColor = vec3(0.9);
     vec3 fragmentColor = matkd * vec3(0.9) * lightAmbient;
-    for ( int i = 0; i < light.length(); i++) {
+    for ( int i = 0; i < light.length(); i++) 
+	{
         light_camcoord = (light[i].pos).xyz;
         if (light[i].pos.w > 0.001f)
             lightVector = normalize(light_camcoord - p);
@@ -252,7 +261,8 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
         float cos_psi_n = pow( max( dot( reflection, eye), 0.000001f), 32); // 32 is shininess
         if (light[i].spot_cutoff < 0.001f)
                     spot = 1.0;
-        else {
+        else 
+		{
             float cos_phi_spot = max( dot( -lightVector, normalize(light[i].spot_direction)), 0.000001f);
             if( cos_phi_spot >= cos( light[i].spot_cutoff))
                 spot = pow( cos_phi_spot, light[i].spot_exponent);
@@ -286,7 +296,8 @@ vec3 shade(vec3 p, vec3 eye, vec3 N, vec3 color)
     return fragmentColor;
 }
 
-void main(){
+void main()
+{
    
     vec3 from = vec3(0.0);
     vec3 dir = vec3(0.0, 0.0, 1.0);
@@ -308,7 +319,5 @@ void main(){
     else
     {
         fragmentColor = vec4(vec3(0.1), 1.0);
-    }
-    
-    
+    }    
 }

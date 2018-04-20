@@ -27,15 +27,18 @@ struct Material
     int reflective;
 };
 
-layout (std430, binding = 0) restrict readonly buffer LightBuffer {
+layout (std430, binding = 0) restrict readonly buffer LightBuffer 
+{
     Light light[];
 };
 
-layout (std430, binding = 1) restrict readonly buffer MaterialBuffer {
+layout (std430, binding = 1) restrict readonly buffer MaterialBuffer 
+{
     Material material[];
 };
 
-layout (std430, binding = 2) restrict readonly buffer FogParams{
+layout (std430, binding = 2) restrict readonly buffer FogParams
+{
     vec3 col; // Fog color
     float start; // This is only for linear fog
     float end; // This is only for linear fog
@@ -59,7 +62,8 @@ uniform int levels;
 
 layout( location = 0 ) out vec4 fragmentColor;
 
-float getFogFactor(float z) {
+float getFogFactor(float z) 
+{
     float f = 0.0;
     if (fog.mode == 1)
         f = (fog.end-z)/(fog.end-fog.start);
@@ -71,11 +75,15 @@ float getFogFactor(float z) {
     return f;
 }
 
-void main() {
+void main() 
+{
     vec3 passNormal = vec3(0.0, 0.0, 0.0);
-    if(useFlat == 1){
+    if(useFlat == 1)
+	{
         passNormal = flatNormal;
-    } else {
+    } 
+	else 
+	{
         passNormal = interpNormal;
     }
     passNormal = normalize( passNormal );
@@ -89,9 +97,11 @@ void main() {
 
     fragmentColor.rgb = mat.kd*diffuse_color*lightAmbient;
 
-    if (useToon == 0) {
+    if (useToon == 0) 
+	{
 
-        for ( int i = 0; i < light.length(); i++) {
+        for ( int i = 0; i < light.length(); i++) 
+		{
             vec3 light_camcoord = (ViewMatrix * light[i].pos).xyz;
             if (light[i].pos.w > 0.001f)
                 lightVector = normalize( light_camcoord - passPosition);
@@ -105,7 +115,8 @@ void main() {
 
             if (light[i].spot_cutoff < 0.001f)
                 spot = 1.0;
-            else {
+            else 
+			{
                 float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spot_direction)), 0.000001f);
                 if( cos_phi_spot >= cos( light[i].spot_cutoff))
                     spot = pow( cos_phi_spot, light[i].spot_exponent);
@@ -116,9 +127,12 @@ void main() {
             fragmentColor.rgb += mat.ks * spot * mat.specColor * cos_psi_n * light[i].col;
         }
 
-    } else {
+    } 
+	else 
+	{
 
-        for ( int i = 0; i < light.length(); i++) {
+        for ( int i = 0; i < light.length(); i++) 
+		{
             vec3 light_camcoord = (ViewMatrix * light[i].pos).xyz;
             if (light[i].pos.w > 0.001f)
                 lightVector = normalize( light_camcoord - passPosition);
@@ -132,7 +146,8 @@ void main() {
             fragmentColor.rgb += light[i].col * diffuse;
          }
     }
-    if (fog.mode != 0) {
+    if (fog.mode != 0) 
+	{
         float f = getFogFactor(length( passPosition));
         fragmentColor.rgb = f * fragmentColor.rgb + (1-f) * fog.col;
     }

@@ -1,9 +1,11 @@
 #include "Mesh.h"
 #include <GLFW/glfw3.h>
 
-Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER) {
+Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER) 
+{
 
-    if (!assimpMesh->HasNormals() ||/* !assimpMesh->HasTextureCoords(0) || */!assimpMesh->HasFaces()) {
+    if (!assimpMesh->HasNormals() ||/* !assimpMesh->HasTextureCoords(0) || */!assimpMesh->HasFaces()) 
+	{
         throw std::runtime_error("Mesh must have normals, tex coords, faces");
     }
 
@@ -12,7 +14,8 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
     //m_texCoords.resize(assimpMesh->mNumVertices);
 
     #pragma omp parallel for
-    for (auto i = 0; i < assimpMesh->mNumVertices; i++) {
+    for (auto i = 0; i < assimpMesh->mNumVertices; i++) 
+	{
         const auto aivec = assimpMesh->mVertices[i];
         const glm::vec3 vertex(aivec.x, aivec.y, aivec.z);
         m_vertices.at(i) = vertex;
@@ -27,9 +30,11 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
         m_texCoords.at(i) = tex;
         */
     }
-    for (unsigned int i = 0; i < assimpMesh->mNumFaces; i++) {
+    for (unsigned int i = 0; i < assimpMesh->mNumFaces; i++) 
+	{
         const auto face = assimpMesh->mFaces[i];
-        for (unsigned int j = 0; j < face.mNumIndices; j++) {
+        for (unsigned int j = 0; j < face.mNumIndices; j++) 
+		{
             m_indices.push_back(face.mIndices[j]);
         }
     }
@@ -56,51 +61,60 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
 }
 
 
-void Mesh::draw() const {
+void Mesh::draw() const 
+{
     m_vao.bind();
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
 }
 
 
-void Mesh::setModelMatrix(const glm::mat4& modelMatrix) {
+void Mesh::setModelMatrix(const glm::mat4& modelMatrix) 
+{
     m_modelMatrix = modelMatrix;
 }
 
-const glm::mat4& Mesh::getModelMatrix() const {
+const glm::mat4& Mesh::getModelMatrix() const 
+{
     return m_modelMatrix;
 }
 
-unsigned Mesh::getMaterialID() const {
+unsigned Mesh::getMaterialID() const 
+{
     return m_materialID;
 }
 
-void Mesh::setMaterialID(const unsigned materialID) {
+void Mesh::setMaterialID(const unsigned materialID) 
+{
     m_materialID = materialID;
 }
 
 
-const std::vector<glm::vec3>& Mesh::getVertices() const {
+const std::vector<glm::vec3>& Mesh::getVertices() const 
+{
     if (m_vertices.empty())
         throw std::runtime_error("This mesh has no vertices!");
 
     return m_vertices;
 }
 
-const std::vector<glm::vec3>& Mesh::getNormals() const {
+const std::vector<glm::vec3>& Mesh::getNormals() const 
+{
     if (m_vertices.empty())
         throw std::runtime_error("This mesh has no normals!");
 
     return m_normals;
 }
 
-const std::vector<glm::vec3>& Mesh::getTexCoords() const {
+const std::vector<glm::vec3>& Mesh::getTexCoords() const 
+{
     if (m_vertices.empty())
         throw std::runtime_error("This mesh has no texture coordinates!");
 
     return m_texCoords;
 }
 
-const std::vector<unsigned int>& Mesh::getIndices() const {
+const std::vector<unsigned int>& Mesh::getIndices() const 
+{
     if (m_vertices.empty())
         throw std::runtime_error("This mesh has no indices!");
 

@@ -45,11 +45,13 @@ struct Light
 /////////////////////
 // SSBOs
 /////////////////////
-layout (std430, binding = 1) restrict readonly buffer MaterialBuffer {
+layout (std430, binding = 1) restrict readonly buffer MaterialBuffer 
+{
     PBRMaterial materials[];
 };
 
-layout (std430, binding = 2) restrict readonly buffer LightBuffer {
+layout (std430, binding = 2) restrict readonly buffer LightBuffer 
+{
     Light lights[];
 };
 

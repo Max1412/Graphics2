@@ -110,7 +110,8 @@ private:
 // call these only once on the same buffer
 //
 template<typename T>
-void Buffer::setStorage(const std::vector<T> &data, GLbitfield flags) {
+void Buffer::setStorage(const std::vector<T> &data, GLbitfield flags) 
+{
     util::getGLerror(__LINE__, __FUNCTION__);
     m_bufferFlags = flags;
     if (m_isImmutable)
@@ -123,7 +124,8 @@ void Buffer::setStorage(const std::vector<T> &data, GLbitfield flags) {
 }
 
 template <typename T, std::size_t N>
-void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) {
+void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) 
+{
     util::getGLerror(__LINE__, __FUNCTION__);
     m_bufferFlags = flags;
     if (m_isImmutable)
@@ -140,7 +142,8 @@ void Buffer::setStorage(const std::array<T, N> &data, GLbitfield flags) {
 
 // set the buffer data by using SubData
 template<typename S>
-void Buffer::setContentSubData(const S& data, unsigned startOffset) {
+void Buffer::setContentSubData(const S& data, unsigned startOffset) 
+{
     // TODO turn thse into asserts, only check them in debug mode
     if constexpr(util::debugmode)
     {
@@ -154,7 +157,8 @@ void Buffer::setContentSubData(const S& data, unsigned startOffset) {
 
 // return a mapped pointer in order to set data in the buffer
 template<typename S>
-S* Buffer::mapBufferContent(int size, unsigned startOffset, GLbitfield flags) {
+S* Buffer::mapBufferContent(int size, unsigned startOffset, GLbitfield flags) 
+{
     // TODO turn thse into asserts, only check them in debug mode
     // TODO what about COHERENT_BIT, PERSISTENT_BIT
     if constexpr(util::debugmode)
@@ -184,7 +188,8 @@ S* Buffer::mapBufferContent(int size, unsigned startOffset, GLbitfield flags) {
 
 // set the buffer data by mapping
 template<typename S>
-void Buffer::setPartialContentMapped(const S& data, unsigned startOffset) {
+void Buffer::setPartialContentMapped(const S& data, unsigned startOffset) 
+{
     // TODO turn thse into asserts, only check them in debug mode
     // TODO what about COHERENT_BIT, PERSISTENT_BIT
     if constexpr(util::debugmode)

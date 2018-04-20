@@ -10,7 +10,8 @@ layout(binding = 6, std430) buffer textureBuffer
     sampler2D inputTexture;
 };
 
-void main() {
+void main() 
+{
     vec4 inputTexPixel = texture(inputTexture, passTexCoord);
     fragColor = inputTexPixel;
 }

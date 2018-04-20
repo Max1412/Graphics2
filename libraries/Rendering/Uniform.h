@@ -6,7 +6,8 @@
 
 
 template<typename T>
-class Uniform {
+class Uniform 
+{
 public:
     Uniform(const std::string& name, T content) :
         m_name(name), m_content(content) {};
@@ -65,22 +66,26 @@ bool Uniform<T>::getChangeFlag(const GLuint shaderProgramHandle) const
 }
 
 template<typename T>
-const std::string& Uniform<T>::getName() const {
+const std::string& Uniform<T>::getName() const 
+{
     return m_name;
 }
 
 template<typename T>
-void Uniform<T>::hasBeenUpdated(const GLuint shaderProgramHandle) {
+void Uniform<T>::hasBeenUpdated(const GLuint shaderProgramHandle) 
+{
     m_associatedShaderProgramUpdatedFlags.at(shaderProgramHandle) = false;
 }
 
 template<typename T>
-T Uniform<T>::getContent() const {
+T Uniform<T>::getContent() const 
+{
     return m_content;
 }
 
 template<typename T>
-void Uniform<T>::setContent(const T &content) {
+void Uniform<T>::setContent(const T &content) 
+{
     for (auto& flags : m_associatedShaderProgramUpdatedFlags)
         flags.second = true;
     m_content = content;

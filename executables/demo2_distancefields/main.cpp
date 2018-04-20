@@ -28,7 +28,8 @@
 const unsigned int width = 1600;
 const unsigned int height = 900;
 
-struct LightInfo {
+struct LightInfo 
+{
     glm::vec4 pos; //pos.w=0 dir., pos.w=1 point light
     glm::vec3 col;
     float spot_cutoff; //no spotlight if cutoff=0
@@ -36,7 +37,8 @@ struct LightInfo {
     float spot_exponent;
 };
 
-struct MaterialInfo {
+struct MaterialInfo 
+{
     glm::vec3 diffColor;
     float kd;
     glm::vec3 specColor;
@@ -46,7 +48,8 @@ struct MaterialInfo {
     float pad1, pad2;
 };
 
-struct FogInfo {
+struct FogInfo 
+{
     glm::vec3 col;
     float start;
     float end;
@@ -55,7 +58,8 @@ struct FogInfo {
     float pad;
 };
 
-int main() {
+int main() 
+{
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Demo 2");
     glfwSwapInterval(0);
@@ -79,7 +83,8 @@ int main() {
     ShaderProgram sp(vs, fs);
 
 
-    std::vector<glm::vec2> quadData = {
+    std::vector<glm::vec2> quadData = 
+	{
         { -1.0, -1.0 },
         { 1.0, -1.0 },
         { -1.0, 1.0 },
@@ -115,20 +120,24 @@ int main() {
 
     // "generate" lights
     std::vector<LightInfo> lvec;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) 
+	{
         LightInfo li;
         glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(i*(360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
         li.pos = rotMat * (glm::vec4((i + 1)*3.0f, (i + 1)*3.0f, (i + 1)*3.0f, 1.0f) + glm::vec4(0.0001f, 0.0001f, 0.0001f, 0.0f));
         li.col = glm::normalize(glm::vec3((i) % 5, (i + 1) % 5, (i + 2) % 5));
-        if (i % 2) {
+        if (i % 2) 
+		{
             li.col = glm::normalize(glm::vec3((i - 1) % 5, (i) % 5, (i + 1) % 5));
             li.col = glm::normalize(glm::vec3(1.0f) - li.col);
         }
         std::cout << glm::to_string(li.col) << std::endl;
-        if (i == 3) {
+        if (i == 3) 
+		{
             li.spot_cutoff = 0.1f;
         }
-        else {
+        else 
+		{
             li.spot_cutoff = 0.0f;
         }
         li.spot_direction = glm::normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
@@ -152,7 +161,8 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window)) 
+	{
 
         timer.start();
 
@@ -171,23 +181,28 @@ int main() {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             //ImGui::SetNextWindowPos(ImVec2(20, 150));
             ImGui::Begin("Lights settings");
-            for (int i = 0; i < lvec.size(); ++i) {
+            for (int i = 0; i < lvec.size(); ++i) 
+			{
                 std::stringstream n;
                 n << i;
                 ImGui::Text((std::string("Light ") + n.str()).c_str());
-                if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), glm::value_ptr(lvec.at(i).col), 0.0f, 1.0f)) {
+                if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), glm::value_ptr(lvec.at(i).col), 0.0f, 1.0f)) 
+				{
                     auto colOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, col);
                     lightBuffer.setContentSubData(lvec.at(i).col, colOffset);
                 }
-                if (ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)) {
+                if (ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f)) 
+				{
                     auto spotCutoffOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_cutoff);
                     lightBuffer.setContentSubData(lvec.at(i).spot_cutoff, spotCutoffOffset);
                 }
-                if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i).spot_exponent, 0.0f, 100.0f)) {
+                if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i).spot_exponent, 0.0f, 100.0f)) 
+				{
                     auto spotCutoffExpOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_exponent);
                     lightBuffer.setContentSubData(lvec.at(i).spot_exponent, spotCutoffExpOffset);
                 }
-                if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), glm::value_ptr(rotations.at(i)), 0.0f, 360.0f)) {
+                if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), glm::value_ptr(rotations.at(i)), 0.0f, 360.0f)) 
+				{
                     auto posOffset = i * sizeof(lvec.at(i));
                     glm::mat4 rotx = glm::rotate(glm::mat4(1.0f), glm::radians(rotations.at(i).x), glm::vec3(1.0f, 0.0f, 0.0f));
                     glm::mat4 rotxy = glm::rotate(rotx, glm::radians(rotations.at(i).y), glm::vec3(0.0f, 1.0f, 0.0f));

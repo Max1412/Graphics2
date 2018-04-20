@@ -45,7 +45,8 @@ vec3 applyKernel3x3(in float kernel[9], in float factor)
     return col;
 }
 
-void main() {
+void main() 
+{
     vec4 currentColor = texture(inputTexture, passTexCoord);
 
     if(useSharpen == 1)

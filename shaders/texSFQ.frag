@@ -16,7 +16,8 @@ layout(binding = 1, std430) buffer immageSSBO
     layout(r8ui) uimage2D image;
 };
 
-void main() {
+void main() 
+{
     //vec2 texc = vec2(gl_FragCoord.x/1920.0, gl_FragCoord.y/1080.0);
     vec4 inputTexPixel = texture(inputTexture, passTexCoord);
     ivec2 actualCoords = ivec2(gl_FragCoord.xy);

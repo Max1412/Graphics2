@@ -4,7 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-class SimpleTrackball {
+class SimpleTrackball 
+{
 public:
     SimpleTrackball(int width, int height, float radius);
 

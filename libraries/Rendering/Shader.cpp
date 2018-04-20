@@ -93,26 +93,31 @@ void Shader::init() const
     util::getGLerror(__LINE__, __FUNCTION__);
 }
 
-Shader::~Shader() {
-
+Shader::~Shader() 
+{
 }
 
-GLuint Shader::getHandle() const {
+GLuint Shader::getHandle() const 
+{
     return m_shaderHandle;
 }
 
-GLuint Shader::getShaderType() const {
+GLuint Shader::getShaderType() const 
+{
     return m_shaderType;
 }
 
-std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const {
+std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const 
+{
     std::string fileContent;
     std::string line;
 
     // open file and concatenate input
     std::ifstream file(fileName);
-    if (file.is_open()) {
-        while (!file.eof()) {
+    if (file.is_open()) 
+	{
+        while (!file.eof()) 
+		{
             getline(file, line);
             if(line.substr(0, 8) == "#include")
             {

@@ -9,25 +9,29 @@
 
 namespace util
 {
-    std::string convertGLubyteToString(const GLubyte* content) {
+    std::string convertGLubyteToString(const GLubyte* content) 
+	{
         return std::string(reinterpret_cast<const char*>(content));
     }
 
-    void printOpenGLInfo() {
+    void printOpenGLInfo() 
+	{
         std::cout << "Renderer: " << convertGLubyteToString(glGetString(GL_RENDERER)) << std::endl;
         std::cout << "Vendor: " << convertGLubyteToString(glGetString(GL_VENDOR)) << std::endl;
         std::cout << "Version: " << convertGLubyteToString(glGetString(GL_VERSION)) << std::endl;
         std::cout << "Shading Language Version: " << convertGLubyteToString(glGetString(GL_SHADING_LANGUAGE_VERSION)) << std::endl;
     }
 
-    GLFWwindow* setupGLFWwindow(unsigned int width, unsigned int height, std::string name) {
+    GLFWwindow* setupGLFWwindow(unsigned int width, unsigned int height, std::string name) 
+	{
         glfwInit();
         GLFWwindow* window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(window);
         return window;
     }
 
-    void initGLEW() {
+    void initGLEW() 
+	{
         const auto err = glewInit();
         if (GLEW_OK != err)
         {
@@ -37,22 +41,28 @@ namespace util
         }
     }
 
-    std::vector<std::string> getGLExtenstions() {
+    std::vector<std::string> getGLExtenstions() 
+	{
         GLint nExtensions;
         glGetIntegerv(GL_NUM_EXTENSIONS, &nExtensions);
         std::vector<std::string> extenstions;
         extenstions.reserve(nExtensions);
-        for (int i = 0; i < nExtensions; i++) {
+        for (int i = 0; i < nExtensions; i++) 
+		{
             extenstions.push_back(std::string(convertGLubyteToString(glGetStringi(GL_EXTENSIONS, i))));
         }
         return extenstions;
     }
 
-    void getGLerror(int line, std::string function) {
-        if constexpr(debugmode) {
-            if (glfwGetCurrentContext() != nullptr) {
+    void getGLerror(int line, std::string function) 
+	{
+        if constexpr(debugmode) 
+    	{
+            if (glfwGetCurrentContext() != nullptr) 
+			{
                 GLenum err;
-                while ((err = glGetError()) != GL_NO_ERROR) {
+                while ((err = glGetError()) != GL_NO_ERROR) 
+				{
                     std::cout << "OpenGL Error: " << err << std::endl;
                     std::cout << "Last error check in function " << function << " at line " << line << std::endl;
                 }
@@ -61,10 +71,12 @@ namespace util
     }
 
     void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-        const GLchar *message, const void *userParam) {
+        const GLchar *message, const void *userParam) 
+	{
         std::cout << "OpenGL debug callback called!" << '\n';
         std::cout << "Source: ";
-        switch (source) {
+        switch (source) 
+		{
         case GL_DEBUG_SOURCE_API:
             std::cout << "API Call";
             break;
@@ -85,7 +97,8 @@ namespace util
         std::cout << "message: " << message << '\n';
         std::cout << "type: ";
         // converting GLenums is tedious :(
-        switch (type) {
+        switch (type) 
+		{
         case GL_DEBUG_TYPE_ERROR:
             std::cout << "ERROR";
             break;
@@ -117,7 +130,8 @@ namespace util
         std::cout << '\n';
         std::cout << "id: " << id << '\n';
         std::cout << "severity: ";
-        switch (severity) {
+        switch (severity) 
+		{
         case GL_DEBUG_SEVERITY_LOW:
             std::cout << "LOW";
             break;
@@ -135,8 +149,10 @@ namespace util
         std::cout << std::endl;
     }
 
-    void enableDebugCallback() {
-        if constexpr(debugmode) {
+    void enableDebugCallback() 
+	{
+        if constexpr(debugmode) 
+    	{
             glDebugMessageCallback(debugCallback, nullptr);
 
             // disable notifications and memory info
@@ -149,7 +165,8 @@ namespace util
         }
     }
 
-    void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height) {
+    void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height) 
+	{
         std::stringstream path;
         path << (RESOURCES_PATH) << "../../" << name << "_" << time(nullptr) << ".png";
 
@@ -159,7 +176,8 @@ namespace util
             throw std::runtime_error("error writing image");
     }
 
-    void saveFBOtoFile(std::string name, GLFWwindow* window) {
+    void saveFBOtoFile(std::string name, GLFWwindow* window) 
+	{
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         int width;
         int height;
@@ -177,5 +195,4 @@ namespace util
             std::cout << ex.what() << std::endl;
         }
     }
-
 }

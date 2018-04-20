@@ -2,7 +2,8 @@
 
 #include "Buffer.h"
 
-class VertexArray {
+class VertexArray 
+{
 public:
     VertexArray();
     ~VertexArray();

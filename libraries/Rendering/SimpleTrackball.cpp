@@ -5,7 +5,8 @@
 #include "imgui/imgui.h"
 
 
-SimpleTrackball::SimpleTrackball(int width, int height, float radius) {
+SimpleTrackball::SimpleTrackball(int width, int height, float radius) 
+{
 
     m_pos = glm::vec3(0.0f, 0.0f, 5.0);
     m_center = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -22,9 +23,11 @@ SimpleTrackball::SimpleTrackball(int width, int height, float radius) {
     m_oldY = height / 2.f;
 }
 
-void SimpleTrackball::update(GLFWwindow* window) {
+void SimpleTrackball::update(GLFWwindow* window) 
+{
     
-    if (!ImGui::GetIO().WantCaptureMouse) {
+    if (!ImGui::GetIO().WantCaptureMouse) 
+	{
         double x, y;
         glfwGetCursorPos(window, &x, &y);
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
@@ -33,18 +36,22 @@ void SimpleTrackball::update(GLFWwindow* window) {
             float changeY = (static_cast<float>(y) - m_oldY) * m_sensitivity;
 
             m_theta -= changeY;
-            if (m_theta < 0.01f) {
+            if (m_theta < 0.01f) 
+			{
                 m_theta = 0.01f;
             }
-            else if (m_theta > glm::pi<float>() - 0.01f) {
+            else if (m_theta > glm::pi<float>() - 0.01f) 
+			{
                 m_theta = glm::pi<float>() - 0.01f;
             }
 
             m_phi -= changeX;
-            if (m_phi < 0) {
+            if (m_phi < 0) 
+			{
                 m_phi += 2 * glm::pi<float>();
             }
-            else if (m_phi > 2 * glm::pi<float>()) {
+            else if (m_phi > 2 * glm::pi<float>()) 
+			{
                 m_phi -= 2 * glm::pi<float>();
             }
         }
@@ -52,13 +59,16 @@ void SimpleTrackball::update(GLFWwindow* window) {
         m_oldX = static_cast<float>(x);
         m_oldY = static_cast<float>(y);
 
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) 
+		{
             m_radius -= 0.1f;
         }
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) 
+		{
             m_radius += 0.1f;
         }
-        if (m_radius < 0.1f) {
+        if (m_radius < 0.1f) 
+		{
             m_radius = 0.1f;
         }
 
@@ -71,11 +81,13 @@ void SimpleTrackball::update(GLFWwindow* window) {
 
 }
 
-const glm::mat4& SimpleTrackball::getView() const {
+const glm::mat4& SimpleTrackball::getView() const 
+{
     return m_viewMatrix;
 }
 
-glm::mat4& SimpleTrackball::getView() {
+glm::mat4& SimpleTrackball::getView() 
+{
     return m_viewMatrix;
 }
 

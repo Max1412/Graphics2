@@ -7,7 +7,8 @@
 #include "Buffer.h"
 #include "VertexArray.h"
 
-class Mesh {
+class Mesh 
+{
 public:
     Mesh(aiMesh* assimpMesh);
     Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices);

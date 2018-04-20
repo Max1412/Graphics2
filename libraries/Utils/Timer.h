@@ -6,7 +6,8 @@
 #include "Utils/UtilCollection.h"
 
 
-class Timer {
+class Timer 
+{
 public:
     Timer();
     ~Timer();

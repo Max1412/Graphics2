@@ -51,7 +51,8 @@ FrameBuffer::FrameBuffer(const int width, const int height, const bool useDepthS
 
 FrameBuffer::~FrameBuffer()
 {
-    if (glfwGetCurrentContext() != nullptr) {
+    if (glfwGetCurrentContext() != nullptr) 
+	{
         glDeleteFramebuffers(1, &m_name);
     }
     util::getGLerror(__LINE__, __FUNCTION__);

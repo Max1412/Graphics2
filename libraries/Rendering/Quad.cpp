@@ -16,7 +16,8 @@ void Quad::draw() const
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(quadVertices.size()));
 }
 
-std::vector<glm::vec2> Quad::quadVertices = {
+std::vector<glm::vec2> Quad::quadVertices = 
+{
     { -1.0, -1.0 },
     { 1.0, -1.0 },
     { -1.0, 1.0 },
@@ -25,7 +26,8 @@ std::vector<glm::vec2> Quad::quadVertices = {
     { 1.0, 1.0 }
 };
 
-std::vector<glm::vec2> Quad::quadTexCoords = {
+std::vector<glm::vec2> Quad::quadTexCoords = 
+{
     { 0.0, 0.0 },
     { 1.0, 0.0 },
     { 0.0, 1.0 },

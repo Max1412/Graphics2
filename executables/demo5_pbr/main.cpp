@@ -43,7 +43,8 @@ struct Light
     glm::vec4 color;
 };
 
-int main() {
+int main() 
+{
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Rapid Testing Executable");
     glfwSwapInterval(0);
@@ -114,7 +115,8 @@ int main() {
     materialBuffer.setStorage(mvec, GL_DYNAMIC_STORAGE_BIT);
     materialBuffer.bindBase(1);
 
-    std::vector<Light> lightVec = {
+    std::vector<Light> lightVec = 
+	{
         Light{ glm::vec4(-10.0f, 10.0f, 10.0f, 1.0f), glm::vec4(300.0f) },
         Light{ glm::vec4(10.0f, 10.0f, 10.0f, 1.0f), glm::vec4(300.0f) },
         Light{ glm::vec4(-10.0f, -10.0f, 10.0f, 1.0f), glm::vec4(300.0f) },
@@ -160,23 +162,28 @@ int main() {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             //ImGui::SetNextWindowPos(ImVec2(20, 150));
             ImGui::Begin("Material settings");
-            for (int i = 0; i < mvec.size(); ++i) {
+            for (int i = 0; i < mvec.size(); ++i) 
+			{
                 std::stringstream n;
                 n << i;
                 ImGui::Text((std::string("Material ") + n.str()).c_str());
-                if (ImGui::SliderFloat4((std::string("Color ") + n.str()).c_str(), glm::value_ptr(mvec.at(i).baseColor), 0.0f, 1.0f)) {
+                if (ImGui::SliderFloat4((std::string("Color ") + n.str()).c_str(), glm::value_ptr(mvec.at(i).baseColor), 0.0f, 1.0f)) 
+				{
                     const auto colOffset = i * sizeof(mvec.at(i)) + offsetof(PBRMaterial, baseColor);
                     materialBuffer.setContentSubData(mvec.at(i).baseColor, colOffset);
                 }
-                if (ImGui::SliderFloat3((std::string("F0 ") + n.str()).c_str(), glm::value_ptr(mvec.at(i).F0), 0.0f, 0.1f)) {
+                if (ImGui::SliderFloat3((std::string("F0 ") + n.str()).c_str(), glm::value_ptr(mvec.at(i).F0), 0.0f, 0.1f)) 
+				{
                     const auto F0offset = i * sizeof(mvec.at(i)) + offsetof(PBRMaterial, F0);
                     materialBuffer.setContentSubData(mvec.at(i).F0, F0offset);
                 }
-                if (ImGui::SliderFloat((std::string("Metalness ") + n.str()).c_str(), &mvec.at(i).metalness, 0.0f, 1.0f)) {
+                if (ImGui::SliderFloat((std::string("Metalness ") + n.str()).c_str(), &mvec.at(i).metalness, 0.0f, 1.0f)) 
+				{
                     const auto metalnessOffset = i * sizeof(mvec.at(i)) + offsetof(PBRMaterial, metalness);
                     materialBuffer.setContentSubData(mvec.at(i).metalness, metalnessOffset);
                 }
-                if (ImGui::SliderFloat((std::string("Roughness ") + n.str()).c_str(), &mvec.at(i).roughness, 0.0f, 1.0f)) {
+                if (ImGui::SliderFloat((std::string("Roughness ") + n.str()).c_str(), &mvec.at(i).roughness, 0.0f, 1.0f)) 
+				{
                     const auto roughnessOffset = i * sizeof(mvec.at(i)) + offsetof(PBRMaterial, roughness);
                     materialBuffer.setContentSubData(mvec.at(i).roughness, roughnessOffset);
                 }

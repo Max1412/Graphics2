@@ -24,11 +24,13 @@ struct Material
     int reflective;
 };
 
-layout (std430, binding = 0) restrict readonly buffer LightBuffer {
+layout (std430, binding = 0) restrict readonly buffer LightBuffer 
+{
     Light light[];
 };
 
-layout (std430, binding = 1) restrict readonly buffer MaterialBuffer {
+layout (std430, binding = 1) restrict readonly buffer MaterialBuffer 
+{
     Material material[];
 };
 
@@ -98,7 +100,8 @@ float CalculateShadow(in vec4 fragPosLightSpace, in vec3 lightDir)
 }
 
 
-void main() {
+void main() 
+{
     vec3 passNormal = vec3(0.0, 0.0, 0.0);
     passNormal = interpNormal;
     passNormal = normalize( passNormal );
@@ -113,7 +116,8 @@ void main() {
     fragmentColor.rgb = mat.kd*diffuse_color*lightAmbient;
 
 
-    for ( int i = 0; i < light.length(); i++) {
+    for ( int i = 0; i < light.length(); i++) 
+	{
         vec3 light_camcoord = (ViewMatrix * light[i].pos).xyz;
         if (light[i].pos.w > 0.001f)
             lightVector = normalize( light_camcoord - passPosition);
@@ -127,7 +131,8 @@ void main() {
 
         if (light[i].spot_cutoff < 0.001f)
             spot = 1.0;
-        else {
+        else 
+		{
             float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spot_direction)), 0.000001f);
             if( cos_phi_spot >= cos( light[i].spot_cutoff))
                 spot = pow( cos_phi_spot, light[i].spot_exponent);
@@ -143,7 +148,4 @@ void main() {
     fragmentColor.rgb *= shadowFactor;
 
     fragmentColor.a = diffuse_alpha;
-
-
-
 }

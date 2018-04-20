@@ -1,29 +1,35 @@
 #include "VertexArray.h"
 #include "Utils/UtilCollection.h"
 
-VertexArray::VertexArray() {
+VertexArray::VertexArray() 
+{
     glCreateVertexArrays(1, &m_vaoHandle);
 }
 
-VertexArray::~VertexArray() {
-    if (glfwGetCurrentContext() != nullptr) {
+VertexArray::~VertexArray() 
+{
+    if (glfwGetCurrentContext() != nullptr) 
+	{
         glDeleteVertexArrays(1, &m_vaoHandle);
     }
     util::getGLerror(__LINE__, __FUNCTION__);
 }
 
-void VertexArray::bind() const {
+void VertexArray::bind() const 
+{
     glBindVertexArray(m_vaoHandle);
 }
 
-void VertexArray::connectIndexBuffer(Buffer &buffer) const {
+void VertexArray::connectIndexBuffer(Buffer &buffer) const 
+{
     if (buffer.getTarget() != GL_ELEMENT_ARRAY_BUFFER)
         throw std::runtime_error("Only index buffers can be conntected using connectIndexBuffer");
     glVertexArrayElementBuffer(m_vaoHandle, buffer.getHandle());
 }
 
 
-void VertexArray::connectBuffer(const Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const {
+void VertexArray::connectBuffer(const Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const 
+{
     glEnableVertexArrayAttrib(m_vaoHandle, index);
     // only works for non-integer, non-long/double types
     // use the overloaded function below for custom strides/offsets
@@ -33,7 +39,8 @@ void VertexArray::connectBuffer(const Buffer &buffer, GLuint index, GLuint size,
 }
 
 
-void VertexArray::connectBuffer(const Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLuint offset, GLuint relativeOffset) const {
+void VertexArray::connectBuffer(const Buffer &buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized, GLuint stride, GLuint offset, GLuint relativeOffset) const 
+{
     glEnableVertexArrayAttrib(m_vaoHandle, index);
     glVertexArrayVertexBuffer(m_vaoHandle, index, buffer.getHandle(), offset, stride);
     glVertexArrayAttribFormat(m_vaoHandle, index, size, type, normalized, relativeOffset);

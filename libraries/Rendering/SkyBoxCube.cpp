@@ -5,7 +5,8 @@ SkyBoxCube::SkyBoxCube() : Mesh(cubeVertices, noNormals, cubeIndices)
     // this constructor initlializes the Mesh with the pre-defined vertices and indices, and with empty normals
 }
 
-std::vector<glm::vec3> SkyBoxCube::cubeVertices = {
+std::vector<glm::vec3> SkyBoxCube::cubeVertices = 
+{
     // front
     { -1.0, -1.0, 1.0 },
     { 1.0, -1.0, 1.0 },
@@ -18,7 +19,8 @@ std::vector<glm::vec3> SkyBoxCube::cubeVertices = {
     { -1.0, 1.0, -1.0 },
 };
 
-std::vector<unsigned> SkyBoxCube::cubeIndices = {
+std::vector<unsigned> SkyBoxCube::cubeIndices = 
+{
     // front
     0, 1, 2,
     2, 3, 0,

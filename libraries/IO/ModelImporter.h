@@ -9,7 +9,8 @@
 #include "Rendering/Mesh.h"
 #include <filesystem>
 
-class ModelImporter {
+class ModelImporter 
+{
 public:
     explicit ModelImporter(const std::experimental::filesystem::path& filename);
 

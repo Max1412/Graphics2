@@ -10,7 +10,8 @@ layout(binding = 7, std430) buffer textureBuffer
     sampler2D inputTexture;
 };
 
-void main() {
+void main() 
+{
     float depthValue = texture(inputTexture, passTexCoord).r;
     fragColor = vec4(vec3(depthValue), 1.0);
 }
