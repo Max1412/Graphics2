@@ -16,7 +16,7 @@ Also contains some demos and examples.
 * GLshader by Johannes Braun
 * [Assimp](http://assimp.org/) (tested with 3.3.1)
 * [glfw3](http://www.glfw.org/) (tested with 3.2.1)
-* [glew](https://github.com/nigels-com/glew) (tested with 2.0.0)
+* [glbinding](https://github.com/cginternals/glbinding) (tested with 2.1.1)
 * [glm](https://glm.g-truc.net/0.9.8/index.html) (tested with 0.9.8.4)
 
 ### Usage
