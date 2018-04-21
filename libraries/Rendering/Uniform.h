@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <GL/glew.h>
+#include <glbinding/gl/gl.h>
+using namespace gl;
 #include <unordered_map>
 
 template <typename T>

@@ -6,7 +6,8 @@
 #include <utility>
 #include <any>
 
-#include <GL/glew.h>
+#include <glbinding/gl/gl.h>
+using namespace gl;
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
@@ -79,7 +80,7 @@ public:
 
 private:
     GLuint m_shaderProgramHandle;
-    std::unordered_map<GLuint, Shader> m_shaderMap;
+    std::unordered_map<GLenum, Shader> m_shaderMap;
     bool m_initWithShaders = false;
 
     std::vector<std::pair<std::any, GLint>> m_anyUniforms;

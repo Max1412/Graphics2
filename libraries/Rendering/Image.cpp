@@ -1,6 +1,6 @@
 #include "Image.h"
 
-void Image::generateImageHandle(GLuint format, GLboolean layered, int layer)
+void Image::generateImageHandle(GLenum format, GLboolean layered, int layer)
 {
     m_handle = glGetImageHandleARB(m_name, 0, layered, layer, format);
     if (m_handle == 0)

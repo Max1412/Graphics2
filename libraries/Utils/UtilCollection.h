@@ -3,7 +3,8 @@
 #include <vector>
 #include <thread>
 
-#include <GL/glew.h>
+#include <glbinding/gl/gl.h>
+using namespace gl;
 #include <GLFW/glfw3.h>
 
 namespace util

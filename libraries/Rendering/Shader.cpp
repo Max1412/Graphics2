@@ -8,7 +8,7 @@
 #include "Utils/Timer.h"
 
 
-Shader::Shader(const std::experimental::filesystem::path& path, GLuint shaderType, const std::vector<glsp::definition>& definitions) : m_shaderType(shaderType), m_path(path), m_definitions(definitions)
+Shader::Shader(const std::experimental::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions) : m_shaderType(shaderType), m_path(path), m_definitions(definitions)
 {
     // create shader and check for errors
     m_shaderHandle = glCreateShader(shaderType);
@@ -58,7 +58,7 @@ GLuint Shader::getHandle() const
     return m_shaderHandle;
 }
 
-GLuint Shader::getShaderType() const
+GLenum Shader::getShaderType() const
 {
     return m_shaderType;
 }

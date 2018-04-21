@@ -30,17 +30,6 @@ namespace util
         return window;
     }
 
-    void initGLEW()
-    {
-        const auto err = glewInit();
-        if (GLEW_OK != err)
-        {
-            std::stringstream ss;
-            ss << "Error initializing GLEW: " << glewGetErrorString(err);
-            throw std::runtime_error(ss.str());
-        }
-    }
-
     std::vector<std::string> getGLExtenstions()
     {
         GLint nExtensions;
