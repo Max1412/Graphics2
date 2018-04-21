@@ -1,5 +1,4 @@
 #include <glbinding/gl/gl.h>
-#include <glbinding/Binding.h>
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -58,8 +57,8 @@ int main()
     // init glfw, open window, manage context
     GLFWwindow* window = util::setupGLFWwindow(width, height, "Rapid Testing Executable");
     glfwSwapInterval(0);
-    // init glbinding
-    glbinding::Binding::initialize();
+    // init opengl
+    util::initGL();
 
     // print OpenGL info
     util::printOpenGLInfo();

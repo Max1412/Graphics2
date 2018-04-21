@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <future>
+#include <glbinding/Binding.h>
 
 namespace util
 {
@@ -28,6 +29,12 @@ namespace util
         GLFWwindow* window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(window);
         return window;
+    }
+
+    void initGL()
+    {
+        // init glbinding
+        glbinding::Binding::initialize();
     }
 
     std::vector<std::string> getGLExtenstions()

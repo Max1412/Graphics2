@@ -31,9 +31,9 @@ namespace util
     GLFWwindow* setupGLFWwindow(unsigned int width, unsigned int height, std::string name);
 
     /**
-     * \brief inits glew
+     * \brief inits the graphics API
      */
-    void initGLEW();
+    void initGL();
 
     /**
      * \brief queries all available OpenGL extensions
