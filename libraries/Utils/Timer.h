@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <GL/glew.h>
+#include <glbinding/gl/gl.h>
+using namespace gl;
 
 #include "Utils/UtilCollection.h"
 

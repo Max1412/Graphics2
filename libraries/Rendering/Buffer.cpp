@@ -23,7 +23,7 @@ GLuint Buffer::getHandle() const
     return m_bufferHandle;
 }
 
-GLuint Buffer::getTarget() const
+GLenum Buffer::getTarget() const
 {
     return m_target;
 }

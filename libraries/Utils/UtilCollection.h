@@ -3,7 +3,8 @@
 #include <vector>
 #include <thread>
 
-#include <GL/glew.h>
+#include <glbinding/gl/gl.h>
+using namespace gl;
 #include <GLFW/glfw3.h>
 
 namespace util
@@ -30,9 +31,9 @@ namespace util
     GLFWwindow* setupGLFWwindow(unsigned int width, unsigned int height, std::string name);
 
     /**
-     * \brief inits glew
+     * \brief inits the graphics API
      */
-    void initGLEW();
+    void initGL();
 
     /**
      * \brief queries all available OpenGL extensions

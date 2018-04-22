@@ -3,7 +3,8 @@
 #include <array>
 #include <vector>
 
-#include <GL/glew.h>
+#include <glbinding/gl/gl.h>
+using namespace gl;
 #include "Utils/UtilCollection.h"
 
 class Buffer
@@ -22,7 +23,7 @@ public:
     * \brief returns the OpenGL buffer target (GL_*_BUFFER)
     * \return buffer handle
     */
-    GLuint getTarget() const;
+    GLenum getTarget() const;
 
     /**
      * \brief returns the size of the type of the data elemts in the buffer (e.g. sizeof(glm::vec3))
@@ -43,7 +44,7 @@ public:
      * \param flags buffer flags
      */
     template <typename T>
-    void setStorage(const std::vector<T>& data, GLbitfield flags);
+    void setStorage(const std::vector<T>& data, BufferStorageMask flags);
 
     /**
      * \brief uses glBufferStorage, buffer will be immutable
@@ -53,7 +54,7 @@ public:
      * \param flags buffer flags
      */
     template <typename T, size_t N>
-    void setStorage(const std::array<T, N>& data, GLbitfield flags);
+    void setStorage(const std::array<T, N>& data, BufferStorageMask flags);
 
     /**
      * \brief maps the buffer, writes data, unmaps the buffer
@@ -73,7 +74,7 @@ public:
      * \return 
      */
     template <class S>
-    S* mapBufferContent(int size, unsigned startOffset, GLbitfield flags);
+    S* mapBufferContent(int size, unsigned startOffset, BufferAccessMask flags);
 
     /**
      * \brief unmaps the buffer
@@ -97,7 +98,7 @@ private:
 
     bool m_isImmutable = false;
 
-    GLbitfield m_bufferFlags;
+    BufferStorageMask m_bufferFlags;
 };
 
 /*
@@ -109,7 +110,7 @@ private:
 // call these only once on the same buffer
 //
 template <typename T>
-void Buffer::setStorage(const std::vector<T>& data, GLbitfield flags)
+void Buffer::setStorage(const std::vector<T>& data, BufferStorageMask flags)
 {
     util::getGLerror(__LINE__, __FUNCTION__);
     m_bufferFlags = flags;
@@ -122,7 +123,7 @@ void Buffer::setStorage(const std::vector<T>& data, GLbitfield flags)
 }
 
 template <typename T, size_t N>
-void Buffer::setStorage(const std::array<T, N>& data, GLbitfield flags)
+void Buffer::setStorage(const std::array<T, N>& data, BufferStorageMask flags)
 {
     util::getGLerror(__LINE__, __FUNCTION__);
     m_bufferFlags = flags;
@@ -145,7 +146,7 @@ void Buffer::setContentSubData(const S& data, unsigned startOffset)
     // TODO turn thse into asserts, only check them in debug mode
     if constexpr(util::debugmode)
     {
-        if (!(m_bufferFlags & GL_DYNAMIC_STORAGE_BIT))
+        if ((m_bufferFlags & BufferStorageMask::GL_DYNAMIC_STORAGE_BIT) == BufferStorageMask::GL_NONE_BIT)
         {
             throw std::runtime_error("Buffer lacks GL_DYNAMIC_STORAGE_BIT flag for using SubData");
         }
@@ -155,17 +156,18 @@ void Buffer::setContentSubData(const S& data, unsigned startOffset)
 
 // return a mapped pointer in order to set data in the buffer
 template <typename S>
-S* Buffer::mapBufferContent(int size, unsigned startOffset, GLbitfield flags)
+S* Buffer::mapBufferContent(int size, unsigned startOffset, BufferAccessMask flags)
 {
     // TODO turn thse into asserts, only check them in debug mode
     // TODO what about COHERENT_BIT, PERSISTENT_BIT
     if constexpr(util::debugmode)
     {
-        if (!(m_bufferFlags & GL_MAP_WRITE_BIT) && !(m_bufferFlags & GL_MAP_READ_BIT))
+        if ((m_bufferFlags & BufferStorageMask::GL_MAP_WRITE_BIT) == BufferStorageMask::GL_NONE_BIT 
+            && (m_bufferFlags & BufferStorageMask::GL_MAP_READ_BIT) == BufferStorageMask::GL_NONE_BIT)
         {
             throw std::runtime_error("Buffer needs GL_MAP_WRITE_BIT or GL_MAP_READ_BIT to use mapping");
         }
-        if (!((m_bufferFlags & flags) == flags))
+        if (!((static_cast<BufferAccessMask>(m_bufferFlags) & flags) == flags))
         {
             throw std::runtime_error("Buffer needs to have the flags set that mapBuffer gets called with");
         }
@@ -192,7 +194,7 @@ void Buffer::setPartialContentMapped(const S& data, unsigned startOffset)
     // TODO what about COHERENT_BIT, PERSISTENT_BIT
     if constexpr(util::debugmode)
     {
-        if (!(m_bufferFlags & GL_MAP_WRITE_BIT))
+        if ((m_bufferFlags & BufferStorageMask::GL_MAP_WRITE_BIT) == BufferStorageMask::GL_NONE_BIT)
         {
             throw std::runtime_error("Buffer lacks GL_MAP_WRITE_BIT to write through mapping");
         }

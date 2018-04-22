@@ -3,13 +3,14 @@
 #include <vector>
 #include <filesystem>
 
-#include <GL/glew.h>
+#include <glbinding/gl/gl.h>
+using namespace gl;
 #include "glshader/include/glsp/glsp.hpp"
 
 class Shader
 {
 public:
-    Shader(const std::experimental::filesystem::path& path, GLuint shaderType, const std::vector<glsp::definition>& definitions = {});
+    Shader(const std::experimental::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions = {});
     
     void init() const;
 
@@ -23,11 +24,11 @@ public:
      * \brief returns the shader type (vertex, fragment, ...)
      * \return shader type
      */
-    GLuint getShaderType() const;
+    GLenum getShaderType() const;
 
 private:
     GLuint m_shaderHandle;
-    GLuint m_shaderType;
+    GLenum m_shaderType;
     std::experimental::filesystem::path m_path;
 
     std::vector<glsp::definition> m_definitions;

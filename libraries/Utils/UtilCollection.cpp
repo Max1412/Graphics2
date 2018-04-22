@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <future>
+#include <glbinding/Binding.h>
 
 namespace util
 {
@@ -30,15 +31,10 @@ namespace util
         return window;
     }
 
-    void initGLEW()
+    void initGL()
     {
-        const auto err = glewInit();
-        if (GLEW_OK != err)
-        {
-            std::stringstream ss;
-            ss << "Error initializing GLEW: " << glewGetErrorString(err);
-            throw std::runtime_error(ss.str());
-        }
+        // init glbinding
+        glbinding::Binding::initialize();
     }
 
     std::vector<std::string> getGLExtenstions()

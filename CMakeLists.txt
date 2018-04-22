@@ -11,16 +11,18 @@ set(G2_RESOURCES_PATH			${PROJECT_SOURCE_DIR}/resources)
 set(G2_SHADERS_PATH				${PROJECT_SOURCE_DIR}/shaders)
 
 
-find_package(GLEW REQUIRED)
+#find_package(GLEW REQUIRED)
 find_package(assimp REQUIRED)
 find_package(glm 0.9.8 REQUIRED)
 find_package(glfw3 3.2.1 REQUIRED)
+find_package(glbinding REQUIRED)
 
-list(APPEND G2_INCLUDE_DIRECTORIES ${GLEW_INCLUDE_PATH})
+#list(APPEND G2_INCLUDE_DIRECTORIES ${GLEW_INCLUDE_PATH})
 
 add_definitions(
     -DGLFW_INCLUDE_NONE
     -DSTBI_MSC_SECURE_CRT
+	-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
     -DGLM_FORCE_RADIANS -DGLM_ENABLE_EXPERIMENTAL
     -DNOMINMAX
     -DSOURCE_DIRECTORY="${CMAKE_SOURCE_DIR}/"
@@ -29,8 +31,8 @@ add_definitions(
 )
 
 if(MSVC)
-    add_compile_options(/MP /openmp /permissive- /Zc:twoPhase-)
-    set(G2_LINKER_FLAGS "/NODEFAULTLIB:libcmt /ignore:4098,4099 /MANIFEST:NO")
+    add_compile_options(/MP /openmp /permissive- /Zc:twoPhase- /wd4251)
+    set(G2_LINKER_FLAGS "/NODEFAULTLIB:libcmt /ignore:4098,4099,4221 /MANIFEST:NO")
     list(APPEND G2_LIBRARIES opengl32)
     file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Debug")
     file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Release")
@@ -51,7 +53,7 @@ foreach(subdir ${children})
             set(success 0)
         else()
             add_library(${subdir} ${G2_SOURCE_FILE})
-            target_link_libraries(${subdir} PRIVATE glfw GLEW::GLEW ${ASSIMP_LIBRARIES} glm)
+            target_link_libraries(${subdir} PRIVATE glfw glbinding::glbinding ${ASSIMP_LIBRARIES} glm)
 
             list(APPEND G2_LIBRARIES ${subdir})
             set_target_properties(${subdir} PROPERTIES
@@ -85,7 +87,7 @@ foreach(subdir ${children})
 
             add_library(${subdir} ${G2_SOURCE_FILE})
             list(APPEND G2_LIBRARIES ${subdir})
-            target_link_libraries(${subdir} PRIVATE GLEW::GLEW)
+            target_link_libraries(${subdir} PRIVATE glbinding::glbinding)
             set_target_properties(${subdir} PROPERTIES
 											LINKER_LANGUAGE CXX
 											CXX_STANDARD 17
@@ -105,7 +107,7 @@ foreach(subdir ${children})
 
         add_executable(${subdir} ${EXE_SOURCES})
         target_link_libraries(${subdir} PRIVATE ${G2_LIBRARIES})
-        target_link_libraries(${subdir} PRIVATE glfw GLEW::GLEW ${ASSIMP_LIBRARIES} glm)
+        target_link_libraries(${subdir} PRIVATE glfw glbinding::glbinding ${ASSIMP_LIBRARIES} glm)
         #file(COPY ${G2_DLLS} DESTINATION "${G2_BINARIES_FOLDER}")
         set_target_properties(${subdir} PROPERTIES
 										LINKER_LANGUAGE CXX

@@ -13,21 +13,21 @@ Also contains some demos and examples.
 ### Used libraries:
 * [ImGui](https://github.com/ocornut/imgui)
 * [stb_image & stb_image_write](https://github.com/nothings/stb)
-* GLshader by Johannes Braun
+* [GLshader](https://gitlab.uni-koblenz.de/johannesbraun/glshader) by Johannes Braun
 * [Assimp](http://assimp.org/) (tested with 3.3.1)
 * [glfw3](http://www.glfw.org/) (tested with 3.2.1)
-* [glew](https://github.com/nigels-com/glew) (tested with 2.0.0)
+* [glbinding](https://github.com/cginternals/glbinding) (tested with 2.1.1)
 * [glm](https://glm.g-truc.net/0.9.8/index.html) (tested with 0.9.8.4)
 
 ### Usage
 #### Windows
 * Please use vcpkg for dependency management when using windows to use this project
-* Install assimp:x64-windows, glfw3:x64-windows, glew:x64-windows and glm:x64-windows using vcpkg
-* Set the correct path to your installation of vcpkg (vcpkg.cmake) in the CMakeSettings.json-file or use the included script (set_vcpkg_path.ps1) to select it.
+* Install assimp:x64-windows, glfw3:x64-windows, glbinding:x64-windows and glm:x64-windows using vcpkg
+* Set the correct path to your installation of vcpkg (vcpkg.cmake) in the CMakeSettings.json-file or use the included script (set_vcpkg_path.ps1) to select it
 * Open the project folder in Visual Studio
 #### Linux
 * Currently not tested
-* Install assimp, glfw3, glew and glm using your package manager
+* Install assimp, glfw3, glbinding and glm using your package manager
 * Using CMake to generate makefiles might already work
 
 ### Executables
