@@ -10,7 +10,7 @@ SimpleTrackball::SimpleTrackball(int width, int height, float radius)
     m_center = glm::vec3(0.0f, 0.0f, 0.0f);
     m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    m_sensitivity = 0.010f;
+    m_sensitivity = 0.1f;
     m_theta = glm::pi<float>() / 2.0f;
     m_phi = 0.f;
     m_radius = radius;
@@ -29,8 +29,8 @@ void SimpleTrackball::update(GLFWwindow* window)
         glfwGetCursorPos(window, &x, &y);
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
-            float changeX = (static_cast<float>(x) - m_oldX) * m_sensitivity;
-            float changeY = (static_cast<float>(y) - m_oldY) * m_sensitivity;
+            float changeX = (static_cast<float>(x) - m_oldX) * m_sensitivity * 0.1f;
+            float changeY = (static_cast<float>(y) - m_oldY) * m_sensitivity * 0.1f;
 
             m_theta -= changeY;
             if (m_theta < 0.01f)
@@ -58,15 +58,42 @@ void SimpleTrackball::update(GLFWwindow* window)
 
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
-            m_radius -= 0.1f;
+            m_radius -= m_sensitivity;
         }
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         {
-            m_radius += 0.1f;
+            m_radius += m_sensitivity;
         }
         if (m_radius < 0.1f)
         {
             m_radius = 0.1f;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            m_center += glm::normalize(m_center - m_pos) * m_sensitivity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            m_center -= glm::normalize(m_center - m_pos) * m_sensitivity;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            m_center += glm::normalize(glm::cross(m_up, m_center - m_pos)) * m_sensitivity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            m_center -= glm::normalize(glm::cross(m_up, m_center - m_pos)) * m_sensitivity;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        {
+            m_center += glm::normalize(m_up) * m_sensitivity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        {
+            m_center -= glm::normalize(m_up) * m_sensitivity;
         }
 
         m_pos.x = m_center.x + m_radius * sin(m_theta) * sin(m_phi);
