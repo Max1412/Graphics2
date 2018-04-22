@@ -23,7 +23,7 @@ Also contains some demos and examples.
 #### Windows
 * Please use vcpkg for dependency management when using windows to use this project
 * Install assimp:x64-windows, glfw3:x64-windows, glew:x64-windows and glm:x64-windows using vcpkg
-* Set the correct path to your installation of vcpkg in the CMakeSettings.json-file
+* Set the correct path to your installation of vcpkg (vcpkg.cmake) in the CMakeSettings.json-file or use the included script (set_vcpkg_path.ps1) to select it.
 * Open the project folder in Visual Studio
 #### Linux
 * Currently not tested
