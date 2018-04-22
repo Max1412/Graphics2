@@ -7,7 +7,7 @@ Also contains some demos and examples.
 
 ### OpenGL version and extensions:
 * 4.5 and up should work
-* ARB_bindless_texture
+* [ARB_bindless_texture](https://www.khronos.org/opengl/wiki/Bindless_Texture)
 * I'm trying to use [direct state access](https://www.khronos.org/opengl/wiki/Direct_State_Access) wherever possible
 
 ### Used libraries:
