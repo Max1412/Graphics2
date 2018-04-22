@@ -5,9 +5,9 @@ Function Get-FileName
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.initialDirectory = $(get-location).Path
     $OpenFileDialog.filter = "CMake (*.cmake)| *.cmake"
-	$OpenFileDialog.title = "Select vcpkg.cmake"
+    $OpenFileDialog.title = "Select vcpkg.cmake"
     $OpenFileDialog.ShowDialog() | Out-Null
-	$OpenFileDialog.filename
+    $OpenFileDialog.filename
 }
 
 [System.Windows.Forms.MessageBox]::Show("Please select the vcpkg.cmake file in the next dialog.  
@@ -15,8 +15,8 @@ It is usually located in [vcpkg-root]/scripts/buildsystems/","Graphics2",0)
 
 $vcpkgpath = Get-FileName
 if($vcpkgpath -eq ""){
-	[System.Windows.Forms.MessageBox]::Show("Error setting the path.","Graphics2",0)
-	Exit
+    [System.Windows.Forms.MessageBox]::Show("Error setting the path.","Graphics2",0)
+    Exit
 }
 
 $cmakesettingspath = "./CMakeSettings.json"
