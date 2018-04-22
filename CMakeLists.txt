@@ -22,6 +22,7 @@ find_package(glbinding REQUIRED)
 add_definitions(
     -DGLFW_INCLUDE_NONE
     -DSTBI_MSC_SECURE_CRT
+	-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
     -DGLM_FORCE_RADIANS -DGLM_ENABLE_EXPERIMENTAL
     -DNOMINMAX
     -DSOURCE_DIRECTORY="${CMAKE_SOURCE_DIR}/"
@@ -30,8 +31,8 @@ add_definitions(
 )
 
 if(MSVC)
-    add_compile_options(/MP /openmp /permissive- /Zc:twoPhase-)
-    set(G2_LINKER_FLAGS "/NODEFAULTLIB:libcmt /ignore:4098,4099 /MANIFEST:NO")
+    add_compile_options(/MP /openmp /permissive- /Zc:twoPhase- /wd4251)
+    set(G2_LINKER_FLAGS "/NODEFAULTLIB:libcmt /ignore:4098,4099,4221 /MANIFEST:NO")
     list(APPEND G2_LIBRARIES opengl32)
     file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Debug")
     file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Release")
