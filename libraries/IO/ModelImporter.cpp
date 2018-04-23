@@ -8,7 +8,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 {
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();
-    m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords);
+    m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices);
 
     if (!m_scene || m_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
     {
