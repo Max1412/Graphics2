@@ -164,10 +164,7 @@ namespace util
     void savePNG(std::string name, std::vector<unsigned char>& image, int width, int height)
     {
         std::stringstream path;
-        path << (RESOURCES_PATH
-        )
-        <<
-        "../../" << name << "_" << time(nullptr) << ".png";
+        path << (util::gs_resourcesPath) << "../../" << name << "_" << time(nullptr) << ".png";
 
         stbi_flip_vertically_on_write(true);
         const auto err = stbi_write_png(path.str().c_str(), width, height, 4, image.data(), 4 * width);

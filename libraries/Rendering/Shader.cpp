@@ -26,7 +26,7 @@ void Shader::init() const
         throw std::runtime_error("No path given");
     }
     // load shader file and use it
-    auto shaderCode = loadShaderFile(std::experimental::filesystem::path(SHADERS_PATH) /= m_path);
+    auto shaderCode = loadShaderFile(std::experimental::filesystem::path(util::gs_shaderPath) / m_path);
     std::array<const GLchar*, 1> codeArray{shaderCode.c_str()};
     glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 
@@ -65,6 +65,5 @@ GLenum Shader::getShaderType() const
 
 std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const
 {
-    const std::experimental::filesystem::path includePath(SHADERS_PATH);
-    return glsp::preprocess_file(fileName, { includePath }, m_definitions).contents;
+    return glsp::preprocess_file(fileName, { util::gs_shaderPath }, m_definitions).contents;
 }

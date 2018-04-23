@@ -26,12 +26,10 @@ add_definitions(
     -DGLM_FORCE_RADIANS -DGLM_ENABLE_EXPERIMENTAL
     -DNOMINMAX
     -DSOURCE_DIRECTORY="${CMAKE_SOURCE_DIR}/"
-    -DRESOURCES_PATH="${G2_RESOURCES_PATH}"
-    -DSHADERS_PATH="${G2_SHADERS_PATH}"
 )
 
 if(MSVC)
-    add_compile_options(/MP /openmp /permissive- /Zc:twoPhase- /wd4251)
+    add_compile_options(/std:c++latest /MP /openmp /permissive- /Zc:twoPhase- /wd4251)
     set(G2_LINKER_FLAGS "/NODEFAULTLIB:libcmt /ignore:4098,4099,4221 /MANIFEST:NO")
     list(APPEND G2_LIBRARIES opengl32)
     file(COPY "${ASSIMP_ROOT_DIR}/bin${ASSIMP_ARCHITECTURE}/assimp-vc140-mt.dll" DESTINATION "${G2_BINARIES_FOLDER}/Debug")

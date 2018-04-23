@@ -125,7 +125,7 @@ int main()
     SkyBoxCube cube;
 
     Cubemap CubemapSkybox;
-    CubemapSkybox.loadFromFile(RESOURCES_PATH + std::string("/skybox/skybox.jpg"));
+    CubemapSkybox.loadFromFile(util::gs_resourcesPath / "/skybox/skybox.jpg");
     CubemapSkybox.generateHandle();
     // put the texture handle into a SSBO
     Buffer textureHandleBuffer(GL_SHADER_STORAGE_BUFFER);

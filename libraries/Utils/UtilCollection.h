@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <thread>
+#include <experimental/filesystem>
 
 #include <glbinding/gl/gl.h>
 using namespace gl;
@@ -59,6 +60,9 @@ namespace util
      * \brief enabled OpenGL debug callback (new way of getting errors)
      */
     void enableDebugCallback();
+
+    static const std::experimental::filesystem::path gs_shaderPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("shaders");
+    static const std::experimental::filesystem::path gs_resourcesPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("resources");
 
     static constexpr bool debugmode = true;
 }

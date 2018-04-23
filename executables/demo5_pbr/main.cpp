@@ -127,7 +127,7 @@ int main()
     lightBuffer.bindBase(2);
 
     // IBL STUFF
-    IBLCubemapMaker cubemapMaker(RESOURCES_PATH + std::string("/Newport_Loft/Newport_Loft_Ref.hdr"));
+    IBLCubemapMaker cubemapMaker(util::gs_resourcesPath / "Newport_Loft/Newport_Loft_Ref.hdr");
     glViewport(0, 0, width, height);
 
     Buffer lightingTextureBuffer(GL_SHADER_STORAGE_BUFFER);
