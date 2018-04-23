@@ -384,7 +384,7 @@ int main()
 
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Rendering Settings");
-            if (ImGui::Checkbox("Render to FBO", &useFBO));
+            ImGui::Checkbox("Render to FBO", &useFBO);
             if (useFBO)
             {
                 if (ImGui::Checkbox("Grayscale", &useGrayscale))
@@ -408,7 +408,7 @@ int main()
                     }
                 }
             }
-            if (ImGui::Checkbox("Render Skybox", &renderSkyBox));
+            ImGui::Checkbox("Render Skybox", &renderSkyBox);
             ImGui::End();
         }
 

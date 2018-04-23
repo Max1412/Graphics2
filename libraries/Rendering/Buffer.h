@@ -74,7 +74,7 @@ public:
      * \return 
      */
     template <class S>
-    S* mapBufferContent(int size, unsigned startOffset, BufferAccessMask flags);
+    S* mapBufferContent(size_t size, size_t startOffset, BufferAccessMask flags);
 
     /**
      * \brief unmaps the buffer
@@ -88,7 +88,7 @@ public:
      * \param startOffset offset in the buffer in bytes to write the data
      */
     template <typename S>
-    void setContentSubData(const S& data, unsigned startOffset);
+    void setContentSubData(const S& data, size_t startOffset);
 
 private:
     GLuint m_bufferHandle;
@@ -141,7 +141,7 @@ void Buffer::setStorage(const std::array<T, N>& data, BufferStorageMask flags)
 
 // set the buffer data by using SubData
 template <typename S>
-void Buffer::setContentSubData(const S& data, unsigned startOffset)
+void Buffer::setContentSubData(const S& data, size_t startOffset)
 {
     // TODO turn thse into asserts, only check them in debug mode
     if constexpr(util::debugmode)
@@ -156,7 +156,7 @@ void Buffer::setContentSubData(const S& data, unsigned startOffset)
 
 // return a mapped pointer in order to set data in the buffer
 template <typename S>
-S* Buffer::mapBufferContent(int size, unsigned startOffset, BufferAccessMask flags)
+S* Buffer::mapBufferContent(size_t size, size_t startOffset, BufferAccessMask flags)
 {
     // TODO turn thse into asserts, only check them in debug mode
     // TODO what about COHERENT_BIT, PERSISTENT_BIT

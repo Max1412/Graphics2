@@ -32,7 +32,13 @@ void VertexArray::connectBuffer(const Buffer& buffer, GLuint index, GLuint size,
     glEnableVertexArrayAttrib(m_vaoHandle, index);
     // only works for non-integer, non-long/double types
     // use the overloaded function below for custom strides/offsets
-    glVertexArrayVertexBuffer(m_vaoHandle, index, buffer.getHandle(), 0, buffer.getTypeSize());
+
+    // stupid GLsizei workaround stuff:
+    auto actualSize = buffer.getTypeSize();
+    if (actualSize > std::numeric_limits<int>::max())
+        throw std::runtime_error("Buffer size too large");
+
+    glVertexArrayVertexBuffer(m_vaoHandle, index, buffer.getHandle(), 0, static_cast<GLsizei>(buffer.getTypeSize()));
     glVertexArrayAttribFormat(m_vaoHandle, index, size, type, normalized, 0);
     glVertexArrayAttribBinding(m_vaoHandle, index, index);
 }

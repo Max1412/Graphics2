@@ -145,8 +145,8 @@ IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& file
     for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
     {
         // reisze framebuffer according to mip-level size.
-        unsigned int mipWidth = 128 * pow(0.5, mip);
-        unsigned int mipHeight = 128 * pow(0.5, mip);
+        auto mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        auto mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
         glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
         glViewport(0, 0, mipWidth, mipHeight);

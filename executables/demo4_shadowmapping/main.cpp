@@ -292,9 +292,9 @@ int main()
         {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("FBO settings");
-            if (ImGui::Checkbox("Render to FBO", &useFBO));
-            if (ImGui::Checkbox("Display Shadow Map", &displayShadowMap));
-            if (ImGui::Checkbox("Rotate Model", &rotate));
+            ImGui::Checkbox("Render to FBO", &useFBO);
+            ImGui::Checkbox("Display Shadow Map", &displayShadowMap);
+            ImGui::Checkbox("Rotate Model", &rotate);
             ImGui::End();
         }
 
