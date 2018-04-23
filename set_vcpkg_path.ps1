@@ -10,6 +10,7 @@ Function Get-FileName
     $OpenFileDialog.filename
 }
 
+[System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
 [System.Windows.Forms.MessageBox]::Show("Please select the vcpkg.cmake file in the next dialog.  
 It is usually located in [vcpkg-root]/scripts/buildsystems/","Graphics2",0)
 
@@ -25,4 +26,5 @@ $a = Get-Content $cmakesettingspath -raw | ConvertFrom-Json
 $a.configurations.variables | % {if($_.name -eq 'CMAKE_TOOLCHAIN_FILE'){$_.value=$vcpkgpath}}
 $a | ConvertTo-Json -Depth 20 | set-content $cmakesettingspath
 
+[System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
 [System.Windows.Forms.MessageBox]::Show("Finished setting vcpkg path in CMakeSettings.json","Graphics2",0)
