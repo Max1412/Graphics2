@@ -61,6 +61,20 @@ namespace util
      */
     void enableDebugCallback();
 
+    /** 
+     * \brief Calls the provided function and returns the number of milliseconds 
+     * that it takes to call that function.
+     * \param f function to call
+     */
+    template <class Function>
+    double timeCall(Function&& f)
+    {
+        auto begin = glfwGetTime();
+        f();
+        glFinish();
+        return (glfwGetTime() - begin) * 1000;
+    }
+
     static const std::experimental::filesystem::path gs_shaderPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("shaders");
     static const std::experimental::filesystem::path gs_resourcesPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("resources");
 
