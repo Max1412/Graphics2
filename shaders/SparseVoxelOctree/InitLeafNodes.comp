@@ -1,0 +1,57 @@
+#version 450 core
+
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 0, std430) buffer voxelFragmentList_buffer
+{
+    vec4 voxelFragmentList[];
+};
+
+layout(binding = 1, std430) buffer voxelFragmentColor_buffer
+{
+    vec4 voxelFragmentColor[];
+};
+
+layout(binding = 2, std430) buffer nodePool_buffer
+{
+    int nodePool[];
+};
+
+layout(binding = 3, std430) buffer nodeColor_buffer
+{
+    vec4 nodeColor[];
+};
+
+void traverseOctree(in vec3 voxelPos, in vec4 voxelColor)
+{
+    vec3 nodePos = vec3(0.f);
+    vec3 nodeSize = vec3(1.f);
+    int bufferIndex = 0;
+
+    bool loop = true;
+    while(loop) 
+    {
+        ivec3 octant = ivec3(greaterThanEqual(voxelPos, nodePos + 0.5f * nodeSize));
+        int tileIndex = octant.z * 4 + octant.y * 2 + octant.x;
+        bufferIndex = nodePool[bufferIndex] + tileIndex;
+
+        if(nodePool[bufferIndex] > 0) //has subnode --> step into
+        { 
+            nodeSize *= 0.5f;
+            nodePos += octant * nodeSize;
+        } 
+        else //current node is leaf --> fill data
+        { 
+            nodeColor[bufferIndex] = vec4(voxelColor.xyz, 1.0f); //TODO: mix colors!
+            return;
+        }
+    }
+}
+
+void main() 
+{
+    uint index = gl_WorkGroupID.x * gl_WorkGroupSize.x + gl_LocalInvocationID.x;
+    vec4 voxelPos = voxelFragmentList[index];
+
+    if(voxelPos.w > 0.f) traverseOctree(voxelPos.xyz, voxelFragmentColor[index]);
+}

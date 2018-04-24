@@ -1,0 +1,40 @@
+#version 450 core
+
+layout (local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 2, std430) buffer nodePool_buffer
+{
+    int nodePool[];
+};
+
+layout(binding = 3, std430) buffer nodeColor_buffer
+{
+    vec4 nodeColor[][8];
+};
+
+uniform int startIndex;
+
+void main() 
+{
+    uint index = startIndex + gl_WorkGroupID.x * gl_WorkGroupSize.x + gl_LocalInvocationID.x;
+    uint childrenStartIndex = nodePool[index];
+    if(childrenStartIndex > 0)  //node has children
+    {        
+        vec4 sub_colors[8] = nodeColor[childrenStartIndex>>3];
+
+        vec4 avgColor = vec4(0.f);
+
+        for(int i = 0; i < 8; ++i)
+        {
+            avgColor += sub_colors[i];
+        }
+
+        if (avgColor.w != 0.0f) 
+        {
+            avgColor.xyz *= 1.0f / avgColor.w; //color is not affected by empty nodes
+            avgColor.w = 1.0f;
+        } 
+
+        nodeColor[index>>3][index&0x7] = avgColor;
+    }        
+}
