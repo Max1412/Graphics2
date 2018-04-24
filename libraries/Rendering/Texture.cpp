@@ -49,12 +49,13 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
     m_height = imageHeight;
 }
 
-void Texture::generateHandle()
+GLuint64 Texture::generateHandle()
 {
     m_handle = glGetTextureHandleARB(m_name);
     if (m_handle == 0)
         throw std::runtime_error("Texture handle could not be returned");
     glMakeTextureHandleResidentARB(m_handle);
+    return m_handle;
 }
 
 void Texture::initWithoutData(int width, int height, GLenum internalFormat)
@@ -62,6 +63,14 @@ void Texture::initWithoutData(int width, int height, GLenum internalFormat)
     glTextureStorage2D(m_name, 1, internalFormat, width, height);
     m_width = width;
     m_height = height;
+}
+
+void Texture::initWithoutData3D(int width, int height, int depth, GLenum internalFormat)
+{
+	glTextureStorage3D(m_name, 1, internalFormat, width, height, depth);
+	m_width = width;
+	m_height = height;
+	m_depth = depth;
 }
 
 void Texture::setWrap(const GLenum wrapS, const GLenum wrapT) const

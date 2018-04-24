@@ -9,9 +9,10 @@ public:
     explicit Texture(GLenum target = GL_TEXTURE_2D, GLenum minFilter = GL_LINEAR, GLenum maxFilter = GL_LINEAR);
 
     virtual void loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4);
-    virtual void generateHandle();
+    virtual GLuint64 generateHandle();
 
     virtual void initWithoutData(int width, int height, GLenum internalFormat);
+    virtual void initWithoutData3D(int width, int height, int depth, GLenum internalFormat);
 
     void setWrap(GLenum wrapS, GLenum wrapT) const;
     void setMinMagFilter(GLenum minFilter, GLenum magFilter) const;
@@ -34,4 +35,5 @@ protected:
     GLuint64 m_handle = 0;
     int m_width = 0;
     int m_height = 0;
+    int m_depth = 0;
 };
