@@ -159,7 +159,7 @@ void ShaderProgram::updateUniforms()
             }
         }
         // case float
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<float>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<float>>).hash_code())
         {
             if (auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first);
             a->getChangeFlag(m_shaderProgramHandle)
@@ -170,7 +170,7 @@ void ShaderProgram::updateUniforms()
             }
         }
         // case bool
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<bool>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<bool>>).hash_code())
         {
             if (auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first);
             a->getChangeFlag(m_shaderProgramHandle)
@@ -188,7 +188,7 @@ void ShaderProgram::updateUniforms()
             }
         }
         // case mat4
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::mat4>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::mat4>>).hash_code())
         {
             if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first);
             a->getChangeFlag(m_shaderProgramHandle)
@@ -199,7 +199,7 @@ void ShaderProgram::updateUniforms()
             }
         }
         // case vec3
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec3>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec3>>).hash_code())
         {
             if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first);
             a->getChangeFlag(m_shaderProgramHandle)
@@ -210,7 +210,7 @@ void ShaderProgram::updateUniforms()
             }
         }
         // case vec2
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec2>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec2>>).hash_code())
         {
             if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first);
             a->getChangeFlag(m_shaderProgramHandle)
@@ -219,6 +219,21 @@ void ShaderProgram::updateUniforms()
                 glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
                 a->hasBeenUpdated(m_shaderProgramHandle);
             }
+        }
+        // case uvec3
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::uvec3>>).hash_code())
+        {
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::uvec3>>>(n.first);
+            a->getChangeFlag(m_shaderProgramHandle)
+                )
+            {
+                glProgramUniform3uiv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
+                a->hasBeenUpdated(m_shaderProgramHandle);
+            }
+        }
+        else
+        {
+            throw std::runtime_error("Uniform type not supported yet.");
         }
     }
 }
@@ -234,13 +249,13 @@ void ShaderProgram::forceUpdateUniforms()
             glProgramUniform1i(m_shaderProgramHandle, n.second, a->getContent());
         }
         // case float
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<float>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<float>>).hash_code())
         {
             const auto a = std::any_cast<std::shared_ptr<Uniform<float>>>(n.first);
             glProgramUniform1f(m_shaderProgramHandle, n.second, a->getContent());
         }
         // case bool
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<bool>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<bool>>).hash_code())
         {
             const auto a = std::any_cast<std::shared_ptr<Uniform<bool>>>(n.first);
             if (a->getContent())
@@ -253,22 +268,32 @@ void ShaderProgram::forceUpdateUniforms()
             }
         }
         // case mat4
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::mat4>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::mat4>>).hash_code())
         {
             const auto a = std::any_cast<std::shared_ptr<Uniform<glm::mat4>>>(n.first);
             glProgramUniformMatrix4fv(m_shaderProgramHandle, n.second, 1, GL_FALSE, value_ptr(a->getContent()));
         }
         // case vec3
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec3>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec3>>).hash_code())
         {
             const auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec3>>>(n.first);
             glProgramUniform3fv(m_shaderProgramHandle, n.second, 1, value_ptr(a->getContent()));
         }
         // case vec2
-        if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec2>>).hash_code())
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::vec2>>).hash_code())
         {
             const auto a = std::any_cast<std::shared_ptr<Uniform<glm::vec2>>>(n.first);
             glProgramUniform2fv(m_shaderProgramHandle, n.second, 1, value_ptr(a->getContent()));
+        }
+        // case uvec3
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::uvec3>>).hash_code())
+        {
+            const auto a = std::any_cast<std::shared_ptr<Uniform<glm::uvec3>>>(n.first);
+            glProgramUniform3uiv(m_shaderProgramHandle, n.second, 1, value_ptr(a->getContent()));
+        }
+        else
+        {
+            throw std::runtime_error("Uniform type not supported yet.");
         }
     }
 }
