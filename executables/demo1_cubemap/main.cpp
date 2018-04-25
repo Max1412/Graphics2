@@ -446,6 +446,7 @@ int main()
             glDepthFunc(GL_LEQUAL);
             glDisable(GL_CULL_FACE);
             skyboxSP.use();
+            skyboxSP.updateUniforms();
             cube.draw();
             glEnable(GL_CULL_FACE);
             glDepthFunc(GL_LEQUAL);
