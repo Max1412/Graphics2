@@ -47,7 +47,7 @@ int main()
     // get list of OpenGL extensions (can be searched later if needed)
     std::vector<std::string> extensions = util::getGLExtenstions();
 
-    glViewportIndexedf(0, 0, 0, width, height);
+    glViewportIndexedf(0, 0.f, 0.f, static_cast<float>(width), static_cast<float>(height));
 
     ModelImporter mi("bunny.obj");
     auto meshes = mi.getMeshes();
@@ -83,7 +83,7 @@ int main()
 
     Timer timer;
 
-    int maxLevelRender = 10; float keyTimeout = 0; //only for octree level debugging!
+    int maxLevelRender = 10; double keyTimeout = 0; //only for octree level debugging!
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -100,7 +100,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //only for level debugging!
-        if ((glfwGetTime() - keyTimeout) * 1000 > 100) {
+        if ((glfwGetTime() - keyTimeout) * 1000.0 > 100.0) {
             if (glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS) {
                 maxLevelRender--;
                 std::cout << "Max Octree traversion depth: " << maxLevelRender << '\n';
