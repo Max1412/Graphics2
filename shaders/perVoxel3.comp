@@ -7,6 +7,12 @@ layout(binding = 0, std430) buffer voxelGridBuffer
 	layout(rgba32f) image3D voxelGrid;
 };
 
+layout(binding = 1, std430) buffer matrixBuffer
+{
+    mat4 playerViewMatrix;
+    mat4 playerProjMatrix;
+};
+
 layout(local_size_variable) in;
 //layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
