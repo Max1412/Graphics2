@@ -19,7 +19,7 @@ public:
     void generateMipmap() const;
 
     template <typename T>
-    void clearTexture(GLenum format, GLenum type, T data) const
+    void clearTexture(GLenum format, GLenum type, T data, GLint level = 0) const
     {
         glClearTexImage(m_name, 0, format, type, &data);
     }
@@ -37,3 +37,5 @@ protected:
     int m_height = 0;
     int m_depth = 0;
 };
+
+
