@@ -140,7 +140,7 @@ GLuint ShaderProgram::getShaderProgramHandle() const
 void ShaderProgram::use()
 {
     glUseProgram(m_shaderProgramHandle);
-    updateUniforms(); // TODO temporary hack to make it possible to use the same uniform in different shaderprograms
+    updateUniforms();
 }
 
 void ShaderProgram::updateUniforms()
@@ -231,6 +231,17 @@ void ShaderProgram::updateUniforms()
                 a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
+        // case ivec3
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::ivec3>>).hash_code())
+        {
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<glm::ivec3>>>(n.first);
+            a->getChangeFlag(m_shaderProgramHandle)
+                )
+            {
+                glProgramUniform3iv(m_shaderProgramHandle, n.second, 1, glm::value_ptr(a->getContent()));
+                a->hasBeenUpdated(m_shaderProgramHandle);
+            }
+        }
         else
         {
             throw std::runtime_error("Uniform type not supported yet.");
@@ -291,10 +302,17 @@ void ShaderProgram::forceUpdateUniforms()
             const auto a = std::any_cast<std::shared_ptr<Uniform<glm::uvec3>>>(n.first);
             glProgramUniform3uiv(m_shaderProgramHandle, n.second, 1, value_ptr(a->getContent()));
         }
+        // case ivec3
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<glm::ivec3>>).hash_code())
+        {
+            const auto a = std::any_cast<std::shared_ptr<Uniform<glm::ivec3>>>(n.first);
+            glProgramUniform3iv(m_shaderProgramHandle, n.second, 1, value_ptr(a->getContent()));
+        }
         else
         {
             throw std::runtime_error("Uniform type not supported yet.");
         }
+        util::getGLerror(__LINE__, __FUNCTION__);
     }
 }
 

@@ -6,12 +6,6 @@ using namespace gl;
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
-
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <memory>
 
 #include "Utils/UtilCollection.h"
 #include "Utils/Timer.h"
@@ -27,7 +21,6 @@ using namespace gl;
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
-#include "Rendering/Quad.h"
 #include "Rendering/FrameBuffer.h"
 
 constexpr int screenWidth = 1600;
@@ -55,12 +48,10 @@ int main()
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
 
-    // get list of OpenGL extensions (can be searched later if needed)
-    std::vector<std::string> extensions = util::getGLExtenstions();
-
 	Image voxelGrid(GL_TEXTURE_3D, GL_NEAREST, GL_NEAREST);
 	voxelGrid.initWithoutData3D(gridWidth, gridHeight, gridDepth, GL_RGBA32F);
 	GLuint64 handle = voxelGrid.generateImageHandle(GL_RGBA32F);
+    voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(0.3f), 0);
 	
 	Buffer imageHoldingSSBO(GL_SHADER_STORAGE_BUFFER);
 	imageHoldingSSBO.setStorage(std::vector<GLuint64>{ handle }, GL_DYNAMIC_STORAGE_BIT);
@@ -68,9 +59,8 @@ int main()
 
 	Shader perVoxelShader("perVoxel3.comp", GL_COMPUTE_SHADER);
 	ShaderProgram sp({ perVoxelShader });
-	sp.use();
 
-    SimpleTrackball playerCamera(screenWidth, screenHeight, 1.0f);
+    SimpleTrackball playerCamera(screenWidth, screenHeight, 10.0f);
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, static_cast<float>(screenFar));
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
@@ -79,19 +69,33 @@ int main()
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, { screenWidth, screenHeight, 0.1f, static_cast<float>(screenFar) });
 
+    Timer timer;
+
+    glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+
 	while (!glfwWindowShouldClose(window))
 	{
-		glfwPollEvents();
+        timer.start();
 
-		//glDispatchCompute(gridWidth / groupSize, groupSize / groupSize, groupSize / groupSize);
+		glfwPollEvents();
+        //ImGui_ImplGlfwGL3_NewFrame();
+         
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         sp.use();
         sp.updateUniforms();
-		glDispatchComputeGroupSizeARB(gridWidth / groupSize, gridHeight / groupSize, gridDepth / groupSize, groupSize, groupSize, groupSize);
+		glDispatchCompute(std::ceil(gridWidth / static_cast<float>(groupSize)), std::ceil(gridHeight / static_cast<float>(groupSize)), std::ceil(gridDepth / static_cast<float>(groupSize)));
+		//glDispatchComputeGroupSizeARB(gridWidth / groupSize, gridHeight / groupSize, gridDepth / groupSize, groupSize, groupSize, groupSize);
 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         vdbgr.draw(window);
 
+        timer.stop();
+        //timer.drawGuiWindow(window);
+
+        //ImGui::Render();
+        //ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
 	}
 

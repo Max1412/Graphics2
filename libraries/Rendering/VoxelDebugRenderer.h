@@ -5,6 +5,7 @@
 #include "SimpleTrackball.h"
 #include "ShaderProgram.h"
 #include "glm/glm.hpp"
+#include "VertexArray.h"
 
 struct ScreenInfo
 {
@@ -31,4 +32,6 @@ private:
     int m_numVoxels;
     glm::mat4 m_projMat;
     std::shared_ptr<Uniform<glm::mat4>> m_viewUniform;
+
+    VertexArray m_emptyVao;
 };
