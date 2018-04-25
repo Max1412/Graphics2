@@ -57,8 +57,8 @@ protected:
     std::shared_ptr<Uniform<int>> m_startIndexUniform;
     std::shared_ptr<Uniform<glm::mat4>> m_modelMatrixUniform;
 
-    const size_t m_N;
-    const size_t m_depth;
+    int64_t m_N;
+    int64_t m_depth;
     const std::vector<std::shared_ptr<Mesh>>& m_scene;
 
     glm::vec3 m_bmin;

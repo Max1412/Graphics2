@@ -5,7 +5,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 SparseVoxelOctree::SparseVoxelOctree(const std::vector<std::shared_ptr<Mesh>>& scene, const size_t depth)
-    : m_N(glm::pow(2, depth)), m_depth(depth), m_scene(scene)
+    : m_N(static_cast<size_t>(glm::pow(2, depth))), m_depth(depth), m_scene(scene)
 {
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -21,20 +21,21 @@ SparseVoxelOctree::SparseVoxelOctree(const std::vector<std::shared_ptr<Mesh>>& s
     //clear voxel color list
     m_voxelFragmentColor.setStorage(std::vector<glm::vec4>(triCount * 4, glm::vec4(0.f)), GL_DYNAMIC_STORAGE_BIT);
 
+    int powN3 = static_cast<int>(std::pow(m_N, 3));
     //clear node pool
-    m_nodePool.setStorage(std::vector<GLint>(glm::pow(m_N, 3) * 2, -1), GL_DYNAMIC_STORAGE_BIT);
+    m_nodePool.setStorage(std::vector<GLint>(powN3, -1), GL_DYNAMIC_STORAGE_BIT);
 
     //clear node colors
-    m_nodeColor.setStorage(std::vector<glm::vec4>(glm::pow(m_N, 3) * 2, glm::vec4(0.f)), GL_DYNAMIC_STORAGE_BIT);
+    m_nodeColor.setStorage(std::vector<glm::vec4>(powN3 * 2, glm::vec4(0.f)), GL_DYNAMIC_STORAGE_BIT);
 
     //clear voxel counter
-    m_voxelCounter.setStorage(std::vector<GLuint>(1, 0u), GL_DYNAMIC_STORAGE_BIT);
+    m_voxelCounter.setStorage(std::vector<GLuint>{ 0u }, GL_DYNAMIC_STORAGE_BIT);
 
     //clear node counter
-    m_nodeCounter.setStorage(std::vector<GLuint>(1, 1u), GL_DYNAMIC_STORAGE_BIT);
+    m_nodeCounter.setStorage(std::vector<GLuint>{ 1u }, GL_DYNAMIC_STORAGE_BIT);
 
-    m_bmin = glm::vec3(FLT_MAX);
-    m_bmax = glm::vec3(-FLT_MAX);
+    m_bmin = glm::vec3(std::numeric_limits<float>::max());
+    m_bmax = glm::vec3(std::numeric_limits<float>::lowest());
     std::for_each(scene.begin(), scene.end(), [&](auto& mesh)
     {
         std::for_each(mesh->getVertices().begin(), mesh->getVertices().end(), [&](auto& vertex)
@@ -130,10 +131,10 @@ void SparseVoxelOctree::update()
 
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
-
-    glViewportIndexedf(1, 0, 0, m_N, m_N);
-    glViewportIndexedf(2, 0, 0, m_N, m_N);
-    glViewportIndexedf(3, 0, 0, m_N, m_N);
+    float Nf = static_cast<float>(m_N);
+    glViewportIndexedf(1, 0.0f, 0.0f, Nf, Nf);
+    glViewportIndexedf(2, 0.0f, 0.0f, Nf, Nf);
+    glViewportIndexedf(3, 0.0f, 0.0f, Nf, Nf);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     m_voxelGenShader.use();
@@ -160,14 +161,14 @@ void SparseVoxelOctree::update()
     if constexpr(util::debugmode) { glFinish(); t1 = glfwGetTime(); }
     for (int i = 1; i < m_depth; ++i) {
         m_flagShader.use();
-        glDispatchCompute(glm::ceil(voxelCount / 64.f), 1, 1);
+        glDispatchCompute(static_cast<GLuint>(glm::ceil(voxelCount / 64.f)), 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
         glGetNamedBufferSubData(m_nodeCounter.getHandle(), 0, 4, &nodeCount);
         levelStartIndices.push_back(int((nodeCount + 1) * 8));
         m_startIndexUniform->setContent(levelStartIndices[i - 1]);
         m_nodeCreationShader.use();
-        glDispatchCompute(glm::pow(8, i - 1), 1, 1);
+        glDispatchCompute(static_cast<GLuint>(glm::pow(8, i - 1)), 1, 1);
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
     }
     glGetNamedBufferSubData(m_nodeCounter.getHandle(), 0, 4, &nodeCount);
@@ -184,7 +185,7 @@ void SparseVoxelOctree::update()
 
     if constexpr(util::debugmode) { glFinish(); t1 = glfwGetTime(); }
     m_leafInitShader.use();
-    glDispatchCompute(glm::ceil(voxelCount / 64.f), 1, 1);
+    glDispatchCompute(static_cast<GLuint>(glm::ceil(voxelCount / 64.f)), 1, 1);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     if constexpr(util::debugmode) { glFinish(); std::cout << "Leaf initialization took: " << (glfwGetTime() - t1) * 1000 << "ms \n"; }
 
@@ -193,7 +194,7 @@ void SparseVoxelOctree::update()
 
     if constexpr(util::debugmode) { glFinish(); t1 = glfwGetTime(); }
     m_mipMapShader.use();
-    for (int i = m_depth - 2; i >= 0; --i) {
+    for (int64_t i = m_depth - 2; i >= 0; --i) {
         m_startIndexUniform->setContent(levelStartIndices[i]);
         m_mipMapShader.updateUniforms();
         glDispatchCompute((levelStartIndices[i + 1] - levelStartIndices[i]) / 8, 1, 1);
