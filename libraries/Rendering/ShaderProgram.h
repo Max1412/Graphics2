@@ -2,13 +2,11 @@
 
 #include <memory>
 #include <vector>
-#include <map>
 #include <utility>
 #include <any>
 
 #include <glbinding/gl/gl.h>
 using namespace gl;
-#include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
 #include "Uniform.h"

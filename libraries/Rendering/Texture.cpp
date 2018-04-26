@@ -2,8 +2,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include "Utils/UtilCollection.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.inl>
+#include <GLFW/glfw3.h>
+#include <iostream>
 
 Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
 {
@@ -11,6 +14,16 @@ Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
     glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
     glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, maxFilter);
     glObjectLabel(GL_TEXTURE, m_name, 1, "test");
+}
+
+Texture::~Texture()
+{
+    if (glfwGetCurrentContext() != nullptr)
+    {
+        glDeleteTextures(1, &m_name);
+    }
+    util::getGLerror(__LINE__, __FUNCTION__);
+    std::cout << "texture destructor called" << std::endl;
 }
 
 void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)

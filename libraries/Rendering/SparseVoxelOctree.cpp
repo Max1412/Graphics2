@@ -1,8 +1,9 @@
 #include "SparseVoxelOctree.h"
 
 #include <glm/gtx/component_wise.hpp>
-#include <glm/gtc/matrix_transform.inl>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 SparseVoxelOctree::SparseVoxelOctree(const std::vector<std::shared_ptr<Mesh>>& scene, const size_t depth)
     : m_N(static_cast<size_t>(glm::pow(2, depth))), m_depth(depth), m_scene(scene)
@@ -21,7 +22,7 @@ SparseVoxelOctree::SparseVoxelOctree(const std::vector<std::shared_ptr<Mesh>>& s
     //clear voxel color list
     m_voxelFragmentColor.setStorage(std::vector<glm::vec4>(triCount * 4, glm::vec4(0.f)), GL_DYNAMIC_STORAGE_BIT);
 
-    int powN3 = static_cast<int>(std::pow(m_N, 3));
+    const int powN3 = static_cast<int>(std::pow(m_N, 3));
     //clear node pool
     m_nodePool.setStorage(std::vector<GLint>(powN3, -1), GL_DYNAMIC_STORAGE_BIT);
 
@@ -49,21 +50,21 @@ SparseVoxelOctree::SparseVoxelOctree(const std::vector<std::shared_ptr<Mesh>>& s
     });
 
     // make cubic
-    glm::vec3 c = (m_bmin + m_bmax) / 2.0f;
-    float halfSize = glm::compMax(m_bmax-m_bmin) / 2.0f;
+    const glm::vec3 c = (m_bmin + m_bmax) / 2.0f;
+    const float halfSize = glm::compMax(m_bmax-m_bmin) / 2.0f;
     m_bmin = c - halfSize;
     m_bmax = c + halfSize;
 
     ////////////////////////////////////////////////////////////////////////////////////
     // Init shader uniforms
-    auto u_proj = std::make_shared<Uniform<glm::mat4>>("projectionMatrix", glm::ortho(
+    const auto u_proj = std::make_shared<Uniform<glm::mat4>>("projectionMatrix", glm::ortho(
         m_bmin.x, m_bmax.x,
         m_bmin.y, m_bmax.y,
         -m_bmax.z, -m_bmin.z
     ));
     m_voxelGenShader.addUniform(u_proj);
 
-    auto u_res = std::make_shared<Uniform<glm::uvec3>>("res", glm::uvec3(m_N, m_N, m_N));
+    const auto u_res = std::make_shared<Uniform<glm::uvec3>>("res", glm::uvec3(m_N, m_N, m_N));
     m_voxelGenShader.addUniform(u_res);
 
     m_startIndexUniform = std::make_shared<Uniform<int>>("startIndex", 0);
@@ -106,7 +107,8 @@ void SparseVoxelOctree::update()
     glGetNamedBufferSubData(m_voxelCounter.getHandle(), 0, 4, &voxelCount);
     glGetNamedBufferSubData(m_nodeCounter.getHandle(), 0, 4, &nodeCount);
 
-    glm::vec4 zero_vec = glm::vec4(0.f); GLint clear_val = -1;
+    glm::vec4 zero_vec = glm::vec4(0.f); 
+    const GLint clear_val = -1;
     glClearNamedBufferSubData(m_voxelFragmentList.getHandle(), GL_RGBA32F, 0, (voxelCount+1) * 16 /*4 * 4*/, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
     glClearNamedBufferSubData(m_voxelFragmentColor.getHandle(), GL_RGBA32F, 0, (voxelCount+1) * 16 /*4 * 4*/, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
     glClearNamedBufferSubData(m_nodeColor.getHandle(), GL_RGBA32F, 0, (nodeCount+1) * 128 /*8 * 4 * 4*/, GL_RGBA, GL_FLOAT, glm::value_ptr(zero_vec));
@@ -119,7 +121,7 @@ void SparseVoxelOctree::update()
     glClearNamedBufferSubData(m_nodeCounter.getHandle(), GL_R32UI, 0, 4, GL_RED_INTEGER, GL_UNSIGNED_INT, &clear_val_atomic);
 
     //set octree root value
-    GLint root_val = 8;
+    const GLint root_val = 8;
     m_nodePool.setContentSubData(root_val, 0);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
@@ -131,7 +133,7 @@ void SparseVoxelOctree::update()
 
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
-    float Nf = static_cast<float>(m_N);
+    const float Nf = static_cast<float>(m_N);
     glViewportIndexedf(1, 0.0f, 0.0f, Nf, Nf);
     glViewportIndexedf(2, 0.0f, 0.0f, Nf, Nf);
     glViewportIndexedf(3, 0.0f, 0.0f, Nf, Nf);

@@ -8,7 +8,7 @@
 class IBLCubemapMaker
 {
 public:
-    IBLCubemapMaker(const std::experimental::filesystem::path& filename);
+    explicit IBLCubemapMaker(const std::experimental::filesystem::path& filename);
     Cubemap getEnvironmentCubemap() const;
     Cubemap getIrradianceCubemap() const;
     Cubemap getSpecularCubemap() const;

@@ -1,12 +1,10 @@
 #include "IBLCubemapMaker.h"
 #include "Texture.h"
-#include "SkyBoxCube.h"
 #include "Shader.h"
 #include "ShaderProgram.h"
 #include "Cubemap.h"
-#include <glm/gtc/matrix_transform.inl>
-#include "FrameBuffer.h"
 #include "Quad.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& filename)
     : m_iblSkyboxTextureBuffer(GL_SHADER_STORAGE_BUFFER),
@@ -145,8 +143,8 @@ IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& file
     for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
     {
         // reisze framebuffer according to mip-level size.
-        auto mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
-        auto mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        const auto mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        const auto mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
         glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
         glViewport(0, 0, mipWidth, mipHeight);

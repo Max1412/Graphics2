@@ -1,8 +1,9 @@
 #include "ShaderProgram.h"
 
+#include "imgui/imgui.h"
 #include <iostream>
 #include <typeinfo>
-#include "imgui/imgui.h"
+#include <glm/gtc/type_ptr.hpp>
 
 ShaderProgram::ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath, const std::vector<glsp::definition>& definitions)
     : m_initWithShaders(true)

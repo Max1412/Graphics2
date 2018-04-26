@@ -88,6 +88,8 @@ namespace util
         case GL_DEBUG_SOURCE_OTHER:
             std::cout << "Some other source";
             break;
+        default:
+            std::cout << "Invaliid source";
         }
         std::cout << '\n';
         std::cout << "message: " << message << '\n';
@@ -122,6 +124,8 @@ namespace util
         case GL_DEBUG_TYPE_OTHER:
             std::cout << "OTHER";
             break;
+        default:
+            std::cout << "Invalid debug type";
         }
         std::cout << '\n';
         std::cout << "id: " << id << '\n';
@@ -140,6 +144,8 @@ namespace util
         case GL_DEBUG_SEVERITY_NOTIFICATION:
             std::cout << "NOTIFICATION";
             break;
+        default:
+            std::cout << "Invalid severity";
         }
         std::cout << '\n';
         std::cout << std::endl;
@@ -186,7 +192,7 @@ namespace util
         //Encode the image
         try
         {
-            std::async(std::launch::async, [&]() { savePNG(name, image, width, height); });
+            auto future = std::async(std::launch::async, [&]() { savePNG(name, image, width, height); });
         }
         catch (std::runtime_error& ex)
         {

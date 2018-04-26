@@ -2,7 +2,6 @@
 
 #include <array>
 #include <iostream>
-#include <fstream>
 #include <string>
 
 #include "Utils/Timer.h"

@@ -98,7 +98,7 @@ private:
 
     bool m_isImmutable = false;
 
-    BufferStorageMask m_bufferFlags;
+    BufferStorageMask m_bufferFlags = GL_NONE_BIT;
 };
 
 /*
