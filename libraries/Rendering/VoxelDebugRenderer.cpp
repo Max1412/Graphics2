@@ -19,13 +19,13 @@ VoxelDebugRenderer::VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInf
     m_sp.addUniform(gridDimUniform);
     m_sp.addUniform(m_viewUniform);
     m_sp.addUniform(projUniform);
-
 }
 
 void VoxelDebugRenderer::draw(GLFWwindow* window)
 {
     m_camera.update(window);
     m_viewUniform->setContent(m_camera.getView());
+    m_sp.showReloadShaderGUI(m_shaders, "DebugRenderer Shaderprogram");
     m_sp.use();
     m_sp.updateUniforms();
     m_emptyVao.bind();

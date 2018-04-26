@@ -286,8 +286,8 @@ int main()
 
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
-        sp.showReloadShaderGUI(vs, fs, "Forward Lighting");
-        fboSP.showReloadShaderGUI(fboVS, fboFS, "FBO");
+        sp.showReloadShaderGUI({ vs, fs }, "Forward Lighting");
+        fboSP.showReloadShaderGUI({ fboVS, fboFS }, "FBO");
 
         {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);

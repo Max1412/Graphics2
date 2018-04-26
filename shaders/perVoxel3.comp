@@ -14,15 +14,15 @@ layout(binding = 1, std430) buffer matrixBuffer
 };
 
 //layout(local_size_variable) in;
-layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 
 void main()
 {
 	ivec3 gridSize = imageSize(voxelGrid);
 	uvec3 g_ID = gl_GlobalInvocationID;
-	//vec3 pixelPos = g_ID * 10.0f;
-	//vec4 worldSpacePos = inverse(playerViewMatrix) * inverse(playerProjMatrix) * vec4(pixelPos, 1.0f);
+	vec3 pixelPos = g_ID * 10.0f;
+	vec4 worldSpacePos = inverse(playerViewMatrix) * vec4(pixelPos, 1.0f);
 	//if(g_ID.x <= gridSize.x && g_ID.y <= gridSize.y && g_ID.z <= gridSize.z)
 	{
 		imageStore(voxelGrid, ivec3(g_ID), vec4(g_ID, 1.0f));

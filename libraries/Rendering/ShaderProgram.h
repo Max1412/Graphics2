@@ -74,7 +74,7 @@ public:
      * \param fshader the fragment shader to be changed/reloaded
      * \param name debug name in the GUI
      */
-    void showReloadShaderGUI(const Shader& vshader, const Shader& fshader, std::string_view name = "Generic Shaderprogram");
+    void showReloadShaderGUI(const std::vector<Shader>& shaders, std::string_view name = "Generic Shaderprogram");
 
 private:
     GLuint m_shaderProgramHandle;

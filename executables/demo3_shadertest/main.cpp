@@ -99,7 +99,7 @@ int main()
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-        sp.showReloadShaderGUI(vs, fs);
+        sp.showReloadShaderGUI({ vs, fs });
 
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 

@@ -317,40 +317,28 @@ void ShaderProgram::forceUpdateUniforms()
     }
 }
 
-void ShaderProgram::showReloadShaderGUI(const Shader& vshader, const Shader& fshader, std::string_view name)
+void ShaderProgram::showReloadShaderGUI(const std::vector<Shader>& shaders, std::string_view name)
 {
     ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin(name.data());
-    if (ImGui::Button("Reload Vertex Shader"))
-    {
-        try
+    for (const Shader& shader : shaders) {
+        std::stringstream ss;
+        ss << "Reload: " << shader.getShaderType();
+        if (ImGui::Button(ss.str().c_str()))
         {
-            vshader.init();
-            changeShader(vshader);
-            use();
-            forceUpdateUniforms();
-        }
-        catch (std::runtime_error& err)
-        {
-            std::cout << "Shader could not be loaded, not using it" << std::endl;
-            std::cout << err.what() << std::endl;
-        }
-    }
-    if (ImGui::Button("Reload Fragment Shader"))
-    {
-        try
-        {
-            fshader.init();
-            changeShader(fshader);
-            use();
-            forceUpdateUniforms();
-        }
-        catch (std::runtime_error& err)
-        {
-            std::cout << "Shader could not be loaded, not using it" << std::endl;
-            std::cout << err.what() << std::endl;
+            try
+            {
+                shader.init();
+                changeShader(shader);
+                use();
+                forceUpdateUniforms();
+            }
+            catch (std::runtime_error& err)
+            {
+                std::cout << "Shader could not be loaded, not using it" << std::endl;
+                std::cout << err.what() << std::endl;
+            }
         }
     }
-
     ImGui::End();
 }

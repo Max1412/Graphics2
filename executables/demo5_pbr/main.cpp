@@ -156,7 +156,7 @@ int main()
 
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
-        sp.showReloadShaderGUI(vs, fs, "PBR");
+        sp.showReloadShaderGUI({ vs, fs }, "PBR");
         {
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             //ImGui::SetNextWindowPos(ImVec2(20, 150));

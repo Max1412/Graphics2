@@ -167,7 +167,7 @@ int main()
         glfwPollEvents();
         ImGui_ImplGlfwGL3_NewFrame();
 
-        sp.showReloadShaderGUI(vs, fs);
+        sp.showReloadShaderGUI({ vs, fs });
 
         //ImGui::ShowTestWindow();
 

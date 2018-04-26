@@ -210,7 +210,7 @@ Texture IBLCubemapMaker::getBRDFLUT() const
 
 void IBLCubemapMaker::draw(glm::mat4 view, glm::mat4 proj)
 {
-    m_iblSkyboxSP.showReloadShaderGUI(m_skyBoxVS, m_skyBoxFS, "Skybox rendering");
+    m_iblSkyboxSP.showReloadShaderGUI({ m_skyBoxVS, m_skyBoxFS }, "Skybox rendering");
     glDepthFunc(GL_LEQUAL);
     glDisable(GL_CULL_FACE);
     m_iblSkyboxSP.use();
