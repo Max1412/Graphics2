@@ -64,5 +64,7 @@ GLenum Shader::getShaderType() const
 
 std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const
 {
-    return glsp::preprocess_file(fileName, { util::gs_shaderPath }, m_definitions).contents;
+    auto file = glsp::preprocess_file(fileName, { util::gs_shaderPath }, m_definitions);
+    std::cout << "Loaded " << m_shaderType << " from " << fileName << std::endl;;
+    return file.contents;
 }
