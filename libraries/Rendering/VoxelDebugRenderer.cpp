@@ -4,6 +4,7 @@
 #include "SimpleTrackball.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "imgui/imgui.h"
 
 VoxelDebugRenderer::VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInfo screenInfo)
     : m_gridDim(gridDim), m_screenInfo(screenInfo), m_camera(m_screenInfo.width, m_screenInfo.height, 10.0f),
@@ -16,18 +17,27 @@ VoxelDebugRenderer::VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInf
     m_viewUniform = std::make_shared<Uniform<glm::mat4>>("dViewMat", view);
     auto projUniform = std::make_shared<Uniform<glm::mat4>>("dProjMat", m_projMat);
     auto gridDimUniform = std::make_shared<Uniform<glm::ivec3>>("gridDim", gridDim);
+    m_voxelSizeUniform = std::make_shared<Uniform<float>>("voxelSize", m_voxelSize);
     m_sp.addUniform(gridDimUniform);
     m_sp.addUniform(m_viewUniform);
     m_sp.addUniform(projUniform);
+    m_sp.addUniform(m_voxelSizeUniform);
 }
 
 void VoxelDebugRenderer::draw(GLFWwindow* window)
 {
     m_camera.update(window);
-    m_viewUniform->setContent(m_camera.getView());
     m_sp.showReloadShaderGUI(m_shaders, "DebugRenderer Shaderprogram");
+
+    m_viewUniform->setContent(m_camera.getView());
+    if (ImGui::SliderFloat("Voxel Size", &m_voxelSize, 0.01f, 1.0f))
+    {
+        m_voxelSizeUniform->setContent(m_voxelSize);
+    }
+
     m_sp.use();
     m_sp.updateUniforms();
+
     m_emptyVao.bind();
     glDrawArrays(GL_POINTS, 0, m_numVoxels);
     glBindVertexArray(0);

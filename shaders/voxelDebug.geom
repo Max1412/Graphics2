@@ -9,7 +9,7 @@ out vec3 geomColor;
 uniform mat4 dViewMat;
 uniform mat4 dProjMat;
 
-float size = 0.5f;
+uniform float voxelSize;
 
 void main() {
     vec4 position = gl_in[0].gl_Position;
@@ -17,14 +17,14 @@ void main() {
     vec4 pos = vec4(1.0f);
     mat4 pvMat = dProjMat * dViewMat;
 
-    vec4[8] offsets = { vec4(-size, -size, size, 0.f),
-                        vec4(size, -size, size, 0.f),
-                        vec4(-size, size, size, 0.f),
-                        vec4(size, size, size, 0.f),
-                        vec4(-size, -size, -size, 0.f),
-                        vec4(size, -size, -size, 0.f),
-                        vec4(-size, size, -size, 0.f),
-                        vec4(size, size, -size, 0.f)};
+    vec4[8] offsets = { vec4(-voxelSize, -voxelSize, voxelSize, 0.f),
+                        vec4(voxelSize, -voxelSize, voxelSize, 0.f),
+                        vec4(-voxelSize, voxelSize, voxelSize, 0.f),
+                        vec4(voxelSize, voxelSize, voxelSize, 0.f),
+                        vec4(-voxelSize, -voxelSize, -voxelSize, 0.f),
+                        vec4(voxelSize, -voxelSize, -voxelSize, 0.f),
+                        vec4(-voxelSize, voxelSize, -voxelSize, 0.f),
+                        vec4(voxelSize, voxelSize, -voxelSize, 0.f)};
 
     { // front
         pos = position + offsets[0];    // 1:bottom-left
