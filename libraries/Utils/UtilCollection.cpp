@@ -26,6 +26,10 @@ namespace util
     GLFWwindow* setupGLFWwindow(unsigned int width, unsigned int height, std::string name)
     {
         glfwInit();
+
+        if constexpr (debugmode)
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+
         GLFWwindow* window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(window);
         return window;
@@ -155,6 +159,7 @@ namespace util
     {
         if constexpr(debugmode)
         {
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
             glDebugMessageCallback(debugCallback, nullptr);
 
             // disable notifications and memory info
