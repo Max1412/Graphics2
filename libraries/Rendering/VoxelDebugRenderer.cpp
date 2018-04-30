@@ -1,7 +1,7 @@
 #include "VoxelDebugRenderer.h"
 #include "Shader.h"
 #include "ShaderProgram.h"
-#include "SimpleTrackball.h"
+#include "Camera.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui/imgui.h"

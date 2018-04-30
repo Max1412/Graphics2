@@ -1,10 +1,10 @@
-#include "SimpleTrackball.h"
+#include "Camera.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "imgui/imgui.h"
 
-SimpleTrackball::SimpleTrackball(int width, int height, float radius)
+Camera::Camera(int width, int height, float radius)
 {
     m_pos = glm::vec3(0.0f, 0.0f, radius);
     m_center = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -22,7 +22,7 @@ SimpleTrackball::SimpleTrackball(int width, int height, float radius)
     m_oldY = height / 2.f;
 }
 
-void SimpleTrackball::reset()
+void Camera::reset()
 {
     m_pos = glm::vec3(0.0f, 0.0f, m_radius);
     m_center = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -35,7 +35,7 @@ void SimpleTrackball::reset()
     m_oldY = m_height / 2.f;
 }
 
-void SimpleTrackball::update(GLFWwindow* window)
+void Camera::update(GLFWwindow* window)
 {
     if (!ImGui::GetIO().WantCaptureMouse)
     {
@@ -118,17 +118,17 @@ void SimpleTrackball::update(GLFWwindow* window)
     }
 }
 
-const glm::mat4& SimpleTrackball::getView() const
+const glm::mat4& Camera::getView() const
 {
     return m_viewMatrix;
 }
 
-glm::mat4& SimpleTrackball::getView()
+glm::mat4& Camera::getView()
 {
     return m_viewMatrix;
 }
 
-glm::vec3& SimpleTrackball::getPosition()
+glm::vec3& Camera::getPosition()
 {
     return m_pos;
 }

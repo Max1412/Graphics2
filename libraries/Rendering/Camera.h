@@ -5,10 +5,10 @@ using namespace gl;
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-class SimpleTrackball
+class Camera
 {
 public:
-    SimpleTrackball(int width, int height, float radius);
+    Camera(int width, int height, float radius);
 
     /**
      * \brief Updates the view matrix based on mouse input

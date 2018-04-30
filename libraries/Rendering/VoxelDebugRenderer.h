@@ -2,7 +2,7 @@
 
 #include <vector>
 #include "Uniform.h"
-#include "SimpleTrackball.h"
+#include "Camera.h"
 #include "ShaderProgram.h"
 #include "glm/glm.hpp"
 #include "VertexArray.h"
@@ -16,7 +16,7 @@ struct ScreenInfo
 };
 
 class Shader;
-class SimpleTrackball;
+class Camera;
 class VoxelDebugRenderer
 {
 public:
@@ -26,7 +26,7 @@ public:
 private:
     glm::ivec3 m_gridDim;
     ScreenInfo m_screenInfo;
-    SimpleTrackball m_camera;
+    Camera m_camera;
     std::vector<Shader> m_shaders;
     ShaderProgram m_sp;
     int m_numVoxels;

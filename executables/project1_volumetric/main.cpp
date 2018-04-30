@@ -16,7 +16,7 @@ using namespace gl;
 #include "Rendering/Image.h"
 #include "IO/ModelImporter.h"
 #include "Rendering/Mesh.h"
-#include "Rendering/SimpleTrackball.h"
+#include "Rendering/Camera.h"
 #include "Rendering/VoxelDebugRenderer.h"
 
 #include "imgui/imgui.h"
@@ -79,7 +79,7 @@ int main()
     //sp.addUniform(u_gridDim);
     accumSp.addUniform(u_gridDim);
 
-    SimpleTrackball playerCamera(screenWidth, screenHeight, 10.0f);
+    Camera playerCamera(screenWidth, screenHeight, 10.0f);
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, static_cast<float>(screenFar));
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
