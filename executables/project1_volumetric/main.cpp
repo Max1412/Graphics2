@@ -25,6 +25,7 @@ using namespace gl;
 
 constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
+constexpr float screenNear = 0.1f;
 constexpr int screenFar = 1000;
 constexpr int gridWidth = screenWidth / 10;
 constexpr int gridHeight = screenHeight / 10;
@@ -32,6 +33,15 @@ constexpr int gridDepth = screenFar / 10;
 constexpr int groupSize = 4;
 
 constexpr bool renderimgui = true;
+
+struct PlayerCameraInfo
+{
+    glm::mat4 playerViewMatrix;
+    glm::mat4 playerProjMatrix;
+    glm::vec3 playerCameraPosition;
+    float pad = 0.0f;
+    float near = screenNear;
+};
 
 int main()
 {
@@ -70,19 +80,18 @@ int main()
     accumSp.addUniform(u_gridDim);
 
     SimpleTrackball playerCamera(screenWidth, screenHeight, 10.0f);
-    glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, static_cast<float>(screenFar));
+    glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, static_cast<float>(screenFar));
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
-    matrixSSBO.setStorage(std::array<glm::mat4, 2>{ playerCamera.getView(), playerProj }, GL_DYNAMIC_STORAGE_BIT);
+    matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition(), 0.0f, screenNear }}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(1);
 
-    VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, { screenWidth, screenHeight, 0.1f, static_cast<float>(screenFar) });
+    VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, { screenWidth, screenHeight, screenNear, static_cast<float>(screenFar) });
 
     Timer timer;
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
     glEnable(GL_DEPTH_TEST);
-
     while (!glfwWindowShouldClose(window))
     {
         timer.start();
@@ -97,8 +106,10 @@ int main()
         if constexpr (renderimgui)
         {
             sp.showReloadShaderGUI({ perVoxelShader }, "Voxel");
-            sp.showReloadShaderGUI({ accumShader }, "Accumulation");
+            //accumSp.showReloadShaderGUI({ accumShader }, "Accumulation");
         }
+
+        voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
         sp.use();
         glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
@@ -110,11 +121,11 @@ int main()
 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        accumSp.use();
-        glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(8))),
-            static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(8))), 1);
+        //accumSp.use();
+        //glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(8))),
+        //    static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(8))), 1);
 
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         vdbgr.draw(window);
 

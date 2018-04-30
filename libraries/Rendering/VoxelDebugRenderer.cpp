@@ -30,10 +30,17 @@ void VoxelDebugRenderer::draw(GLFWwindow* window)
     m_sp.showReloadShaderGUI(m_shaders, "DebugRenderer Shaderprogram");
 
     m_viewUniform->setContent(m_camera.getView());
-    if (ImGui::SliderFloat("Voxel Size", &m_voxelSize, 0.01f, 1.0f))
+
+    ImGui::Begin("Voxel Debug Renderer Settings");
+    if (ImGui::SliderFloat("Voxel Size", &m_voxelSize, 0.001f, 0.05f))
     {
         m_voxelSizeUniform->setContent(m_voxelSize);
     }
+    if (ImGui::Button("Reset Camera"))
+    {
+        m_camera.reset();
+    }
+    ImGui::End();
 
     m_sp.use();
     m_sp.updateUniforms();

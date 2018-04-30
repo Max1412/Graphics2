@@ -30,6 +30,8 @@ namespace util
         if constexpr (debugmode)
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
+        glfwWindowHint(GLFW_SAMPLES, 8);
+
         GLFWwindow* window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(window);
         return window;

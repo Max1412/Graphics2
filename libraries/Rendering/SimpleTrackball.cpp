@@ -6,7 +6,7 @@
 
 SimpleTrackball::SimpleTrackball(int width, int height, float radius)
 {
-    m_pos = glm::vec3(0.0f, 0.0f, 5.0);
+    m_pos = glm::vec3(0.0f, 0.0f, radius);
     m_center = glm::vec3(0.0f, 0.0f, 0.0f);
     m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -14,11 +14,25 @@ SimpleTrackball::SimpleTrackball(int width, int height, float radius)
     m_theta = glm::pi<float>() / 2.0f;
     m_phi = 0.f;
     m_radius = radius;
+    m_width = width;
+    m_height = height;
 
     m_viewMatrix = lookAt(m_center + m_pos, m_center, m_up);
-
     m_oldX = width / 2.f;
     m_oldY = height / 2.f;
+}
+
+void SimpleTrackball::reset()
+{
+    m_pos = glm::vec3(0.0f, 0.0f, m_radius);
+    m_center = glm::vec3(0.0f, 0.0f, 0.0f);
+    m_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    m_theta = glm::pi<float>() / 2.0f;
+    m_phi = 0.f;
+    m_viewMatrix = lookAt(m_center + m_pos, m_center, m_up);
+    m_oldX = m_width / 2.f;
+    m_oldY = m_height / 2.f;
 }
 
 void SimpleTrackball::update(GLFWwindow* window)

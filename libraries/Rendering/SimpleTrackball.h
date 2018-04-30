@@ -16,6 +16,8 @@ public:
      */
     void update(GLFWwindow* window);
 
+    void reset();
+
     /**
      * \brief returns the view matrix (const)
      * \return 4x4 view matrix (const)
@@ -36,6 +38,9 @@ private:
     glm::vec3 m_eye;
     glm::vec3 m_pos;
     glm::vec3 m_up;
+
+    int m_width;
+    int m_height;
 
     float m_sensitivity;
     float m_theta;

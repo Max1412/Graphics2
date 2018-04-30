@@ -30,7 +30,7 @@ private:
     std::vector<Shader> m_shaders;
     ShaderProgram m_sp;
     int m_numVoxels;
-    float m_voxelSize = 0.5f;
+    float m_voxelSize = 0.004f;
     std::shared_ptr<Uniform<float>> m_voxelSizeUniform;
     glm::mat4 m_projMat;
     std::shared_ptr<Uniform<glm::mat4>> m_viewUniform;
