@@ -17,8 +17,9 @@ void main()
     int x = gl_VertexID - gridDim.x * (y + gridDim.y * z);
     ivec3 gridPos3D = ivec3(x, y, z);
     vec4 voxelDataContent = imageLoad(voxelGrid, gridPos3D);
-    gl_Position = voxelDataContent;
-    //posColor = vec3(1.0f, 1.0f, 0.0f);
-    vec3 gridPos3Df = vec3(gridPos3D);
-    posColor = vec3(gridPos3Df.x / gridDim.x, gridPos3Df.y / gridDim.y, gridPos3Df.z / gridDim.z);
+	//gl_Position = voxelDataContent; // place at position from voxel grid
+    gl_Position = vec4(gridPos3D, 1.0f); // place at vertex position
+    posColor = voxelDataContent.xyz;
+    //vec3 gridPos3Df = vec3(gridPos3D);
+    //posColor = vec3(gridPos3Df.x / gridDim.x, gridPos3Df.y / gridDim.y, gridPos3Df.z / gridDim.z);
 }

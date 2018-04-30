@@ -62,6 +62,13 @@ int main()
     Shader perVoxelShader("perVoxel3.comp", GL_COMPUTE_SHADER);
     ShaderProgram sp({ perVoxelShader });
 
+    Shader accumShader("accumulateVoxels.comp", GL_COMPUTE_SHADER);
+    ShaderProgram accumSp({ accumShader });
+
+    auto u_gridDim = std::make_shared<Uniform<glm::ivec3>>("gridDim", glm::ivec3(gridWidth, gridHeight, gridDepth));
+    //sp.addUniform(u_gridDim);
+    accumSp.addUniform(u_gridDim);
+
     SimpleTrackball playerCamera(screenWidth, screenHeight, 10.0f);
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, static_cast<float>(screenFar));
 
@@ -74,6 +81,7 @@ int main()
     Timer timer;
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -87,16 +95,24 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if constexpr (renderimgui)
+        {
             sp.showReloadShaderGUI({ perVoxelShader }, "Voxel");
+            sp.showReloadShaderGUI({ accumShader }, "Accumulation");
+        }
 
         sp.use();
-        sp.updateUniforms();
         glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
             static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(groupSize))),
             static_cast<GLint>(std::ceil(gridDepth / static_cast<float>(groupSize))));
 		//glDispatchComputeGroupSizeARB(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
         //static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(groupSize))),
         //static_cast<GLint>(std::ceil(gridDepth / static_cast<float>(groupSize))), groupSize, groupSize, groupSize);
+
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+        accumSp.use();
+        glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(8))),
+            static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(8))), 1);
 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
