@@ -13,29 +13,31 @@ layout(binding = 1, std430) buffer matrixBuffer
 {
     mat4 playerViewMatrix;
     mat4 playerProjMatrix;
-	vec3 playerCameraPos;
-	float playerCameraNear;
 };
 
 //layout(local_size_variable) in;
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
-
 void main()
 {
-	vec3 playerCameraDirection = -vec3(0.0f, 0.0, 1.0f);//normalize(playerViewMatrix[2].xyz);
-	vec3 gridSize = vec3(160, 90, 100);
 	uvec3 g_ID = gl_GlobalInvocationID;
-	vec3 pixelPos = (g_ID * 10.0f); // TODO use MIDDLE of voxel
+    vec3 centerOffset = 0.5f / gridDim; // for translation into center of voxel
 
-	vec3 uvPos = pixelPos / ( gridSize * 10.0f);
+    float m22 = playerProjMatrix[2][2];
+    float m32 = playerProjMatrix[3][2];
+    float n = m32 / (m22 - 1.0f); // playerCameraNear
+    float f = n * (m22 - 1.0f) / (m22 + 1.0); // playerCameraFar
+
+	vec3 uvPos = vec3(g_ID) / gridDim + centerOffset;
+    uvPos.z = (f + n - 2.0f * n * f / uvPos.z) / (f - n); // de-linearize depth
+
 	uvPos *= 2.0f;
 	uvPos -= vec3(1.0f);
 
 	vec4 worldSpacePos = inverse(playerProjMatrix * playerViewMatrix) * vec4(uvPos, 1.0f);
-	worldSpacePos.xyzw /= worldSpacePos.w;
+	worldSpacePos.xyzw /= worldSpacePos.w; // perspective division
 
-	//if(g_ID.x <= gridSize.x && g_ID.y <= gridSize.y && g_ID.z <= gridSize.z)
+	//if(g_ID.x <= gridDim.x && g_ID.y <= gridDim.y && g_ID.z <= gridDim.z)
 	{
 		imageStore(voxelGrid, ivec3(g_ID), worldSpacePos);//vec4(g_ID, 1.0f));
 	}

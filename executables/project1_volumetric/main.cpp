@@ -26,10 +26,10 @@ using namespace gl;
 constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
 constexpr float screenNear = 0.1f;
-constexpr int screenFar = 1000;
+constexpr float screenFar = 1000.f;
 constexpr int gridWidth = screenWidth / 10;
 constexpr int gridHeight = screenHeight / 10;
-constexpr int gridDepth = screenFar / 10;
+constexpr int gridDepth = static_cast<int>(screenFar) / 100;
 constexpr int groupSize = 4;
 
 constexpr bool renderimgui = true;
@@ -38,9 +38,6 @@ struct PlayerCameraInfo
 {
     glm::mat4 playerViewMatrix;
     glm::mat4 playerProjMatrix;
-    glm::vec3 playerCameraPosition;
-    float pad = 0.0f;
-    float near = screenNear;
 };
 
 int main()
@@ -76,17 +73,17 @@ int main()
     ShaderProgram accumSp({ accumShader });
 
     auto u_gridDim = std::make_shared<Uniform<glm::ivec3>>("gridDim", glm::ivec3(gridWidth, gridHeight, gridDepth));
-    //sp.addUniform(u_gridDim);
+    sp.addUniform(u_gridDim);
     accumSp.addUniform(u_gridDim);
 
     Camera playerCamera(screenWidth, screenHeight, 10.0f);
-    glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, static_cast<float>(screenFar));
+    glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
-    matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition(), 0.0f, screenNear }}, GL_DYNAMIC_STORAGE_BIT);
+    matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj }}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(1);
 
-    VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, static_cast<float>(screenFar) });
+    VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
 
     Timer timer;
     bool pcActive = false;
