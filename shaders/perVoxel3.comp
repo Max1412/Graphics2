@@ -17,26 +17,24 @@ layout(binding = 1, std430) buffer matrixBuffer
 	float playerCameraNear;
 };
 
-const float sliceSize = 0.1f;
-
 //layout(local_size_variable) in;
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 
 void main()
 {
-	vec3 playerCameraDirection = -normalize(playerViewMatrix[2].xyz);
+	vec3 playerCameraDirection = -vec3(0.0f, 0.0, 1.0f);//normalize(playerViewMatrix[2].xyz);
 	vec3 gridSize = vec3(160, 90, 100);
 	uvec3 g_ID = gl_GlobalInvocationID;
 	vec3 pixelPos = (g_ID * 10.0f); // TODO use MIDDLE of voxel
+
 	vec3 uvPos = pixelPos / ( gridSize * 10.0f);
 	uvPos *= 2.0f;
 	uvPos -= vec3(1.0f);
+
 	vec4 worldSpacePos = inverse(playerProjMatrix * playerViewMatrix) * vec4(uvPos, 1.0f);
-	worldSpacePos.z = -length(playerCameraPos + (playerCameraNear * playerCameraDirection) + g_ID.z * sliceSize * playerCameraDirection);
-	worldSpacePos.w = 1.0f;
-	worldSpacePos.xy *= worldSpacePos.z;
-	//worldSpacePos.z = 1.0f / worldSpacePos.z;
+	worldSpacePos.xyzw /= worldSpacePos.w;
+
 	//if(g_ID.x <= gridSize.x && g_ID.y <= gridSize.y && g_ID.z <= gridSize.z)
 	{
 		imageStore(voxelGrid, ivec3(g_ID), worldSpacePos);//vec4(g_ID, 1.0f));

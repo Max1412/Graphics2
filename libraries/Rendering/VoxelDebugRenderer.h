@@ -21,7 +21,8 @@ class VoxelDebugRenderer
 {
 public:
     VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInfo screenInfo);
-    void draw(GLFWwindow* window);
+    void updateCamera(GLFWwindow* window);
+    void draw();
 
 private:
     glm::ivec3 m_gridDim;

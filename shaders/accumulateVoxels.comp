@@ -31,6 +31,7 @@ void main()
 	if(g_ID.x < gridDim.x && g_ID.y < gridDim.y)
 	{
         vec4 accum = imageLoad(voxelGrid, g_ID);
+        // TODO not sure if we need exponential data when usign non-exp. grids & shadow maps
         writeOutputExponential(g_ID, accum);
         for (g_ID.z = 1; g_ID.z < gridDim.z; ++g_ID.z)
         {

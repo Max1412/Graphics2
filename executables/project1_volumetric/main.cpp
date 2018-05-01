@@ -86,20 +86,40 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition(), 0.0f, screenNear }}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(1);
 
-    VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, { screenWidth, screenHeight, screenNear, static_cast<float>(screenFar) });
+    VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, static_cast<float>(screenFar) });
 
     Timer timer;
+    bool pcActive = false;
+    bool dbgcActice = true;
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(window))
     {
         timer.start();
-
+        
         glfwPollEvents();
-
+        
         if constexpr (renderimgui)
             ImGui_ImplGlfwGL3_NewFrame();
+        ImGui::Checkbox("Player Camera", &pcActive);
+        ImGui::Checkbox("Debug Camera", &dbgcActice);
+        if (pcActive)
+        {
+            playerCamera.update(window);
+            matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
+            //matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, playerCameraPosition));
+        } 
+        if (dbgcActice)
+        {
+            vdbgr.updateCamera(window);
+        }
+        if (ImGui::Button("Reset Player Camera"))
+        {
+            playerCamera.reset();
+            matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
+            //matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, playerCameraPosition));
+        }
          
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -127,7 +147,7 @@ int main()
 
         //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        vdbgr.draw(window);
+        vdbgr.draw();
 
         timer.stop();
 

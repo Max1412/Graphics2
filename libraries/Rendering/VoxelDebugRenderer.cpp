@@ -24,21 +24,26 @@ VoxelDebugRenderer::VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInf
     m_sp.addUniform(m_voxelSizeUniform);
 }
 
-void VoxelDebugRenderer::draw(GLFWwindow* window)
+void VoxelDebugRenderer::updateCamera(GLFWwindow* window)
 {
     m_camera.update(window);
+    m_viewUniform->setContent(m_camera.getView());
+}
+
+void VoxelDebugRenderer::draw()
+{
     m_sp.showReloadShaderGUI(m_shaders, "DebugRenderer Shaderprogram");
 
-    m_viewUniform->setContent(m_camera.getView());
 
     ImGui::Begin("Voxel Debug Renderer Settings");
-    if (ImGui::SliderFloat("Voxel Size", &m_voxelSize, 0.001f, 0.05f))
+    if (ImGui::SliderFloat("Voxel Size", &m_voxelSize, 0.001f, 0.01f))
     {
         m_voxelSizeUniform->setContent(m_voxelSize);
     }
     if (ImGui::Button("Reset Camera"))
     {
         m_camera.reset();
+        m_viewUniform->setContent(m_camera.getView());
     }
     ImGui::End();
 
