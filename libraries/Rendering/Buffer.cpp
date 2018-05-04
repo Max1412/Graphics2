@@ -38,6 +38,11 @@ void Buffer::bindBase(unsigned int binding) const
     glBindBufferBase(m_target, binding, m_bufferHandle);
 }
 
+void Buffer::bindBase(BufferBindings::Binding binding) const
+{
+    glBindBufferBase(m_target, static_cast<int>(binding), m_bufferHandle);
+}
+
 void Buffer::unmapBuffer() const
 {
     glUnmapNamedBuffer(m_bufferHandle);

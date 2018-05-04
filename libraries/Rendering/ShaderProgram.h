@@ -47,7 +47,7 @@ public:
     /**
      * \brief sets the shader program as the currently used shader program
      */
-    void use();
+    void use() const;
 
     /**
      * \brief swaps current shader of the same kind with the given shader
@@ -66,7 +66,7 @@ public:
     /**
      * \brief updates all uniforms depending on their flags
      */
-    void updateUniforms();
+    void updateUniforms() const;
 
     /**
      * \brief shows a "reload vertex/fragment shader" gui window using imgui

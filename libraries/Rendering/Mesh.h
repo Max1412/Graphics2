@@ -48,6 +48,7 @@ public:
      * \return material ID
      */
     unsigned getMaterialID() const;
+    unsigned getMaterialIndex() const;
 
     /**
      * \brief binds the vao & index buffer and uses glDrawArrays
@@ -78,6 +79,9 @@ private:
 
     Buffer m_vertexBuffer;
     Buffer m_normalBuffer;
+    Buffer m_texCoordBuffer;
     Buffer m_indexBuffer;
     VertexArray m_vao;
+
+    unsigned int m_materialIndex;
 };

@@ -35,6 +35,6 @@ private:
     std::shared_ptr<Uniform<float>> m_voxelSizeUniform;
     glm::mat4 m_projMat;
     std::shared_ptr<Uniform<glm::mat4>> m_viewUniform;
-
+    bool m_wireframe = false;
     VertexArray m_emptyVao;
 };

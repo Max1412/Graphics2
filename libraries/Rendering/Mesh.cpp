@@ -1,16 +1,17 @@
 #include "Mesh.h"
 #include <GLFW/glfw3.h>
+#include "Binding.h"
 
-Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
+Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_texCoordBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
 {
-    if (!assimpMesh->HasNormals() || /* !assimpMesh->HasTextureCoords(0) || */!assimpMesh->HasFaces())
+    if (!assimpMesh->HasNormals() || /* !assimpMesh->HasTextureCoords(0)  || */ !assimpMesh->HasFaces())
     {
         throw std::runtime_error("Mesh must have normals, tex coords, faces");
     }
 
     m_vertices.resize(assimpMesh->mNumVertices);
     m_normals.resize(assimpMesh->mNumVertices);
-    //m_texCoords.resize(assimpMesh->mNumVertices);
+    m_texCoords.resize(assimpMesh->mNumVertices);
 
 #pragma omp parallel for
     for (int64_t i = 0; i < static_cast<int64_t>(assimpMesh->mNumVertices); i++)
@@ -23,12 +24,14 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
         const glm::vec3 normal(ainorm.x, ainorm.y, ainorm.z);
         m_normals.at(i) = normal;
 
-        /*
-        aiVector3D* aitex = assimpMesh->mTextureCoords[i];
-        glm::vec3 tex(aitex->x, aitex->y, aitex->z);
-        m_texCoords.at(i) = tex;
-        */
+        if (assimpMesh->HasTextureCoords(0))
+        {
+            const aiVector3D aitex = assimpMesh->mTextureCoords[0][i];
+            const glm::vec3 tex(aitex.x, aitex.y, aitex.z);
+            m_texCoords.at(i) = tex;
+        }
     }
+
     for (unsigned int i = 0; i < assimpMesh->mNumFaces; i++)
     {
         const auto face = assimpMesh->mFaces[i];
@@ -38,24 +41,31 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
         }
     }
 
+    m_materialIndex = assimpMesh->mMaterialIndex;
+
     m_vertexBuffer.setStorage(m_vertices, GL_DYNAMIC_STORAGE_BIT);
     m_normalBuffer.setStorage(m_normals, GL_DYNAMIC_STORAGE_BIT);
+    m_texCoordBuffer.setStorage(m_texCoords, GL_DYNAMIC_STORAGE_BIT);
     m_indexBuffer.setStorage(m_indices, GL_DYNAMIC_STORAGE_BIT);
-    m_vao.connectBuffer(m_vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
-    m_vao.connectBuffer(m_normalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
+    m_vao.connectBuffer(m_vertexBuffer, BufferBindings::VertexAttributeLocation::vertices, 3, GL_FLOAT, GL_FALSE);
+    m_vao.connectBuffer(m_normalBuffer, BufferBindings::VertexAttributeLocation::normals, 3, GL_FLOAT, GL_FALSE);
+
+    if (assimpMesh->HasTextureCoords(0))
+        m_vao.connectBuffer(m_texCoordBuffer, BufferBindings::VertexAttributeLocation::texCoords, 3, GL_FLOAT, GL_FALSE);
+
     m_vao.connectIndexBuffer(m_indexBuffer);
 }
 
 Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices)
     : m_vertices(vertices), m_normals(normals), m_indices(indices),
-      m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
+      m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_texCoordBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
 {
     // TODO add version without normals (?) currently "faking" no normals because no empty buffers are allowed
     m_vertexBuffer.setStorage(m_vertices, GL_DYNAMIC_STORAGE_BIT);
     m_normalBuffer.setStorage(m_normals, GL_DYNAMIC_STORAGE_BIT);
     m_indexBuffer.setStorage(m_indices, GL_DYNAMIC_STORAGE_BIT);
-    m_vao.connectBuffer(m_vertexBuffer, 0, 3, GL_FLOAT, GL_FALSE);
-    m_vao.connectBuffer(m_normalBuffer, 1, 3, GL_FLOAT, GL_FALSE);
+    m_vao.connectBuffer(m_vertexBuffer, BufferBindings::VertexAttributeLocation::vertices, 3, GL_FLOAT, GL_FALSE);
+    m_vao.connectBuffer(m_normalBuffer, BufferBindings::VertexAttributeLocation::normals, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectIndexBuffer(m_indexBuffer);
 }
 
@@ -78,6 +88,11 @@ const glm::mat4& Mesh::getModelMatrix() const
 unsigned Mesh::getMaterialID() const
 {
     return m_materialID;
+}
+
+unsigned Mesh::getMaterialIndex() const
+{
+    return m_materialIndex;
 }
 
 void Mesh::setMaterialID(const unsigned materialID)

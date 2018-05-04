@@ -6,8 +6,9 @@ Quad::Quad() : m_quadBuffer(GL_ARRAY_BUFFER), m_texCoordBuffer(GL_ARRAY_BUFFER)
 
     m_texCoordBuffer.setStorage(quadTexCoords, GL_DYNAMIC_STORAGE_BIT);
 
-    m_quadVAO.connectBuffer(m_quadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
-    m_quadVAO.connectBuffer(m_texCoordBuffer, 1, 2, GL_FLOAT, GL_FALSE);
+    // TODO use proper bindings (definitions have to be used in the shader too)
+    m_quadVAO.connectBuffer(m_quadBuffer, static_cast<BufferBindings::VertexAttributeLocation>(0), 2, GL_FLOAT, GL_FALSE);
+    m_quadVAO.connectBuffer(m_texCoordBuffer, static_cast<BufferBindings::VertexAttributeLocation>(1), 2, GL_FLOAT, GL_FALSE);
 }
 
 void Quad::draw() const

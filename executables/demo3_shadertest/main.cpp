@@ -15,6 +15,8 @@ using namespace gl;
 #include "Rendering/Buffer.h"
 #include "Rendering/Uniform.h"
 #include "Rendering/Mesh.h"
+#include "Rendering/Binding.h"
+
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
@@ -61,7 +63,7 @@ int main()
     Buffer QuadBuffer(GL_ARRAY_BUFFER);
     QuadBuffer.setStorage(quadData, GL_DYNAMIC_STORAGE_BIT);
     VertexArray quadVAO;
-    quadVAO.connectBuffer(QuadBuffer, 0, 2, GL_FLOAT, GL_FALSE);
+    quadVAO.connectBuffer(QuadBuffer, BufferBindings::VertexAttributeLocation::vertices, 2, GL_FLOAT, GL_FALSE);
     quadVAO.bind();
 
     auto resolutionUniform = std::make_shared<Uniform<glm::vec2>>("u_resolution", glm::vec2(width, height));

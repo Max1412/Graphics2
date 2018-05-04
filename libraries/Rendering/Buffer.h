@@ -4,8 +4,11 @@
 #include <vector>
 
 #include <glbinding/gl/gl.h>
+
 using namespace gl;
 #include "Utils/UtilCollection.h"
+
+#include "Rendering/Binding.h"
 
 class Buffer
 {
@@ -35,7 +38,11 @@ public:
      * \brief binds the buffer to a binding layout
      * \param binding 
      */
+    [[deprecated("Only for demos, use enum instead")]]
     void bindBase(unsigned int binding) const;
+
+
+    void bindBase(BufferBindings::Binding binding) const;
 
     /**
      * \brief uses glBufferStorage, buffer will be immutable

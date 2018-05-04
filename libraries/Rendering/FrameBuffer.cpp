@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include "Utils/UtilCollection.h"
 
-FrameBuffer::FrameBuffer(std::vector<Texture> rendertargets, const bool useDepthStencil, const GLenum renderbufferFormat)
+FrameBuffer::FrameBuffer(const std::vector<Texture>& rendertargets, const bool useDepthStencil, const GLenum renderbufferFormat)
 {
     glCreateFramebuffers(1, &m_name);
     bind();
@@ -25,7 +25,7 @@ FrameBuffer::FrameBuffer(std::vector<Texture> rendertargets, const bool useDepth
     unbind();
 }
 
-FrameBuffer::FrameBuffer(GLenum attachmentType, Texture depthAttachment)
+FrameBuffer::FrameBuffer(GLenum attachmentType, const Texture& depthAttachment)
 {
     if (attachmentType != GL_DEPTH_ATTACHMENT)
         throw std::runtime_error("This constructor is for using depth textures only");

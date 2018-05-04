@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Buffer.h"
+#include "Binding.h"
 
 class VertexArray
 {
@@ -28,7 +29,7 @@ public:
      * \param normalized specifies if fixed point attributes should be normalized
      * \warning only works for 32 bit (because of stride) floating point (because of missing I or L) types for now. 
      */
-    void connectBuffer(const Buffer& buffer, GLuint index, GLuint size, GLenum type, GLboolean normalized) const;
+    void connectBuffer(const Buffer& buffer, BufferBindings::VertexAttributeLocation location, GLuint size, GLenum type, GLboolean normalized) const;
 
     /**
      * \brief connects a buffer to this vao

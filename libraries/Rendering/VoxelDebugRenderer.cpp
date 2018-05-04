@@ -34,9 +34,8 @@ void VoxelDebugRenderer::draw()
 {
     m_sp.showReloadShaderGUI(m_shaders, "DebugRenderer Shaderprogram");
 
-
     ImGui::Begin("Voxel Debug Renderer Settings");
-    if (ImGui::SliderFloat("Voxel Size", &m_voxelSize, 0.001f, 0.01f))
+    if (ImGui::DragFloat("Voxel Size", &m_voxelSize, 0.0001f, 0.0f, 0.05f,"%.6f"))
     {
         m_voxelSizeUniform->setContent(m_voxelSize);
     }
@@ -44,6 +43,15 @@ void VoxelDebugRenderer::draw()
     {
         m_camera.reset();
         m_viewUniform->setContent(m_camera.getView());
+    }
+    ImGui::Checkbox("Render Wireframe", &m_wireframe);
+    if (m_wireframe)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     ImGui::End();
 

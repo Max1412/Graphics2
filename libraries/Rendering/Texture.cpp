@@ -31,6 +31,7 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
     int imageWidth, imageHeight, numChannels;
     if (type != GL_FLOAT)
     {
+        stbi_set_flip_vertically_on_load(true);
         const auto imageData = stbi_load(texturePath.string().c_str(), &imageWidth, &imageHeight, &numChannels, desiredChannels);
 
         if (!imageData)
