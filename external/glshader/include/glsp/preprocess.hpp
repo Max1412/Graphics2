@@ -15,7 +15,7 @@
 
 #ifndef ERR_OUTPUT
 #include <iostream>
-#define ERR_OUTPUT(x) std::cerr << (x) << '\n'
+#define ERR_OUTPUT(x) std::runtime_error(x)
 #endif
 
 namespace glshader::process

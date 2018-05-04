@@ -36,6 +36,10 @@ namespace glshader::process
         std::stack<bool> accept_else_directive;
 
         std::ifstream root_file(file_path, std::ios::in);
+
+        if (!root_file.is_open())
+            throw std::runtime_error("Shader file could not be opened");
+            
         std::string contents(std::istreambuf_iterator<char>{root_file}, std::istreambuf_iterator<char>{});
 
         const char* text_ptr = contents.data();
