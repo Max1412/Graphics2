@@ -25,7 +25,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         const std::string err = m_importer.GetErrorString();
         throw std::runtime_error("Assimp import failed: " + err);
     }
-    std::cout << "Model succesfully loaded from " << filename.string() << std::endl;
+    std::cout << "Loading model from " << filename.string() << std::endl;
 
     if (m_scene->HasMeshes())
     {
@@ -91,7 +91,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                 if (mat->GetTextureCount(type) == 0)
                     continue;
 
-                int64_t texID = -1;
+                uint64_t texID = -1;
                 mat->GetTexture(type, 0, &reltexPath);
                 auto absTexPath = path.parent_path() / std::experimental::filesystem::path(reltexPath.C_Str());
 
@@ -160,6 +160,9 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 
     m_modelMatrixBuffer.setStorage(m_modelMatrices, GL_DYNAMIC_STORAGE_BIT);
     m_modelMatrixBuffer.bindBase(BufferBindings::Binding::modelMatrices);
+
+    std::cout << "Loading complete: " << filename.string() << std::endl;
+
 }
 
 // OLD CONSTRUCTOR FOR COMPATABILITY

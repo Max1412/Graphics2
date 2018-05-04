@@ -16,8 +16,8 @@ class ShaderProgram;
 
 struct PhongGPUMaterial
 {
-    int64_t diffTexture = -1;
-    int64_t specTexture = -1;
+    uint64_t diffTexture = -1;
+    uint64_t specTexture = -1;
     glm::vec4 diffColor;
     glm::vec4 specColor;
     glm::vec3 emissiveColor;
