@@ -106,17 +106,17 @@ int main()
 
     Quad fboQuad;
 
-    Texture fboTex;
-    fboTex.initWithoutData(width, height, GL_RGBA8);
-    fboTex.generateHandle();
+    std::vector<Texture> fboTex(1);
+    fboTex.at(0).initWithoutData(width, height, GL_RGBA8);
+    fboTex.at(0).generateHandle();
 
     // put the texture handle into a SSBO
-    const auto fboTexHandle = fboTex.getHandle();
+    const auto fboTexHandle = fboTex.at(0).getHandle();
     Buffer fboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
     fboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{fboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
     fboTexHandleBuffer.bindBase(6);
 
-    FrameBuffer fbo({fboTex});
+    FrameBuffer fbo(fboTex);
 
     // skybox stuff
     const Shader skyboxVS("cubemap.vert", GL_VERTEX_SHADER);
