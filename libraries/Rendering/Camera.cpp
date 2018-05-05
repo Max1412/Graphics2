@@ -70,6 +70,13 @@ void Camera::update(GLFWwindow* window)
         m_oldX = static_cast<float>(x);
         m_oldY = static_cast<float>(y);
 
+        float old_sensitivity = m_sensitivity;
+
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        {
+            m_sensitivity *= 100; // fast mode
+        }
+
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
             m_radius -= m_sensitivity;
@@ -109,6 +116,8 @@ void Camera::update(GLFWwindow* window)
         {
             m_center -= glm::normalize(m_up) * m_sensitivity;
         }
+
+        m_sensitivity = old_sensitivity;
 
         m_pos.x = m_center.x + m_radius * sin(m_theta) * sin(m_phi);
         m_pos.y = m_center.y + m_radius * cos(m_theta);
