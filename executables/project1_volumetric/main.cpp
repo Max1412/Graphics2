@@ -38,6 +38,16 @@ struct PlayerCameraInfo
 {
     glm::mat4 playerViewMatrix;
     glm::mat4 playerProjMatrix;
+    glm::vec3 camPos; float pad;
+};
+
+struct FogInfo
+{
+    glm::vec3 fogAlbedo;
+    float fogAnisotropy;
+    GLuint64 densityMap;
+    float fogScatteringCoeff;
+    float fogAbsorptionCoeff;
 };
 
 int main()
@@ -66,10 +76,10 @@ int main()
     imageHoldingSSBO.setStorage(std::vector<GLuint64>{ handle }, GL_DYNAMIC_STORAGE_BIT);
     imageHoldingSSBO.bindBase(0);
 
-    Shader perVoxelShader("perVoxel3.comp", GL_COMPUTE_SHADER);
+    Shader perVoxelShader("perVoxel3.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp({ perVoxelShader });
 
-    Shader accumShader("accumulateVoxels.comp", GL_COMPUTE_SHADER);
+    Shader accumShader("accumulateVoxels.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram accumSp({ accumShader });
 
     auto u_gridDim = std::make_shared<Uniform<glm::ivec3>>("gridDim", glm::ivec3(gridWidth, gridHeight, gridDepth));
@@ -80,8 +90,12 @@ int main()
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
-    matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj }}, GL_DYNAMIC_STORAGE_BIT);
+    matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{{playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(1);
+
+    Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
+    fogSSBO.setStorage(std::array<FogInfo, 1>{ {glm::vec3(1.0f), 0.5f, GLuint64(0), 0.1f, 0.1f}}, GL_DYNAMIC_STORAGE_BIT); //TODO: put density map handle in here
+    fogSSBO.bindBase(2);
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
 
