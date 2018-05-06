@@ -27,18 +27,19 @@ using namespace gl;
 #include "imgui/imgui_impl_glfw_gl3.h"
 #include "Rendering/Quad.h"
 #include "Rendering/FrameBuffer.h"
+#include "Rendering/Light.h"
 
 const unsigned int width = 1600;
 const unsigned int height = 900;
 
-struct LightInfo
-{
-    glm::vec4 pos; //pos.w=0 dir., pos.w=1 point light
-    glm::vec3 col;
-    float spot_cutoff; //no spotlight if cutoff=0
-    glm::vec3 spot_direction;
-    float spot_exponent;
-};
+//struct LightInfo
+//{
+//    glm::vec4 pos; //pos.w=0 dir., pos.w=1 point light
+//    glm::vec3 col;
+//    float spot_cutoff; //no spotlight if cutoff=0
+//    glm::vec3 spot_direction;
+//    float spot_exponent;
+//};
 
 struct MaterialInfo
 {
@@ -94,7 +95,7 @@ int main()
 
     // actual stuff
     const Shader vs("shadowmapping.vert", GL_VERTEX_SHADER);
-    const Shader fs("shadowmapping.frag", GL_FRAGMENT_SHADER);
+    const Shader fs("shadowmapping.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp(vs, fs);
 
     ModelImporter mi("bunny.obj");
@@ -118,7 +119,7 @@ int main()
         2, 3, 0
     };
 
-    Mesh plane(planePositions, planeNormals, planeIndices);
+    std::shared_ptr<Mesh> plane = std::make_shared<Mesh>(planePositions, planeNormals, planeIndices);
 
     sp.use();
 
@@ -135,7 +136,7 @@ int main()
     glm::mat4 PlaneModel(1.0f);
     PlaneModel = translate(PlaneModel, glm::vec3(0.0f, -1.34f, 0.0f));
     PlaneModel = scale(PlaneModel, glm::vec3(5.0f));
-    plane.setModelMatrix(PlaneModel);
+    plane->setModelMatrix(PlaneModel);
 
     // create matrix uniforms and add them to the shader program
     const auto projUniform = std::make_shared<Uniform<glm::mat4>>("ProjectionMatrix", proj);
@@ -151,31 +152,30 @@ int main()
     sp.addUniform(ambientLightUniform);
 
     // "generate" lights
-    std::vector<LightInfo> lvec;
+    //std::vector<LightInfo> lvec;
+    LightManager lightMngr;
     for (int i = 0; i < 1; i++)
     {
-        LightInfo li;
+        auto li = std::make_shared<Light>(LightType::directional, glm::ivec2(1600, 900));
         const glm::mat4 rotMat = rotate(glm::mat4(1.0f), glm::radians(i * (360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-        li.pos = rotMat * (glm::vec4(i * 3.0f, i * 3.0f, i * 3.0f, 1.0f) + glm::vec4(5.0f, 5.0f, 5.0f, 0.0f));
-        li.col = normalize(glm::vec3((i) % 5, (i + 1) % 5, (i + 2) % 5));
+        li->setPosition(rotMat * (glm::vec4(i * 3.0f, i * 3.0f, i * 3.0f, 1.0f) + glm::vec4(5.0f, 5.0f, 5.0f, 0.0f)));
+        li->setColor(normalize(glm::vec3((i) % 5, (i + 1) % 5, (i + 2) % 5)));
         if (i % 2)
         {
-            li.col = normalize(glm::vec3((i - 1) % 5, (i) % 5, (i + 1) % 5));
-            li.col = normalize(glm::vec3(1.0f) - li.col);
+            li->setColor(glm::normalize(glm::vec3(1.0f) - normalize(glm::vec3((i - 1) % 5, (i) % 5, (i + 1) % 5))));
         }
-        std::cout << to_string(li.col) << std::endl;
         if (i == 3)
         {
-            li.spot_cutoff = 0.1f;
+            li->setSpotCutoff(0.1f);
         }
         else
         {
-            li.spot_cutoff = 0.0f;
+            li->setSpotCutoff(0.0f);
         }
-        li.spot_direction = normalize(glm::vec3(0.0f) - glm::vec3(li.pos));
-        li.spot_exponent = 1.0f;
+        li->setSpotDirection(normalize(glm::vec3(0.0f) - glm::vec3(li->getGpuLight().position)));
+        li->setSpotExponent(1.0f);
 
-        lvec.push_back(li);
+        lightMngr.addLight(li);
     }
 
     // set up materials
@@ -202,16 +202,17 @@ int main()
 
     // first material is for bunny, second for plane
     bunny->setMaterialID(0);
-    plane.setMaterialID(1);
+    plane->setMaterialID(1);
 
     // create buffers for materials and lights
-    Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
-    lightBuffer.setStorage(lvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-    lightBuffer.bindBase(0);
+    //Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
+    //lightBuffer.setStorage(lvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
+    //lightBuffer.bindBase(0);
+    lightMngr.uploadLightsToGPU();
 
     Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
     materialBuffer.setStorage(mvec, GL_DYNAMIC_STORAGE_BIT);
-    materialBuffer.bindBase(1);
+    materialBuffer.bindBase(BufferBindings::Binding::materials);
 
     const glm::vec4 clearColor(0.1f);
 
@@ -221,30 +222,33 @@ int main()
     sp.addUniform(MaterialIDUniform);
 
     // Shadow Mapping stuff ////////////////////////////////////////////////////
-    const int shadowWidth = width, shadowHeight = height;
-    Texture shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
-    shadowTexture.initWithoutData(shadowWidth, shadowHeight, GL_DEPTH_COMPONENT32F);
-    shadowTexture.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
-    shadowTexture.generateHandle();
+    //const int shadowWidth = width, shadowHeight = height;
+    //Texture shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
+    //shadowTexture.initWithoutData(shadowWidth, shadowHeight, GL_DEPTH_COMPONENT32F);
+    //shadowTexture.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+    //shadowTexture.generateHandle();
 
-    FrameBuffer shadowMapFBO(GL_DEPTH_ATTACHMENT, {shadowTexture});
+    //FrameBuffer shadowMapFBO(GL_DEPTH_ATTACHMENT, {shadowTexture});
 
-    const float nearPlane = 3.0f, farPlane = 18.0f;
-    const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+    //const float nearPlane = 3.0f, farPlane = 18.0f;
+    //const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
 
-    glm::mat4 lightView = lookAt(glm::vec3(lvec.at(0).pos),
-                                 glm::vec3(0.0f), // aimed at the center
-                                 glm::vec3(0.0f, 1.0f, 0.0f));
+    //glm::mat4 lightView = lookAt(glm::vec3(lvec.at(0).pos),
+    //                             glm::vec3(0.0f), // aimed at the center
+    //                             glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-    auto lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", lightSpaceMatrix);
+    //glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+    //auto lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", lightSpaceMatrix);
 
-    const Shader shadowMapVS("lightTransform.vert", GL_VERTEX_SHADER);
-    const Shader shadowMapFS("nothing.frag", GL_FRAGMENT_SHADER);
-    ShaderProgram shadowMapSP(shadowMapVS, shadowMapVS);
+    //const Shader shadowMapVS("lightTransform.vert", GL_VERTEX_SHADER);
+    //const Shader shadowMapFS("nothing.frag", GL_FRAGMENT_SHADER);
+    //ShaderProgram shadowMapSP(shadowMapVS, shadowMapVS);
 
-    shadowMapSP.addUniform(modelUniform);
-    shadowMapSP.addUniform(lightSpaceUniform);
+    //shadowMapSP.addUniform(modelUniform);
+    //shadowMapSP.addUniform(lightSpaceUniform);
+
+    lightMngr.getLights()[0]->recalculateLightSpaceMatrix();
+    auto lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", lightMngr.getLights()[0]->getGpuLight().lightSpaceMatrix);
     sp.addUniform(lightSpaceUniform);
 
     // shadow map displaying stuff //////////
@@ -254,7 +258,7 @@ int main()
     smfboSP.use();
 
     // put the sm texture handle into a SSBO
-    const auto smfboTexHandle = shadowTexture.getHandle();
+    const auto smfboTexHandle = lightMngr.getLights()[0]->getGpuLight().shadowMap;
     Buffer smfboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
     smfboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{smfboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
     smfboTexHandleBuffer.bindBase(7);
@@ -298,82 +302,80 @@ int main()
             ImGui::End();
         }
 
-        {
-            ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-            //ImGui::SetNextWindowPos(ImVec2(20, 150));
-            ImGui::Begin("Lights settings");
-            for (int i = 0; i < lvec.size(); ++i)
-            {
-                std::stringstream n;
-                n << i;
-                ImGui::Text((std::string("Light ") + n.str()).c_str());
-                if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), value_ptr(lvec.at(i).col), 0.0f, 1.0f))
-                {
-                    const auto colOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, col);
-                    lightBuffer.setContentSubData(lvec.at(i).col, colOffset);
-                }
-                if (ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i).spot_cutoff, 0.0f, 0.5f))
-                {
-                    const auto spotCutoffOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_cutoff);
-                    lightBuffer.setContentSubData(lvec.at(i).spot_cutoff, spotCutoffOffset);
-                }
-                if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i).spot_exponent, 0.0f, 100.0f))
-                {
-                    const auto spotCutoffExpOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_exponent);
-                    lightBuffer.setContentSubData(lvec.at(i).spot_exponent, spotCutoffExpOffset);
-                }
-                if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), value_ptr(rotations.at(i)), 0.0f, 360.0f))
-                {
-                    const auto posOffset = i * sizeof(lvec.at(i));
-                    const glm::mat4 rotx = glm::rotate(glm::mat4(1.0f), glm::radians(rotations.at(i).x), glm::vec3(1.0f, 0.0f, 0.0f));
-                    const glm::mat4 rotxy = glm::rotate(rotx, glm::radians(rotations.at(i).y), glm::vec3(0.0f, 1.0f, 0.0f));
-                    const glm::mat4 rotxyz = glm::rotate(rotxy, glm::radians(rotations.at(i).z), glm::vec3(0.0f, 0.0f, 1.0f));
-                    const glm::vec3 newPos = rotxyz * lvec.at(i).pos;
-                    lightBuffer.setContentSubData(newPos, posOffset);
-                    lvec.at(i).spot_direction = normalize(glm::vec3(0.0f) - newPos);
-                    const auto spotDirOffset = i * sizeof(lvec.at(i)) + offsetof(LightInfo, spot_direction);
-                    lightBuffer.setContentSubData(lvec.at(i).spot_direction, spotDirOffset);
+        //{
+        //    ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+        //    //ImGui::SetNextWindowPos(ImVec2(20, 150));
+        //    ImGui::Begin("Lights settings");
+        //    auto lvec = lightMngr.getLights();
+        //    for (int i = 0; i < lvec.size(); ++i)
+        //    {
+        //        bool lightChanged = false;
+        //        std::stringstream n;
+        //        n << i;
+        //        ImGui::Text((std::string("Light ") + n.str()).c_str());
+        //        if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), value_ptr(lvec.at(i)->getGpuLight().color), 0.0f, 1.0f))
+        //        {
+        //            lightChanged = true;
+        //        }
+        //        if (ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i)->getGpuLight().spotCutoff, 0.0f, 0.5f))
+        //        {
+        //            lightChanged = true;
+        //        }
+        //        if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i)->getGpuLight().spotExponent, 0.0f, 100.0f))
+        //        {
+        //            lightChanged = true;
+        //        }
+        //        if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), value_ptr(rotations.at(i)), 0.0f, 360.0f))
+        //        {
+        //            const glm::mat4 rotx = glm::rotate(glm::mat4(1.0f), glm::radians(rotations.at(i).x), glm::vec3(1.0f, 0.0f, 0.0f));
+        //            const glm::mat4 rotxy = glm::rotate(rotx, glm::radians(rotations.at(i).y), glm::vec3(0.0f, 1.0f, 0.0f));
+        //            const glm::mat4 rotxyz = glm::rotate(rotxy, glm::radians(rotations.at(i).z), glm::vec3(0.0f, 0.0f, 1.0f));
+        //            const glm::vec3 newPos = glm::mat3(rotxyz) * lvec.at(i)->getGpuLight().position;
+        //            lvec.at(i)->getGpuLight().spotDirection = normalize(glm::vec3(0.0f) - newPos);
 
-                    lightView = lookAt(newPos,
-                                       glm::vec3(0.0f), // aimed at the center
-                                       glm::vec3(0.0f, 1.0f, 0.0f));
+        //            glm::mat4 lightView = lookAt(newPos,
+        //                               glm::vec3(0.0f), // aimed at the center
+        //                               glm::vec3(0.0f, 1.0f, 0.0f));
 
-                    lightSpaceMatrix = lightProjection * lightView;
-                    lightSpaceUniform->setContent(lightSpaceMatrix);
-                }
-                // maps memory to access it by GUI -- probably very bad performance-wise
-                const auto positionOffset = i * sizeof(lvec.at(i));
-                //lightBuffer.bind();
-                float* ptr = lightBuffer.mapBufferContent<float>(sizeof(float) * 3, positionOffset, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
-                ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), ptr, -30.0f, 30.0f);
-                lightBuffer.unmapBuffer();
-            }
-            ImGui::End();
-        }
+        //            glm::mat4 lightSpaceMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 3.0f, 18.0f) * lightView;
+        //            lvec.at(i)->getGpuLight().lightSpaceMatrix = lightSpaceMatrix;
+        //            lightChanged = true;
+        //        } 
+        //        if (ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), value_ptr(lvec.at(i)->getGpuLight().position), -30.0f, 30.0f))
+        //        {
+        //            lightChanged = true;
+        //        }
+        //        if (lightChanged) lightMngr.updateLightParams(lvec.at(i));
+        //    }
+        //    ImGui::End();
+        //}
 
         // shadow mapping pass ///////
         {
-            // set shadow mapping settings
-            shadowMapSP.use();
-            glViewport(0, 0, shadowWidth, shadowHeight);
-            shadowMapFBO.bind();
-            glClear(GL_DEPTH_BUFFER_BIT);
-            glCullFace(GL_FRONT);
+            //lightMngr.updateLightParams();
+            lightMngr.updateShadowMaps({bunny, plane});
 
-            // render scene to shadow map
-            modelUniform->setContent(bunny->getModelMatrix());
-            MaterialIDUniform->setContent(bunny->getMaterialID());
-            shadowMapSP.updateUniforms();
-            bunny->draw();
-            modelUniform->setContent(plane.getModelMatrix());
-            MaterialIDUniform->setContent(plane.getMaterialID());
-            shadowMapSP.updateUniforms();
-            plane.draw();
+            //// set shadow mapping settings
+            //shadowMapSP.use();
+            //glViewport(0, 0, shadowWidth, shadowHeight);
+            //shadowMapFBO.bind();
+            //glClear(GL_DEPTH_BUFFER_BIT);
+            //glCullFace(GL_FRONT);
 
-            // reset settings
-            shadowMapFBO.unbind();
-            glViewport(0, 0, width, height);
-            glCullFace(GL_BACK);
+            //// render scene to shadow map
+            //modelUniform->setContent(bunny->getModelMatrix());
+            //MaterialIDUniform->setContent(bunny->getMaterialID());
+            //shadowMapSP.updateUniforms();
+            //bunny->draw();
+            //modelUniform->setContent(plane.getModelMatrix());
+            //MaterialIDUniform->setContent(plane.getMaterialID());
+            //shadowMapSP.updateUniforms();
+            //plane.draw();
+
+            //// reset settings
+            //shadowMapFBO.unbind();
+            //glViewport(0, 0, width, height);
+            //glCullFace(GL_BACK);
         }
         // end shadow mapping pass /////////////
 
@@ -398,11 +400,11 @@ int main()
         bunny->draw();
 
         // prepare plane
-        modelUniform->setContent(plane.getModelMatrix());
-        MaterialIDUniform->setContent(plane.getMaterialID());
+        modelUniform->setContent(plane->getModelMatrix());
+        MaterialIDUniform->setContent(plane->getMaterialID());
         sp.updateUniforms();
 
-        plane.draw();
+        plane->draw();
 
         if (useFBO)
         {

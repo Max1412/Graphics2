@@ -33,9 +33,6 @@ public:
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 
-    static constexpr int s_materialBinding = 12;
-    static constexpr int s_modelMatrixBinding = 13;
-
     void draw(const ShaderProgram& sp) const;
 
     void registerUniforms(ShaderProgram& sp) const;

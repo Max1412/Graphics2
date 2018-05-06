@@ -1,16 +1,20 @@
 #version 430
 #extension GL_ARB_bindless_texture : require
+#extension GL_ARB_gpu_shader_int64 : require
 
 in vec3 passPosition;
 in vec3 interpNormal;
 
 struct Light
 {
-    vec4 pos; //pos.w=0 dir., pos.w=1 point light
-    vec3 col;
-    float spot_cutoff; //no spotlight if cutoff=0
-    vec3 spot_direction;
-    float spot_exponent;
+    vec3 position;
+    int type; //0 directional, 1 point light, 2 spot light
+    vec3 color;
+    float spotCutoff;
+    vec3 spotDirection;
+    float spotExponent;
+    mat4 lightSpaceMatrix;
+    uint64_t shadowMap; //can be sampler2D or samplerCube
 };
 
 struct Material
@@ -24,22 +28,22 @@ struct Material
     int reflective;
 };
 
-layout (std430, binding = 0) restrict readonly buffer LightBuffer 
+layout (std430, binding = LIGHTS_BINDING) restrict readonly buffer LightBuffer
 {
     Light light[];
 };
 
-layout (std430, binding = 1) restrict readonly buffer MaterialBuffer 
+layout (std430, binding = MATERIAL_BINDING) restrict readonly buffer MaterialBuffer
 {
     Material material[];
 };
 
-// Shadow Maoping //////////////
+// Shadow Mapping //////////////
 in vec4 fragPosLightspace;
-layout(binding = 7, std430) buffer ShadowMapBuffer
-{
-    sampler2D ShadowMapTexture;
-};
+//layout(binding = 7, std430) buffer ShadowMapBuffer
+//{
+//    sampler2D ShadowMapTexture;
+//};
 
 uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
@@ -61,7 +65,7 @@ float CalculateShadow(in vec4 fragPosLightSpace, in vec3 lightDir)
         return 0.0;
 
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(ShadowMapTexture, projCoords.xy).r; 
+    float closestDepth = texture(sampler2D(light[0].shadowMap), projCoords.xy).r;
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
 
@@ -83,14 +87,14 @@ float CalculateShadow(in vec4 fragPosLightSpace, in vec3 lightDir)
 
     // PCF : TODO make this selectable
     // TODO use random samples
-    vec2 texelSize = 1.0 / textureSize(ShadowMapTexture, 0);
+    vec2 texelSize = 1.0 / textureSize(sampler2D(light[0].shadowMap), 0);
     int kernelSize = 13; // TODO make this selectable
     int go = kernelSize / 2;
     for(int x = -go; x <= go; ++x)
     {
         for(int y = -go; y <= go; ++y)
         {
-            float pcfDepth = texture(ShadowMapTexture, projCoords.xy + vec2(x, y) * texelSize).r; 
+            float pcfDepth = texture(sampler2D(light[0].shadowMap), projCoords.xy + vec2(x, y) * texelSize).r;
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
         }    
     }
@@ -118,8 +122,9 @@ void main()
 
     for ( int i = 0; i < light.length(); i++) 
     {
-        vec3 light_camcoord = (ViewMatrix * light[i].pos).xyz;
-        if (light[i].pos.w > 0.001f)
+        vec4 pos = vec4(light[i].position, light[i].type > 0 ? 1.0f : 0.0f);
+        vec3 light_camcoord = (ViewMatrix * pos).xyz;
+        if (pos.w > 0.001f)
             lightVector = normalize( light_camcoord - passPosition);
         else
             lightVector = normalize(light_camcoord);
@@ -129,18 +134,18 @@ void main()
         vec3 reflection = normalize( reflect( -lightVector, passNormal));
         float cos_psi_n = pow( max( dot( reflection, eye), 0.000001f), mat.shininess);
 
-        if (light[i].spot_cutoff < 0.001f)
+        if (light[i].spotCutoff < 0.001f)
             spot = 1.0;
         else 
         {
-            float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spot_direction)), 0.000001f);
-            if( cos_phi_spot >= cos( light[i].spot_cutoff))
-                spot = pow( cos_phi_spot, light[i].spot_exponent);
+            float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spotDirection)), 0.000001f);
+            if( cos_phi_spot >= cos( light[i].spotCutoff))
+                spot = pow( cos_phi_spot, light[i].spotExponent);
             else
                 spot = 0.0f;
         }
-        fragmentColor.rgb += mat.kd * spot * diffuse_color * cos_phi * light[i].col;
-        fragmentColor.rgb += mat.ks * spot * mat.specColor * cos_psi_n * light[i].col;
+        fragmentColor.rgb += mat.kd * spot * diffuse_color * cos_phi * light[i].color;
+        fragmentColor.rgb += mat.ks * spot * mat.specColor * cos_psi_n * light[i].color;
     }
     
     float ambient = 0.15;
