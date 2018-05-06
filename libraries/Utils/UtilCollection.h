@@ -75,6 +75,27 @@ namespace util
         return (glfwGetTime() - begin) * 1000;
     }
 
+    /**
+    * \brief Container for overloaded functions/lambdas
+    */
+    template<class... Fs>
+    struct overload : Fs...
+    {
+        overload(Fs&&... fs)
+            : Fs(std::move(fs))...
+        {}
+    };
+
+    /**
+    * \brief Makes an overloaded function/lambda object
+    * \param fs The functions to be overloaded
+    */
+    auto const make_overload = [](auto... fs)
+    {
+        return overload<decltype(fs)...>{std::move(fs)...};
+    };
+
+
     static const std::experimental::filesystem::path gs_shaderPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("shaders");
     static const std::experimental::filesystem::path gs_resourcesPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("resources");
 

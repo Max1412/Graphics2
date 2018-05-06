@@ -1,6 +1,8 @@
 #include "Mesh.h"
 #include <GLFW/glfw3.h>
 #include "Binding.h"
+#include <numeric>
+#include <execution>
 
 Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_texCoordBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
 {
@@ -130,4 +132,17 @@ const std::vector<unsigned int>& Mesh::getIndices() const
         throw std::runtime_error("This mesh has no indices!");
 
     return m_indices;
+}
+
+glm::mat2x3 Mesh::getBoundingBox() const
+{
+    auto minMaxFun = util::make_overload(
+        [](glm::mat2x3 b1, glm::mat2x3 b2) {return glm::mat2x3(glm::min(b1[0], b2[0]), glm::max(b1[1], b2[1])); },
+        [](glm::vec3 b1, glm::vec3 b2) {return glm::mat2x3(glm::min(b1, b2), glm::max(b1, b2)); },
+        [](glm::vec3 b1, glm::mat2x3 b2) {return glm::mat2x3(glm::min(b1, b2[0]), glm::max(b1, b2[1])); },
+        [](glm::mat2x3 b1, glm::vec3 b2) {return glm::mat2x3(glm::min(b1[0], b2), glm::max(b1[1], b2)); }
+    );
+
+    return std::reduce(std::execution::par, getVertices().begin(), getVertices().end(), 
+        glm::mat2x3(glm::vec3(std::numeric_limits<float>::max()), glm::vec3(std::numeric_limits<float>::lowest())), minMaxFun);
 }

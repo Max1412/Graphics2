@@ -39,14 +39,9 @@ SparseVoxelOctree::SparseVoxelOctree(const std::vector<std::shared_ptr<Mesh>>& s
     m_bmax = glm::vec3(std::numeric_limits<float>::lowest());
     std::for_each(scene.begin(), scene.end(), [&](auto& mesh)
     {
-        std::for_each(mesh->getVertices().begin(), mesh->getVertices().end(), [&](auto& vertex)
-        {
-            m_bmin = glm::min(m_bmin, vertex);
-            m_bmax = glm::max(m_bmax, vertex);
-        });
-
-        //bmin = glm::min(bmin, std::reduce(std::execution::par, mesh->getVertices().begin(), mesh->getVertices().end(), glm::vec3(FLT_MAX), glm::min));
-        //bmax = glm::max(bmax, std::reduce(std::execution::par, mesh->getVertices().begin(), mesh->getVertices().end(), glm::vec3(-FLT_MAX), glm::max));
+        glm::mat2x3 bbox = mesh->getBoundingBox();
+        m_bmin = glm::min(m_bmin, bbox[0]);
+        m_bmax = glm::max(m_bmax, bbox[1]);
     });
 
     // make cubic

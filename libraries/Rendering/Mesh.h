@@ -51,6 +51,12 @@ public:
     unsigned getMaterialIndex() const;
 
     /**
+    * \brief returns the bounding box
+    * \return bmin: getBoundingBox()[0], bmax: getBoundingBox()[1]
+    */
+    glm::mat2x3 getBoundingBox() const;
+
+    /**
      * \brief binds the vao & index buffer and uses glDrawArrays
      */
     void draw() const;
