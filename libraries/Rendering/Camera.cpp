@@ -141,3 +141,8 @@ glm::vec3& Camera::getPosition()
 {
     return m_pos;
 }
+
+glm::vec3& Camera::getCenter()
+{
+    return m_center;
+}

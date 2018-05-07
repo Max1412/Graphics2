@@ -77,8 +77,11 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
 
 void Mesh::draw() const
 {
-    m_vao.bind();
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
+    if (m_enabledForRendering)
+    {
+        m_vao.bind();
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
+    }
 }
 
 void Mesh::setModelMatrix(const glm::mat4& modelMatrix)
@@ -156,4 +159,14 @@ const glm::mat2x3& Mesh::calculateBoundingBox()
         glm::mat2x3(glm::vec3(std::numeric_limits<float>::max()), glm::vec3(std::numeric_limits<float>::lowest())), minMaxFun);
 
     return m_boundingBox;
+}
+
+void Mesh::setEnabledForRendering(bool enable)
+{
+    m_enabledForRendering = enable;
+}
+
+bool Mesh::isEnabledForRendering() const
+{
+    return m_enabledForRendering;
 }

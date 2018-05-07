@@ -79,11 +79,16 @@ public:
      */
     void setMaterialID(const unsigned materialID);
 
+    void setEnabledForRendering(bool enable);
+    bool isEnabledForRendering() const;
+
 private:
     std::vector<glm::vec3> m_vertices;
     std::vector<glm::vec3> m_normals;
     std::vector<glm::vec3> m_texCoords;
     std::vector<unsigned int> m_indices;
+
+    bool m_enabledForRendering = true;
 
     glm::mat2x3 m_boundingBox;
 
