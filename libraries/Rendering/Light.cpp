@@ -103,8 +103,8 @@ void Light::init(glm::vec3 position, glm::vec3 color, glm::vec3 spotDir, float s
 
     if (m_shadowMapRes.x > 0 && m_shadowMapRes.y > 0)
     {
-        if (m_type != LightType::directional)
-            std::cout << "WARNING: shadow mapping is currently only supported for directional lights \n";
+        if (m_type == LightType::point)
+            std::cout << "WARNING: shadow mapping is currently not supported for point lights \n";
 
         m_shadowTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
         m_shadowTexture->initWithoutData(m_shadowMapRes.x, m_shadowMapRes.y, GL_DEPTH_COMPONENT32F);
