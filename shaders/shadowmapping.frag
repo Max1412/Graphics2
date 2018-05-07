@@ -121,20 +121,25 @@ void main()
 
     for ( int i = 0; i < light.length(); i++) 
     {
-        vec4 pos = vec4(light[i].position, light[i].type > 0 ? 1.0f : 0.0f);
-        vec3 light_camcoord = (ViewMatrix * pos).xyz;
-        if (pos.w > 0.001f)
-            lightVector = normalize( light_camcoord - passPositionView);
+        if (light[i].type > 0)
+        {
+            vec3 light_camcoord = (ViewMatrix * vec4(light[i].position, 1.0f)).xyz;
+            lightVector = normalize(light_camcoord - passPositionView);
+        }
         else
+        {
+            vec3 light_camcoord = (ViewMatrix * vec4(light[i].position, 0.0f)).xyz;
             lightVector = normalize(light_camcoord);
+        }
+
         float cos_phi = max( dot( passNormal, lightVector), 0.000001f);
 
         vec3 eye = normalize( -passPositionView);
         vec3 reflection = normalize( reflect( -lightVector, passNormal));
         float cos_psi_n = pow( max( dot( reflection, eye), 0.000001f), mat.shininess);
 
-        if (light[i].spotCutoff < 0.001f)
-            spot = 1.0;
+        if (light[i].type != 2)
+            spot = 1.0f;
         else 
         {
             float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spotDirection)), 0.000001f);
