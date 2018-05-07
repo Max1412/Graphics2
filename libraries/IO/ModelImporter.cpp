@@ -7,6 +7,9 @@
 #include "stb/stb_image.h"
 #include "Rendering/ShaderProgram.h"
 #include "Rendering/Binding.h"
+#include <execution>
+#include <algorithm>
+#include <unordered_set>
 
 ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename, int test)
 : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER)
@@ -202,12 +205,78 @@ void ModelImporter::draw(const ShaderProgram& sp) const
     int i = 0;
     for(const auto& mesh : m_meshes)
     {
-        m_meshIndexUniform->setContent(i);
-        m_materialIndexUniform->setContent(mesh->getMaterialIndex());
-        sp.updateUniforms();
-        mesh->draw();
+        if (mesh->isEnabledForRendering())
+        {
+            m_meshIndexUniform->setContent(i);
+            m_materialIndexUniform->setContent(mesh->getMaterialIndex());
+            sp.updateUniforms();
+            mesh->draw();
+        }
         i++;
     }
+}
+
+void ModelImporter::drawCulled(const ShaderProgram& sp, Camera& cam, float angle, float ratio, float near, float far) const
+{
+    glm::vec3 p = cam.getPosition();
+    glm::vec3 Z = -glm::normalize(cam.getCenter() - cam.getPosition());
+
+    float tang = glm::tan(angle * 0.5f);
+    float nh = near * tang;
+    float nw = nh * ratio;
+    float fh = far * tang;
+    float fw = fh * ratio;
+
+    // X axis of camera with given "up" vector and Z axis
+    glm::vec3 X = glm::normalize(glm::cross(glm::vec3(0.f, 1.f, 0.f), Z));
+
+    // the real "up" vector is the cross product of Z and X
+    glm::vec3 Y = glm::cross(Z, X);
+
+    // compute the centers of the near and far planes
+    glm::vec3 nc = p - Z * near;
+    glm::vec3 fc = p - Z * far;
+
+    // compute the 4 corners of the frustum on the near plane
+    glm::vec3 ntl = nc + Y * nh - X * nw;
+    glm::vec3 ntr = nc + Y * nh + X * nw;
+    glm::vec3 nbl = nc - Y * nh - X * nw;
+    glm::vec3 nbr = nc - Y * nh + X * nw;
+
+    // compute the 4 corners of the frustum on the far plane
+    glm::vec3 ftl = fc + Y * fh - X * fw;
+    glm::vec3 ftr = fc + Y * fh + X * fw;
+    glm::vec3 fbl = fc - Y * fh - X * fw;
+    glm::vec3 fbr = fc - Y * fh + X * fw;
+
+    // compute the six planes
+    // the function set3Points assumes that the points
+    // are given in counter clockwise order
+    FrustumGeo f;
+    f.set3Points(FrustumGeo::TOP, ntr, ntl, ftl);
+    f.set3Points(FrustumGeo::BOTTOM, nbl, nbr, fbr);
+    f.set3Points(FrustumGeo::LEFT, ntl, nbl, fbl);
+    f.set3Points(FrustumGeo::RIGHT, nbr, ntr, fbr);
+    f.set3Points(FrustumGeo::NEAR, ntl, ntr, nbr);
+    f.set3Points(FrustumGeo::FAR, ftr, ftl, fbl);
+
+    auto cullFunc = [&f](auto& mesh)
+    {
+        mesh->setEnabledForRendering(false);
+        //for each plane do ...
+        for (int i = 0; i < 6; ++i) {
+            if (f.distance(i, mesh->getBoundingBox()[1]) >= 0.0f ||
+                f.distance(i, mesh->getBoundingBox()[0]) >= 0.0f)
+            {
+                mesh->setEnabledForRendering(true);
+                return;
+            }
+        }
+    };
+
+    std::for_each(std::execution::par, m_meshes.begin(), m_meshes.end(), cullFunc);
+
+    draw(sp);
 }
 
 std::vector<std::shared_ptr<Mesh>> ModelImporter::getMeshes() const

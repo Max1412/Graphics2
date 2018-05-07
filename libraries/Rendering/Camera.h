@@ -5,6 +5,29 @@ using namespace gl;
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+struct FrustumGeo
+{
+    enum Plane
+    {
+        TOP = 0, BOTTOM = 1, LEFT = 2,
+        RIGHT = 3, NEAR = 4, FAR = 5
+    };
+
+    std::array<glm::vec3, 6> normals;
+    std::array<glm::vec3, 6> points;
+
+    void set3Points(Plane plane, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
+    {
+        points[plane] = v2;
+        normals[plane] = glm::normalize(glm::cross(v3 - v2, v1 - v2));
+    }
+
+    float distance(int plane, const glm::vec3& p) 
+    {
+        return glm::dot(normals[plane], p - points[plane]);
+    }
+};
+
 class Camera
 {
 public:
@@ -31,6 +54,7 @@ public:
     glm::mat4& getView();
 
     glm::vec3& getPosition();
+    glm::vec3& getCenter();
 
 private:
     glm::mat4 m_viewMatrix;

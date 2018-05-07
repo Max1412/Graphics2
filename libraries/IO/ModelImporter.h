@@ -11,6 +11,7 @@
 #include "Rendering/Mesh.h"
 #include "Rendering/Texture.h"
 #include "Rendering/Uniform.h"
+#include "Rendering/Camera.h"
 
 class ShaderProgram;
 
@@ -37,6 +38,7 @@ public:
     static constexpr int s_modelMatrixBinding = 13;
 
     void draw(const ShaderProgram& sp) const;
+    void drawCulled(const ShaderProgram& sp, Camera& cam, float angle, float ratio, float near, float far) const;
 
     void registerUniforms(ShaderProgram& sp) const;
 

@@ -91,7 +91,8 @@ int main()
         sp.use();
 
         // DRAW
-        modelLoader.draw(sp);
+        //modelLoader.draw(sp);
+        modelLoader.drawCulled(sp, playerCamera, glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
 
         timer.stop();
         timer.drawGuiWindow(window);
