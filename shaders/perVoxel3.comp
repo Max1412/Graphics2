@@ -29,6 +29,17 @@ layout(binding = 2, std430) buffer fogBuffer
     float fogAbsorptionCoeff;
 };
 
+layout(binding = 3, std430) buffer noiseBuffer
+{
+	sampler2D permTexture;
+	sampler1D simplexTexture;
+	sampler2D gradientTexture;
+	float time;
+	float heightDensityFactor;
+	float noiseScale;
+	float noiseSpeed;
+};
+
 //TODO: generate light buffer on cpu
 struct Light
 {
@@ -74,8 +85,118 @@ float getZLayerThickness(int zLayer)
 
 float getDensity(vec3 worldPos)
 {
-    float d0 = 1.0f;
-    return d0 * exp(-worldPos.y * 0.1f); //TODO: sample density texture instead
+	//calculate simplex 4d noise
+	//original implementation from Stefan Gustavson ITN-LiTH
+	const float one = 0.00390625;
+	const float f4 = 0.309016994375f;
+	const float g4 = 0.138196601125f;
+
+	vec4 P = vec4(noiseScale * worldPos, noiseSpeed * time);
+	// Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
+	float s = (P.x + P.y + P.z + P.w) * f4; // Factor for 4D skewing
+	vec4 Pi = floor(P + s);
+	float t = (Pi.x + Pi.y + Pi.z + Pi.w) * g4;
+	vec4 P0 = Pi - t; // Unskew the cell origin back to (x,y,z,w) space
+	Pi = Pi * one + one/2.0f; // Integer part, scaled and offset for texture lookup
+
+	vec4 Pf0 = P - P0;  // The x,y distances from the cell origin
+
+	float c1 = (Pf0.x > Pf0.y) ? 0.5078125 : 0.0078125;
+	float c2 = (Pf0.x > Pf0.z) ? 0.25 : 0.0;
+	float c3 = (Pf0.y > Pf0.z) ? 0.125 : 0.0;
+	float c4 = (Pf0.x > Pf0.w) ? 0.0625 : 0.0;
+	float c5 = (Pf0.y > Pf0.w) ? 0.03125 : 0.0;
+	float c6 = (Pf0.z > Pf0.w) ? 0.015625 : 0.0;
+	float sindex = c1 + c2 + c3 + c4 + c5 + c6;
+	vec4 offsets = texture(simplexTexture, sindex);
+	vec4 o1 = step(0.625, offsets);
+	vec4 o2 = step(0.375, offsets);
+	vec4 o3 = step(0.125, offsets);
+
+	// Noise contribution from simplex origin
+	float perm0xy = texture(permTexture, Pi.xy).a;
+	float perm0zw = texture(permTexture, Pi.zw).a;
+	vec4  gradient0 = texture(gradientTexture, vec2(perm0xy, perm0zw)) * 4.0 - 1.0;
+	float t0 = 0.6 - dot(Pf0, Pf0);
+	float n0;
+	if (t0 < 0.0) 
+		n0 = 0.0;
+	else 
+	{
+		t0 *= t0;
+		n0 = t0 * t0 * dot(gradient0, Pf0);
+	}
+
+	// Noise contribution from second corner
+	vec4 Pf1 = Pf0 - o1 + g4;
+	o1 = o1 * one;
+	float perm1xy = texture(permTexture, Pi.xy + o1.xy).a;
+	float perm1zw = texture(permTexture, Pi.zw + o1.zw).a;
+	vec4  gradient1 = texture(gradientTexture, vec2(perm1xy, perm1zw)) * 4.0 - 1.0;
+	float t1 = 0.6 - dot(Pf1, Pf1);
+	float n1;
+	if (t1 < 0.0) 
+		n1 = 0.0;
+	else 
+	{
+		t1 *= t1;
+		n1 = t1 * t1 * dot(gradient1, Pf1);
+	}
+  
+	// Noise contribution from third corner
+	vec4 Pf2 = Pf0 - o2 + 2.0 * g4;
+	o2 = o2 * one;
+	float perm2xy = texture(permTexture, Pi.xy + o2.xy).a;
+	float perm2zw = texture(permTexture, Pi.zw + o2.zw).a;
+	vec4  gradient2 = texture(gradientTexture, vec2(perm2xy, perm2zw)) * 4.0 - 1.0;
+	float t2 = 0.6 - dot(Pf2, Pf2);
+	float n2;
+	if (t2 < 0.0) 
+		n2 = 0.0;
+	else 
+	{
+		t2 *= t2;
+		n2 = t2 * t2 * dot(gradient2, Pf2);
+	}
+  
+	// Noise contribution from fourth corner
+	vec4 Pf3 = Pf0 - o3 + 3.0 * g4;
+	o3 = o3 * one;
+	float perm3xy = texture(permTexture, Pi.xy + o3.xy).a;
+	float perm3zw = texture(permTexture, Pi.zw + o3.zw).a;
+	vec4  gradient3 = texture(gradientTexture, vec2(perm3xy, perm3zw)) * 4.0 - 1.0;
+	float t3 = 0.6 - dot(Pf3, Pf3);
+	float n3;
+	if (t3 < 0.0) 
+		n3 = 0.0;
+	else 
+	{
+		t3 *= t3;
+		n3 = t3 * t3 * dot(gradient3, Pf3);
+	}
+  
+	// Noise contribution from last corner
+	vec4 Pf4 = Pf0 - vec4(1.0-4.0*g4);
+	float perm4xy = texture(permTexture, Pi.xy + vec2(one, one)).a;
+	float perm4zw = texture(permTexture, Pi.zw + vec2(one, one)).a;
+	vec4  gradient4 = texture(gradientTexture, vec2(perm4xy, perm4zw)).rgba * 4.0 - 1.0;
+	float t4 = 0.6 - dot(Pf4, Pf4);
+	float n4;
+	if(t4 < 0.0) 
+		n4 = 0.0;
+	else {
+		t4 *= t4;
+		n4 = t4 * t4 * dot(gradient4, Pf4);
+	}
+
+	// Sum up and scale the result to cover the range [-1,1]
+	float snoise =  27.0 * (n0 + n1 + n2 + n3 + n4);
+
+    //calculate density
+	float outNoise = 0.5 + 0.5f * snoise;
+	float density = 0.4f * exp(-worldPos.y * heightDensityFactor);
+	float outDensity = (outNoise + density) / 2.0f;
+    return outDensity;
 }
 
 float getPhaseFunction(float g, vec3 lightVec, vec3 viewVec) // vectors must be normalized!
@@ -120,7 +241,7 @@ void main()
 
 	//if(g_ID.x <= gridDim.x && g_ID.y <= gridDim.y && g_ID.z <= gridDim.z)
 	{
-		imageStore(voxelGrid, g_ID, vec4(worldPos, 1.0f));//vec4(g_ID, 1.0f));
+		imageStore(voxelGrid, g_ID, vec4(worldPos, density));//vec4(g_ID, 1.0f));
 	}
 
 }

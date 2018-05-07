@@ -50,6 +50,57 @@ struct FogInfo
     float fogAbsorptionCoeff;
 };
 
+struct NoiseInfo
+{
+	GLuint64 permTexture;
+	GLuint64 simplexTexture;
+	GLuint64 gradientTexture;
+	float time;
+	float heightDensityFactor;
+	float noiseScale;
+	float noiseSpeed;
+};
+
+constexpr int perm[256] = { 151,160,137,91,90,15,
+131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
+190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
+88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
+77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
+102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
+135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
+5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
+223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
+129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
+251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
+49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
+138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180 };
+//gradients for 4d noise, midpoints of each edge of a tesseract
+constexpr int gradient4[32][4] = { { 0,1,1,1 },{ 0,1,1,-1 },{ 0,1,-1,1 },{ 0,1,-1,-1 }, // 32 tesseract edges
+{ 0,-1,1,1 },{ 0,-1,1,-1 },{ 0,-1,-1,1 },{ 0,-1,-1,-1 },
+{ 1,0,1,1 },{ 1,0,1,-1 },{ 1,0,-1,1 },{ 1,0,-1,-1 },
+{ -1,0,1,1 },{ -1,0,1,-1 },{ -1,0,-1,1 },{ -1,0,-1,-1 },
+{ 1,1,0,1 },{ 1,1,0,-1 },{ 1,-1,0,1 },{ 1,-1,0,-1 },
+{ -1,1,0,1 },{ -1,1,0,-1 },{ -1,-1,0,1 },{ -1,-1,0,-1 },
+{ 1,1,1,0 },{ 1,1,-1,0 },{ 1,-1,1,0 },{ 1,-1,-1,0 },
+{ -1,1,1,0 },{ -1,1,-1,0 },{ -1,-1,1,0 },{ -1,-1,-1,0 } };
+//simplex lookup table
+constexpr unsigned char simplex4[][4] = { { 0,64,128,192 },{ 0,64,192,128 },{ 0,0,0,0 },
+{ 0,128,192,64 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 64,128,192,0 },
+{ 0,128,64,192 },{ 0,0,0,0 },{ 0,192,64,128 },{ 0,192,128,64 },
+{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 64,192,128,0 },
+{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },
+{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },
+{ 64,128,0,192 },{ 0,0,0,0 },{ 64,192,0,128 },{ 0,0,0,0 },
+{ 0,0,0,0 },{ 0,0,0,0 },{ 128,192,0,64 },{ 128,192,64,0 },
+{ 64,0,128,192 },{ 64,0,192,128 },{ 0,0,0,0 },{ 0,0,0,0 },
+{ 0,0,0,0 },{ 128,0,192,64 },{ 0,0,0,0 },{ 128,64,192,0 },
+{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },
+{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },
+{ 128,0,64,192 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },
+{ 192,0,64,128 },{ 192,0,128,64 },{ 0,0,0,0 },{ 192,64,128,0 },
+{ 128,64,0,192 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },
+{ 192,64,0,128 },{ 0,0,0,0 },{ 192,128,0,64 },{ 192,128,64,0 } };
+
 int main()
 {
     // init glfw, open window, manage context
@@ -86,6 +137,56 @@ int main()
     sp.addUniform(u_gridDim);
     accumSp.addUniform(u_gridDim);
 
+	//set variables and uniforms for noise and density
+	float time = (float)glfwGetTime();
+	float densityFactor = 4.0f;
+	float noiseScale = 6.0f;
+	float noiseSpeed = 0.1f;
+	GLuint permTextureID, simplexTextureID, gradientTextureID;
+
+	//creates 2d texture combining permutation and gradient lookup table
+	Texture permTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
+	{
+		char *pixels;
+		pixels = (char*)malloc(256 * 256 * 4);
+		for (int i = 0; i<256; i++)
+			for (int j = 0; j<256; j++) {
+				int offset = (i * 256 + j) * 4;
+				char value = perm[(j + perm[i]) & 0xFF];
+				pixels[offset] = gradient4[2 * (value & 0x0F)][0] * 64 + 64;   // Gradient x
+				pixels[offset + 1] = gradient4[2 * (value & 0x0F)][1] * 64 + 64; // Gradient y
+				pixels[offset + 2] = gradient4[2 * (value & 0x0F)][2] * 64 + 64; // Gradient z
+				pixels[offset + 3] = value;                     // Permuted index
+			}
+
+		permTexture.initWithData2D(pixels, 256, 256);
+		permTextureID = permTexture.generateHandle();
+	}
+
+	//create 1d texture for simplex traversal lookup
+	Texture simplexTexture(GL_TEXTURE_1D, GL_NEAREST, GL_NEAREST);
+	simplexTexture.initWithData1D(simplex4, 64);
+	simplexTextureID = simplexTexture.generateHandle();
+
+	//create 2d gradient lookup table
+	Texture gradientTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
+	{
+		char *pixels;
+		pixels = (char*)malloc(256 * 256 * 4);
+		for (int i = 0; i<256; i++)
+			for (int j = 0; j<256; j++) {
+				int offset = (i * 256 + j) * 4;
+				char value = perm[(j + perm[i]) & 0xFF];
+				pixels[offset] = gradient4[value & 0x1F][0] * 64 + 64;   // Gradient x
+				pixels[offset + 1] = gradient4[value & 0x1F][1] * 64 + 64; // Gradient y
+				pixels[offset + 2] = gradient4[value & 0x1F][2] * 64 + 64; // Gradient z
+				pixels[offset + 3] = gradient4[value & 0x1F][3] * 64 + 64; // Gradient z
+			}
+
+		gradientTexture.initWithData2D(pixels, 256, 256);
+		gradientTextureID = gradientTexture.generateHandle();
+	}
+
     Camera playerCamera(screenWidth, screenHeight, 10.0f);
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
 
@@ -96,6 +197,10 @@ int main()
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ {glm::vec3(1.0f), 0.5f, GLuint64(0), 0.1f, 0.1f}}, GL_DYNAMIC_STORAGE_BIT); //TODO: put density map handle in here
     fogSSBO.bindBase(2);
+
+	Buffer noiseSSBO(GL_SHADER_STORAGE_BUFFER);
+	noiseSSBO.setStorage(std::array<NoiseInfo, 1>{ {permTextureID, simplexTextureID, gradientTextureID, time, densityFactor, noiseScale, noiseSpeed}}, GL_DYNAMIC_STORAGE_BIT);
+	noiseSSBO.bindBase(3);
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
 
@@ -113,6 +218,16 @@ int main()
         
         if constexpr (renderimgui)
             ImGui_ImplGlfwGL3_NewFrame();
+
+		ImGui::Begin("Density and Noise Settings");
+		if (ImGui::SliderFloat("Noise Scale", &noiseScale, 0.0f, 20.0f))
+			noiseSSBO.setContentSubData(noiseScale, offsetof(NoiseInfo, noiseScale));
+		if (ImGui::SliderFloat("Noise Speed", &noiseSpeed, 0.0f, 1.0f))
+			noiseSSBO.setContentSubData(noiseSpeed, offsetof(NoiseInfo, noiseSpeed));
+		if (ImGui::SliderFloat("Density Factor", &densityFactor, 0.0f, 10.0f))
+			noiseSSBO.setContentSubData(densityFactor, offsetof(NoiseInfo, heightDensityFactor));
+		ImGui::End();
+
         ImGui::Checkbox("Player Camera", &pcActive);
         ImGui::Checkbox("Debug Camera", &dbgcActice);
         if (pcActive)
@@ -142,6 +257,8 @@ int main()
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
+
+		noiseSSBO.setContentSubData((float)glfwGetTime(), offsetof(NoiseInfo, time));
         sp.use();
         glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
             static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(groupSize))),
