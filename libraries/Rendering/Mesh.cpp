@@ -56,6 +56,8 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
         m_vao.connectBuffer(m_texCoordBuffer, BufferBindings::VertexAttributeLocation::texCoords, 3, GL_FLOAT, GL_FALSE);
 
     m_vao.connectIndexBuffer(m_indexBuffer);
+
+    calculateBoundingBox();
 }
 
 Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, std::vector<unsigned>& indices)
@@ -69,6 +71,8 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
     m_vao.connectBuffer(m_vertexBuffer, BufferBindings::VertexAttributeLocation::vertices, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectBuffer(m_normalBuffer, BufferBindings::VertexAttributeLocation::normals, 3, GL_FLOAT, GL_FALSE);
     m_vao.connectIndexBuffer(m_indexBuffer);
+
+    calculateBoundingBox();
 }
 
 void Mesh::draw() const
@@ -134,7 +138,12 @@ const std::vector<unsigned int>& Mesh::getIndices() const
     return m_indices;
 }
 
-glm::mat2x3 Mesh::getBoundingBox() const
+const glm::mat2x3& Mesh::getBoundingBox() const
+{
+    return m_boundingBox;
+}
+
+const glm::mat2x3& Mesh::calculateBoundingBox()
 {
     auto minMaxFun = util::make_overload(
         [](glm::mat2x3 b1, glm::mat2x3 b2) {return glm::mat2x3(glm::min(b1[0], b2[0]), glm::max(b1[1], b2[1])); },
@@ -143,6 +152,8 @@ glm::mat2x3 Mesh::getBoundingBox() const
         [](glm::mat2x3 b1, glm::vec3 b2) {return glm::mat2x3(glm::min(b1[0], b2), glm::max(b1[1], b2)); }
     );
 
-    return std::reduce(std::execution::par, getVertices().begin(), getVertices().end(), 
+    m_boundingBox = std::reduce(std::execution::par, getVertices().begin(), getVertices().end(),
         glm::mat2x3(glm::vec3(std::numeric_limits<float>::max()), glm::vec3(std::numeric_limits<float>::lowest())), minMaxFun);
+
+    return m_boundingBox;
 }

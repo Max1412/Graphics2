@@ -51,10 +51,16 @@ public:
     unsigned getMaterialIndex() const;
 
     /**
-    * \brief returns the bounding box
+    * \brief returns the previously calculated bounding box
     * \return bmin: getBoundingBox()[0], bmax: getBoundingBox()[1]
     */
-    glm::mat2x3 getBoundingBox() const;
+    const glm::mat2x3& getBoundingBox() const;
+
+    /**
+    * \brief re-calculates the bounding box and returns it
+    * \return bmin: getBoundingBox()[0], bmax: getBoundingBox()[1]
+    */
+    const glm::mat2x3& calculateBoundingBox();
 
     /**
      * \brief binds the vao & index buffer and uses glDrawArrays
@@ -78,6 +84,8 @@ private:
     std::vector<glm::vec3> m_normals;
     std::vector<glm::vec3> m_texCoords;
     std::vector<unsigned int> m_indices;
+
+    glm::mat2x3 m_boundingBox;
 
     glm::mat4 m_modelMatrix = glm::mat4(1.0f);
 
