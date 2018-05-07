@@ -32,15 +32,6 @@ using namespace gl;
 const unsigned int width = 1600;
 const unsigned int height = 900;
 
-//struct LightInfo
-//{
-//    glm::vec4 pos; //pos.w=0 dir., pos.w=1 point light
-//    glm::vec3 col;
-//    float spot_cutoff; //no spotlight if cutoff=0
-//    glm::vec3 spot_direction;
-//    float spot_exponent;
-//};
-
 struct MaterialInfo
 {
     glm::vec3 diffColor;
@@ -152,11 +143,10 @@ int main()
     sp.addUniform(ambientLightUniform);
 
     // "generate" lights
-    //std::vector<LightInfo> lvec;
     LightManager lightMngr;
     for (int i = 0; i < 1; i++)
     {
-        auto li = std::make_shared<Light>(LightType::directional, glm::ivec2(1600, 900));
+        auto li = std::make_shared<Light>(LightType::spot, glm::ivec2(1600, 900));
         const glm::mat4 rotMat = rotate(glm::mat4(1.0f), glm::radians(i * (360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
         li->setPosition(rotMat * (glm::vec4(i * 3.0f, i * 3.0f, i * 3.0f, 1.0f) + glm::vec4(5.0f, 5.0f, 5.0f, 0.0f)));
         li->setColor(normalize(glm::vec3((i) % 5, (i + 1) % 5, (i + 2) % 5)));
@@ -164,19 +154,13 @@ int main()
         {
             li->setColor(glm::normalize(glm::vec3(1.0f) - normalize(glm::vec3((i - 1) % 5, (i) % 5, (i + 1) % 5))));
         }
-        if (i == 3)
-        {
-            li->setSpotCutoff(0.1f);
-        }
-        else
-        {
-            li->setSpotCutoff(0.0f);
-        }
+        li->setSpotCutoff(glm::radians(60.0f));
         li->setSpotDirection(normalize(glm::vec3(0.0f) - glm::vec3(li->getGpuLight().position)));
         li->setSpotExponent(1.0f);
 
         lightMngr.addLight(li);
     }
+    lightMngr.uploadLightsToGPU();
 
     // set up materials
     std::vector<MaterialInfo> mvec;
@@ -204,12 +188,6 @@ int main()
     bunny->setMaterialID(0);
     plane->setMaterialID(1);
 
-    // create buffers for materials and lights
-    //Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
-    //lightBuffer.setStorage(lvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-    //lightBuffer.bindBase(0);
-    lightMngr.uploadLightsToGPU();
-
     Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
     materialBuffer.setStorage(mvec, GL_DYNAMIC_STORAGE_BIT);
     materialBuffer.bindBase(BufferBindings::Binding::materials);
@@ -218,38 +196,7 @@ int main()
 
     // shading uniforms
     auto MaterialIDUniform = std::make_shared<Uniform<int>>("matIndex", bunny->getMaterialID());
-
     sp.addUniform(MaterialIDUniform);
-
-    // Shadow Mapping stuff ////////////////////////////////////////////////////
-    //const int shadowWidth = width, shadowHeight = height;
-    //Texture shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
-    //shadowTexture.initWithoutData(shadowWidth, shadowHeight, GL_DEPTH_COMPONENT32F);
-    //shadowTexture.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
-    //shadowTexture.generateHandle();
-
-    //FrameBuffer shadowMapFBO(GL_DEPTH_ATTACHMENT, {shadowTexture});
-
-    //const float nearPlane = 3.0f, farPlane = 18.0f;
-    //const glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
-
-    //glm::mat4 lightView = lookAt(glm::vec3(lvec.at(0).pos),
-    //                             glm::vec3(0.0f), // aimed at the center
-    //                             glm::vec3(0.0f, 1.0f, 0.0f));
-
-    //glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-    //auto lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", lightSpaceMatrix);
-
-    //const Shader shadowMapVS("lightTransform.vert", GL_VERTEX_SHADER);
-    //const Shader shadowMapFS("nothing.frag", GL_FRAGMENT_SHADER);
-    //ShaderProgram shadowMapSP(shadowMapVS, shadowMapVS);
-
-    //shadowMapSP.addUniform(modelUniform);
-    //shadowMapSP.addUniform(lightSpaceUniform);
-
-    lightMngr.getLights()[0]->recalculateLightSpaceMatrix();
-    auto lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", lightMngr.getLights()[0]->getGpuLight().lightSpaceMatrix);
-    sp.addUniform(lightSpaceUniform);
 
     // shadow map displaying stuff //////////
     // FBO stuff
@@ -270,8 +217,6 @@ int main()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
-
-    std::vector<glm::vec3> rotations(5, glm::vec3(0.0f));
 
     const float deltaAngle = 0.1f;
     bool rotate = true;
@@ -302,80 +247,11 @@ int main()
             ImGui::End();
         }
 
-        //{
-        //    ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-        //    //ImGui::SetNextWindowPos(ImVec2(20, 150));
-        //    ImGui::Begin("Lights settings");
-        //    auto lvec = lightMngr.getLights();
-        //    for (int i = 0; i < lvec.size(); ++i)
-        //    {
-        //        bool lightChanged = false;
-        //        std::stringstream n;
-        //        n << i;
-        //        ImGui::Text((std::string("Light ") + n.str()).c_str());
-        //        if (ImGui::SliderFloat3((std::string("Color ") + n.str()).c_str(), value_ptr(lvec.at(i)->getGpuLight().color), 0.0f, 1.0f))
-        //        {
-        //            lightChanged = true;
-        //        }
-        //        if (ImGui::SliderFloat((std::string("Cutoff ") + n.str()).c_str(), &lvec.at(i)->getGpuLight().spotCutoff, 0.0f, 0.5f))
-        //        {
-        //            lightChanged = true;
-        //        }
-        //        if (ImGui::SliderFloat((std::string("Exponent ") + n.str()).c_str(), &lvec.at(i)->getGpuLight().spotExponent, 0.0f, 100.0f))
-        //        {
-        //            lightChanged = true;
-        //        }
-        //        if (ImGui::SliderFloat3((std::string("Rotate ") + n.str()).c_str(), value_ptr(rotations.at(i)), 0.0f, 360.0f))
-        //        {
-        //            const glm::mat4 rotx = glm::rotate(glm::mat4(1.0f), glm::radians(rotations.at(i).x), glm::vec3(1.0f, 0.0f, 0.0f));
-        //            const glm::mat4 rotxy = glm::rotate(rotx, glm::radians(rotations.at(i).y), glm::vec3(0.0f, 1.0f, 0.0f));
-        //            const glm::mat4 rotxyz = glm::rotate(rotxy, glm::radians(rotations.at(i).z), glm::vec3(0.0f, 0.0f, 1.0f));
-        //            const glm::vec3 newPos = glm::mat3(rotxyz) * lvec.at(i)->getGpuLight().position;
-        //            lvec.at(i)->getGpuLight().spotDirection = normalize(glm::vec3(0.0f) - newPos);
-
-        //            glm::mat4 lightView = lookAt(newPos,
-        //                               glm::vec3(0.0f), // aimed at the center
-        //                               glm::vec3(0.0f, 1.0f, 0.0f));
-
-        //            glm::mat4 lightSpaceMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 3.0f, 18.0f) * lightView;
-        //            lvec.at(i)->getGpuLight().lightSpaceMatrix = lightSpaceMatrix;
-        //            lightChanged = true;
-        //        } 
-        //        if (ImGui::SliderFloat3((std::string("Position (conflicts rotation) ") + n.str()).c_str(), value_ptr(lvec.at(i)->getGpuLight().position), -30.0f, 30.0f))
-        //        {
-        //            lightChanged = true;
-        //        }
-        //        if (lightChanged) lightMngr.updateLightParams(lvec.at(i));
-        //    }
-        //    ImGui::End();
-        //}
+        lightMngr.showLightGUIs();
 
         // shadow mapping pass ///////
         {
-            //lightMngr.updateLightParams();
-            lightMngr.updateShadowMaps({bunny, plane});
-
-            //// set shadow mapping settings
-            //shadowMapSP.use();
-            //glViewport(0, 0, shadowWidth, shadowHeight);
-            //shadowMapFBO.bind();
-            //glClear(GL_DEPTH_BUFFER_BIT);
-            //glCullFace(GL_FRONT);
-
-            //// render scene to shadow map
-            //modelUniform->setContent(bunny->getModelMatrix());
-            //MaterialIDUniform->setContent(bunny->getMaterialID());
-            //shadowMapSP.updateUniforms();
-            //bunny->draw();
-            //modelUniform->setContent(plane.getModelMatrix());
-            //MaterialIDUniform->setContent(plane.getMaterialID());
-            //shadowMapSP.updateUniforms();
-            //plane.draw();
-
-            //// reset settings
-            //shadowMapFBO.unbind();
-            //glViewport(0, 0, width, height);
-            //glCullFace(GL_BACK);
+            lightMngr.renderShadowMaps({bunny, plane});
         }
         // end shadow mapping pass /////////////
 

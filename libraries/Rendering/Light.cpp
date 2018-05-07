@@ -1,5 +1,7 @@
 #include "Light.h"
 #include <glm/gtc/matrix_transform.inl>
+#include "imgui/imgui.h"
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace gl;
 
@@ -60,7 +62,7 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
     glCullFace(GL_BACK);
 }
 
-GPULight& Light::getGpuLight()
+const GPULight& Light::getGpuLight() const
 {
     return m_gpuLight;
 }
@@ -79,7 +81,7 @@ void Light::recalculateLightSpaceMatrix()
     else if (m_type == LightType::spot) 
     {
         const float nearPlane = 3.0f, farPlane = 18.0f;
-        m_lightProjection = glm::perspective(m_gpuLight.spotCutoff, static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
+        m_lightProjection = glm::perspective(2.0f*m_gpuLight.spotCutoff, static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
 
         m_lightView = lookAt(m_gpuLight.position,
             m_gpuLight.position + m_gpuLight.spotDirection, // aimed at the center
@@ -106,7 +108,7 @@ void Light::init(glm::vec3 position, glm::vec3 color, glm::vec3 spotDir, float s
 
         m_shadowTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
         m_shadowTexture->initWithoutData(m_shadowMapRes.x, m_shadowMapRes.y, GL_DEPTH_COMPONENT32F);
-        m_shadowTexture->setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+        m_shadowTexture->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         m_gpuLight.shadowMap = m_shadowTexture->generateHandle();
 
         m_shadowMapFBO = std::make_unique<FrameBuffer>(GL_DEPTH_ATTACHMENT, *m_shadowTexture);
@@ -137,6 +139,7 @@ void LightManager::uploadLightsToGPU()
     std::vector<GPULight> gpuLights;
     std::for_each(m_lightList.begin(), m_lightList.end(), [&gpuLights](auto& light)
     {
+        light->recalculateLightSpaceMatrix();
         gpuLights.push_back(light->getGpuLight());
     });
 
@@ -144,7 +147,23 @@ void LightManager::uploadLightsToGPU()
     m_lightsBuffer.bindBase(BufferBindings::Binding::lights);
 }
 
-void LightManager::updateShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene)
+bool LightManager::showLightGUIs()
+{
+    bool changed = false;
+    int index = 0;
+    std::for_each(m_lightList.begin(), m_lightList.end(), [this, &changed, &index](auto& light)
+    {
+        index++;
+        if (light->showLightGUI(std::string("Light ") + std::to_string(index)))
+        {
+            updateLightParams(light);
+            changed = true;
+        }
+    });
+    return changed;
+}
+
+void LightManager::renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene)
 {
     std::for_each(m_lightList.begin(), m_lightList.end(), [&scene](auto& light)
     {
@@ -193,6 +212,7 @@ std::vector<std::shared_ptr<Light>> LightManager::getLights() const
 void Light::setPosition(glm::vec3 pos)
 {
     m_gpuLight.position = pos;
+    recalculateLightSpaceMatrix();
 }
 
 void Light::setColor(glm::vec3 col)
@@ -203,6 +223,7 @@ void Light::setColor(glm::vec3 col)
 void Light::setSpotCutoff(float cutoff)
 {
     m_gpuLight.spotCutoff = cutoff;
+    recalculateLightSpaceMatrix();
 }
 
 void Light::setSpotExponent(float exp)
@@ -213,6 +234,7 @@ void Light::setSpotExponent(float exp)
 void Light::setSpotDirection(glm::vec3 dir)
 {
     m_gpuLight.spotDirection = dir;
+    recalculateLightSpaceMatrix();
 }
 
 glm::vec3 Light::getPosition() const
@@ -238,4 +260,42 @@ float Light::getSpotExponent() const
 glm::vec3 Light::getSpotDirection() const
 {
     return m_gpuLight.spotDirection;
+}
+
+bool Light::showLightGUI(std::string name)
+{
+    ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+    std::stringstream fullName;
+    fullName << name << " (Type: " << static_cast<int>(m_type) << ")";
+    ImGui::Begin(fullName.str().c_str());
+    bool lightChanged = false;
+    if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
+    {
+        lightChanged = true;
+    }
+    if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -10.0f, 10.0f))
+    {
+        lightChanged = true;
+    }
+    if (m_type == LightType::spot)
+    {
+        if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.spotCutoff, 0.0f, glm::radians(90.0f)))
+        {
+            lightChanged = true;
+        }
+        if (ImGui::SliderFloat((std::string("Exponent ") + name).c_str(), &m_gpuLight.spotExponent, 0.0f, 10.0f))
+        {
+            lightChanged = true;
+        }
+        if (ImGui::SliderFloat3((std::string("Drection ") + name).c_str(), value_ptr(m_gpuLight.spotDirection), -1.0f, 1.0f))
+        {
+            lightChanged = true;
+        }
+    }
+
+    ImGui::End();
+
+    if (lightChanged) recalculateLightSpaceMatrix();
+
+    return lightChanged;
 }

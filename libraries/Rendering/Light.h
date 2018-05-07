@@ -42,9 +42,11 @@ public:
 
     void renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene);
 
-    GPULight& getGpuLight();
+    const GPULight& getGpuLight() const;
 
     void recalculateLightSpaceMatrix();
+
+    bool showLightGUI(std::string name = "Light");
 
     void setPosition(glm::vec3 pos);
     void setColor(glm::vec3 col);
@@ -87,7 +89,9 @@ public:
 
     void uploadLightsToGPU();
 
-    void updateShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene);
+    bool showLightGUIs();
+
+    void renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene);
     void updateLightParams();
     void updateLightParams(std::shared_ptr<Light> light);
 
