@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "imgui/imgui.h"
+#include "../Utils/UtilCollection.h"
 
 Camera::Camera(int width, int height, float radius)
 {
@@ -124,6 +125,13 @@ void Camera::update(GLFWwindow* window)
         m_pos.z = m_center.z + m_radius * sin(m_theta) * cos(m_phi);
 
         m_viewMatrix = lookAt(m_pos, m_center, m_up);
+
+        if constexpr(util::debugmode)
+        {
+            // TODO implement proper "pilot view" camera so the trackball doesn't overflow
+            if (std::isnan(m_viewMatrix[0][0]))
+                throw std::runtime_error("NaN in View Matrix");
+        }
     }
 }
 
