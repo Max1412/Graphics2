@@ -11,7 +11,11 @@ public:
     virtual void loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4);
     virtual GLuint64 generateHandle();
 
-    virtual void initWithoutData(int width, int height, GLenum internalFormat);
+	virtual void initWithData1D(const void *data, GLint width, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+	virtual void initWithData2D(const void *data, GLint width, GLint height, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+	virtual void initWithData3D(const void *data, GLint width, GLint height, GLint depth, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+	
+	virtual void initWithoutData(int width, int height, GLenum internalFormat);
     virtual void initWithoutData3D(int width, int height, int depth, GLenum internalFormat);
 
     void setWrap(GLenum wrapS, GLenum wrapT) const;
