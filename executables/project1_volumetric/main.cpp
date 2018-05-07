@@ -142,7 +142,7 @@ int main()
 	float densityFactor = 4.0f;
 	float noiseScale = 6.0f;
 	float noiseSpeed = 0.1f;
-	GLuint permTextureID, simplexTextureID, gradientTextureID;
+	GLuint64 permTextureID, simplexTextureID, gradientTextureID;
 
 	//creates 2d texture combining permutation and gradient lookup table
 	Texture permTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST);
