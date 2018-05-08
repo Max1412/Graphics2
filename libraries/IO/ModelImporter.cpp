@@ -173,7 +173,10 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
             gpuMat.diffColor = glm::vec4(diffcolor.r, diffcolor.g, diffcolor.b, hasDiff);
             gpuMat.specColor = glm::vec4(speccolor.r, speccolor.g, speccolor.b, hasSpec);
             gpuMat.emissiveColor = glm::vec4(emissivecolor.r, emissivecolor.g, emissivecolor.b, 1.0f);
-            gpuMat.Ns = Ns;
+            if (Ns != 0)
+                gpuMat.Ns = Ns;
+            else
+                gpuMat.Ns = 32.0f;
 
             m_gpuMaterials.push_back(gpuMat);
         }

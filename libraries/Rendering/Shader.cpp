@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "Utils/Timer.h"
+#include "Utils/UtilCollection.h"
 
 
 Shader::Shader(const std::experimental::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions) : m_shaderType(shaderType), m_path(path), m_definitions(definitions)

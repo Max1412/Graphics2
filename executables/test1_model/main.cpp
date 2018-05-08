@@ -1,6 +1,7 @@
 #include <glbinding/gl/gl.h>
 #include "Rendering/Binding.h"
 #include <execution>
+#include "Rendering/Light.h"
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -46,16 +47,36 @@ int main()
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
     auto projUniform = std::make_shared<Uniform<glm::mat4>>("projectionMatrix", playerProj);
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("viewMatrix", playerCamera.getView());
+    auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", playerCamera.getPosition());
 
-    ModelImporter modelLoader("sponza/sponza.obj", 1);
 
     Shader modelVertexShader("modelVert.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
     Shader modelFragmentShader("modelFrag.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp(modelVertexShader, modelFragmentShader);
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
+    sp.addUniform(cameraPosUniform);
 
+    ModelImporter modelLoader("sponza/sponza.obj", 1);
     modelLoader.registerUniforms(sp);
+
+    // "generate" lights
+    LightManager lightMngr;
+    for (int i = 0; i < 1; i++)
+    {
+        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+        glm::vec4 pos = glm::vec4(0.0f, 200.0f, 0.0f, 1.0f);
+        glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
+        float constant = 1.0f;
+        float linear = 0.09f;
+        float quadratic = 0.032f;
+        float cutOff = glm::cos(glm::radians(12.5f));
+        float outerCutOff = glm::cos(glm::radians(15.0f));
+        auto li = std::make_shared<Light>(color, pos, dir, constant, linear, quadratic, cutOff, outerCutOff, glm::ivec2(1600, 900));
+
+        lightMngr.addLight(li);
+    }
+    lightMngr.uploadLightsToGPU();
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -81,6 +102,7 @@ int main()
         
         playerCamera.update(window);
         viewUniform->setContent(playerCamera.getView());
+        cameraPosUniform->setContent(playerCamera.getPosition());
         sp.updateUniforms();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -97,6 +119,9 @@ int main()
             modelLoader.draw(sp);
             
         }
+        lightMngr.renderShadowMaps(modelLoader.getMeshes());
+
+        lightMngr.showLightGUIs();
 
 
         timer.stop();

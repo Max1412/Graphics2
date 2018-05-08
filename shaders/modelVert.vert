@@ -11,6 +11,7 @@ uniform int meshIndex;
 
 out vec3 passNormal;
 out vec3 passTexCoord;
+out vec3 passFragPos;
 
 layout (std430, binding = MODELMATRICES_BINDING) buffer ModelMatrixBuffer
 {
@@ -22,6 +23,7 @@ void main()
     mat4 modelMatrix = modelMatrices[meshIndex];
     mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
     gl_Position = mvp * vec4(vertexPosition, 1.0f);
-    passNormal = vec3(transpose(inverse(mvp)) * vec4(vertexNormal, 0.0f));
+    passNormal = vec3(transpose(inverse(modelMatrix)) * vec4(vertexNormal, 0.0f));
     passTexCoord = vertexTexCoord;
+    passFragPos = vec3(modelMatrix * vec4(vertexPosition, 1.0f));
 }

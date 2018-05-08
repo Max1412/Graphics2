@@ -13,15 +13,18 @@ using namespace gl;
 
 struct GPULight
 {
-    glm::vec3 position; 
-    int type; //0 directional, 1 point light, 2 spot light
-    glm::vec3 color;
-    float spotCutoff;
-    glm::vec3 spotDirection;
-    float spotExponent;
     glm::mat4 lightSpaceMatrix;
-    uint64_t shadowMap; //can be sampler2D or samplerCube
-    float pad1, pad2;
+    glm::vec3 color;                // all
+    int type = -1;                  // 0 directional, 1 point light, 2 spot light
+    glm::vec3 position;             // spot, point
+    float constant = -1.0f;         // spot, point
+    glm::vec3 direction;            // dir, spot
+    float linear = -1.0f;         // spot, point
+    float quadratic = -1.0f;      // spot, point
+    float cutOff = -1.0f;         // spot
+    float outerCutOff = -1.0f;    // spot
+    int32_t pad; // TODO PAD
+    int64_t shadowMap;
 };
 
 enum class LightType : int
@@ -35,10 +38,10 @@ class Light
 {
 public:
 
-    Light(LightType type, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024));
-    Light(LightType type, glm::vec3 position, glm::ivec2 shadowMapRes = glm::ivec2(1024,1024));
-    Light(LightType type, glm::vec3 position, glm::vec3 color, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024));
-    Light(LightType type, glm::vec3 position, glm::vec3 color, glm::vec3 spotDir, float spotCutoff, float spotExponent, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024));
+    // explicit Light(LightType type, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024));
+    Light(glm::vec3 color, glm::vec3 direction, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // DIRECTIONAL
+    Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // POINT
+    Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // SPOT
 
     void renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene);
 
@@ -46,38 +49,63 @@ public:
 
     void recalculateLightSpaceMatrix();
 
-    bool showLightGUI(std::string name = "Light");
+    bool showLightGUI(const std::string& name = "Light");
+
+    // getters & setters 
+    void setColor(glm::vec3 col);
+    glm::vec3 getColor() const;
 
     void setPosition(glm::vec3 pos);
-    void setColor(glm::vec3 col);
-    void setSpotCutoff(float cutoff);
-    void setSpotExponent(float exp);
-    void setSpotDirection(glm::vec3 dir);
-
     glm::vec3 getPosition() const;
-    glm::vec3 getColor() const;
-    float getSpotCutoff() const;
-    float getSpotExponent() const;
-    glm::vec3 getSpotDirection() const;
+
+    void setDirection(glm::vec3 dir);
+    glm::vec3 getDirection() const;
+
+    void setConstant(float constant);
+    float getConstant() const;
+
+    void setLinear(float linear);
+    float getLinear() const;
+
+    void setQuadratic(float quadratic);
+    float getQuadratic() const;
+
+    void setCutoff(float cutoff);
+    float getCutoff() const;
+
+    void setOuterCutoff(float cutOff);
+    float getOuterCutoff() const;
 
 private:
-
-    GPULight m_gpuLight;
+    void checkParameters();
 
     LightType m_type;
-    bool m_hasShadowMap = false;
+
+    bool m_hasShadowMap = true;
     glm::ivec2 m_shadowMapRes;
 
     glm::mat4 m_lightProjection;
     glm::mat4 m_lightView;
 
-    std::shared_ptr<Texture> m_shadowTexture;
-    std::unique_ptr<FrameBuffer> m_shadowMapFBO;
-    std::unique_ptr<ShaderProgram> m_genShadowMapProgram;
+    Texture m_shadowTexture;
+    FrameBuffer m_shadowMapFBO;
+    ShaderProgram m_genShadowMapProgram;
+
     std::shared_ptr<Uniform<glm::mat4>> m_modelUniform;
     std::shared_ptr<Uniform<glm::mat4>> m_lightSpaceUniform;
 
-    void init(glm::vec3 position, glm::vec3 color, glm::vec3 spotDir, float spotCutoff, float spotExponent);
+    GPULight m_gpuLight;
+
+    // Lighting parameters
+    glm::vec3 m_color; // all
+    glm::vec3 m_position; // spot, point
+    glm::vec3 m_direction; // dir, spot
+    float m_constant = -1.0f; // spot, point
+    float m_linear = -1.0f;; // spot, point
+    float m_quadratic = -1.0f;; // spot, point
+    float m_cutOff = -1.0f;; // spot
+    float m_outerCutOff = -1.0f;; // spot
+
 };
 
 class LightManager
