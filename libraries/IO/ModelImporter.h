@@ -19,10 +19,12 @@ struct PhongGPUMaterial
 {
     uint64_t diffTexture = -1;
     uint64_t specTexture = -1;
+    uint64_t opacityTexture = -1;
+    float opacity = 1.0f;
+    float Ns = -1.0f;
     glm::vec4 diffColor;
     glm::vec4 specColor;
-    glm::vec3 emissiveColor;
-    float Ns = -1.0f;
+    glm::vec4 emissiveColor;
 };
 
 

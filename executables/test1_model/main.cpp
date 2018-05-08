@@ -4,32 +4,20 @@ using namespace gl;
 
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
-
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <memory>
 
 #include "Utils/UtilCollection.h"
 #include "Utils/Timer.h"
 #include "Rendering/Shader.h"
 #include "Rendering/ShaderProgram.h"
-#include "Rendering/Buffer.h"
 #include "Rendering/Uniform.h"
 #include "IO/ModelImporter.h"
-#include "Rendering/Mesh.h"
 #include "Rendering/Camera.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
-#include "Rendering/SkyBoxCube.h"
-#include "Rendering/Cubemap.h"
-#include "Rendering/Quad.h"
-#include "Rendering/FrameBuffer.h"
 
 constexpr int width = 1600;
 constexpr int height = 900;
@@ -69,7 +57,12 @@ int main()
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+
     glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 
     Timer timer;

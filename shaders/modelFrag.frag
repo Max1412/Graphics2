@@ -12,10 +12,12 @@ struct Material
 {
     sampler2D diffTexture;
     sampler2D specTexture;
+    sampler2D opacityTexture;
+    float opacity;
+    float Ns;
     vec4 diffColor;
     vec4 specColor;
-    vec3 emissiveColor;
-    float Ns;
+    vec4 emissiveColor;
 };
 
 layout (std430, binding = MATERIAL_BINDING) buffer MaterialBuffer
@@ -39,6 +41,11 @@ void main()
         spec = texture(currentMaterial.specTexture, passTexCoord.rg);
     else
         spec = vec4(currentMaterial.specColor.rgb, 1.0f);
+
+    if(currentMaterial.opacity == -1.0f) // has opacity texture instead of opacity
+        col.a = texture(currentMaterial.opacityTexture, passTexCoord.rg).r;
+    else
+        col.a = currentMaterial.opacity;
 
     fragColor = col;//vec4(currentMaterial.diffColor.rgb, 1.0);
 }
