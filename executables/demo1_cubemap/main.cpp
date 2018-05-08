@@ -21,7 +21,7 @@ using namespace gl;
 #include "Rendering/Uniform.h"
 #include "IO/ModelImporter.h"
 #include "Rendering/Mesh.h"
-#include "Rendering/Camera.h"
+#include "Rendering/Trackball.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
@@ -163,7 +163,7 @@ int main()
     sp.use();
 
     // create matrices for uniforms
-    Camera camera(width, height, 10.0f);
+    Trackball camera(width, height, 10.0f);
     glm::mat4 view = camera.getView();
     glm::vec3 cameraPos(camera.getPosition());
 

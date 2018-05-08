@@ -3,18 +3,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "imgui/imgui.h"
-#include "../Utils/UtilCollection.h"
 
-Camera::Camera(int width, int height, float radius)
+Camera::Camera(int width, int height)
 {
-    m_pos = glm::vec3(0.0f, 0.0f, radius);
+    m_pos = glm::vec3(0.0f, 0.0f, 1.0f);
     m_center = glm::vec3(0.0f, 0.0f, 0.0f);
     m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     m_sensitivity = 0.1f;
     m_theta = glm::pi<float>() / 2.0f;
     m_phi = 0.f;
-    m_radius = radius;
     m_width = width;
     m_height = height;
 
@@ -25,7 +23,7 @@ Camera::Camera(int width, int height, float radius)
 
 void Camera::reset()
 {
-    m_pos = glm::vec3(0.0f, 0.0f, m_radius);
+    m_pos = glm::vec3(0.0f, 0.0f, 1.0f);
     m_center = glm::vec3(0.0f, 0.0f, 0.0f);
     m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -70,68 +68,6 @@ void Camera::update(GLFWwindow* window)
 
         m_oldX = static_cast<float>(x);
         m_oldY = static_cast<float>(y);
-
-        float old_sensitivity = m_sensitivity;
-
-        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        {
-            m_sensitivity *= 100; // fast mode
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        {
-            m_radius -= m_sensitivity;
-        }
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        {
-            m_radius += m_sensitivity;
-        }
-        if (m_radius < 0.1f)
-        {
-            m_radius = 0.1f;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {
-            m_center += glm::normalize(m_center - m_pos) * m_sensitivity;
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        {
-            m_center -= glm::normalize(m_center - m_pos) * m_sensitivity;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        {
-            m_center += glm::normalize(glm::cross(m_up, m_center - m_pos)) * m_sensitivity;
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        {
-            m_center -= glm::normalize(glm::cross(m_up, m_center - m_pos)) * m_sensitivity;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        {
-            m_center += glm::normalize(m_up) * m_sensitivity;
-        }
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        {
-            m_center -= glm::normalize(m_up) * m_sensitivity;
-        }
-
-        m_sensitivity = old_sensitivity;
-
-        m_pos.x = m_center.x + m_radius * sin(m_theta) * sin(m_phi);
-        m_pos.y = m_center.y + m_radius * cos(m_theta);
-        m_pos.z = m_center.z + m_radius * sin(m_theta) * cos(m_phi);
-
-        m_viewMatrix = lookAt(m_pos, m_center, m_up);
-
-        if constexpr(util::debugmode)
-        {
-            // TODO implement proper "pilot view" camera so the trackball doesn't overflow
-            if (std::isnan(m_viewMatrix[0][0]))
-                throw std::runtime_error("NaN in View Matrix");
-        }
     }
 }
 
@@ -145,12 +81,22 @@ glm::mat4& Camera::getView()
     return m_viewMatrix;
 }
 
-glm::vec3& Camera::getPosition()
+glm::vec3 Camera::getPosition()
 {
     return m_pos;
 }
 
-glm::vec3& Camera::getCenter()
+glm::vec3 Camera::getCenter()
 {
     return m_center;
+}
+
+glm::vec3 Camera::getDirection()
+{
+    return glm::normalize(m_center - m_pos);
+}
+
+void Camera::setPosition(glm::vec3 pos)
+{
+    m_pos = pos;
 }

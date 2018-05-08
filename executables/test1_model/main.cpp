@@ -15,7 +15,8 @@ using namespace gl;
 #include "Rendering/ShaderProgram.h"
 #include "Rendering/Uniform.h"
 #include "IO/ModelImporter.h"
-#include "Rendering/Camera.h"
+#include "Rendering/Mesh.h"
+#include "Rendering/Pilotview.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
@@ -41,7 +42,7 @@ int main()
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
 
-    Camera playerCamera(width, height, 10.0f);
+    Pilotview playerCamera(width, height);
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
     auto projUniform = std::make_shared<Uniform<glm::mat4>>("projectionMatrix", playerProj);
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("viewMatrix", playerCamera.getView());

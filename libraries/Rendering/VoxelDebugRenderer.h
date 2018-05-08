@@ -2,10 +2,10 @@
 
 #include <vector>
 #include "Uniform.h"
-#include "Camera.h"
 #include "ShaderProgram.h"
 #include "glm/glm.hpp"
 #include "VertexArray.h"
+#include "Trackball.h"
 
 struct ScreenInfo
 {
@@ -27,7 +27,7 @@ public:
 private:
     glm::ivec3 m_gridDim;
     ScreenInfo m_screenInfo;
-    Camera m_camera;
+    Trackball m_camera;
     std::vector<Shader> m_shaders;
     ShaderProgram m_sp;
     int m_numVoxels;

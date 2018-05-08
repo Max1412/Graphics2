@@ -16,8 +16,8 @@ using namespace gl;
 #include "Rendering/Image.h"
 #include "IO/ModelImporter.h"
 #include "Rendering/Mesh.h"
-#include "Rendering/Camera.h"
 #include "Rendering/VoxelDebugRenderer.h"
+#include "Rendering/Pilotview.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
@@ -187,7 +187,7 @@ int main()
 		gradientTextureID = gradientTexture.generateHandle();
 	}
 
-    Camera playerCamera(screenWidth, screenHeight, 10.0f);
+    Pilotview playerCamera(screenWidth, screenHeight);
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);

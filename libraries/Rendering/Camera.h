@@ -31,15 +31,15 @@ struct FrustumGeo
 class Camera
 {
 public:
-    Camera(int width, int height, float radius);
+    Camera(int width, int height);
 
     /**
      * \brief Updates the view matrix based on mouse input
      * \param window 
      */
-    void update(GLFWwindow* window);
+    virtual void update(GLFWwindow* window) = 0;
 
-    void reset();
+    virtual void reset();
 
     /**
      * \brief returns the view matrix (const)
@@ -53,13 +53,17 @@ public:
      */
     glm::mat4& getView();
 
-    glm::vec3& getPosition();
-    glm::vec3& getCenter();
+    glm::vec3 getPosition();
+    glm::vec3 getCenter();
+    glm::vec3 getDirection();
 
-private:
+    void setPosition(glm::vec3 pos);
+
+    virtual ~Camera() = default;
+
+protected:
     glm::mat4 m_viewMatrix;
     glm::vec3 m_center;
-    glm::vec3 m_eye;
     glm::vec3 m_pos;
     glm::vec3 m_up;
 
@@ -69,7 +73,6 @@ private:
     float m_sensitivity;
     float m_theta;
     float m_phi;
-    float m_radius;
     float m_oldX;
     float m_oldY;
 };
