@@ -1,16 +1,21 @@
 #version 430
 #extension GL_ARB_bindless_texture : require
+#extension GL_ARB_gpu_shader_int64 : require
 
-in vec3 passPosition;
+in vec3 passPositionView;
+in vec3 passPositionWorld;
 in vec3 interpNormal;
 
 struct Light
 {
-    vec4 pos; //pos.w=0 dir., pos.w=1 point light
-    vec3 col;
-    float spot_cutoff; //no spotlight if cutoff=0
-    vec3 spot_direction;
-    float spot_exponent;
+    vec3 position;
+    int type; //0 directional, 1 point light, 2 spot light
+    vec3 color;
+    float spotCutoff;
+    vec3 spotDirection;
+    float spotExponent;
+    mat4 lightSpaceMatrix;
+    uint64_t shadowMap; //can be sampler2D or samplerCube
 };
 
 struct Material
@@ -24,21 +29,14 @@ struct Material
     int reflective;
 };
 
-layout (std430, binding = 0) restrict readonly buffer LightBuffer 
+layout (std430, binding = LIGHTS_BINDING) restrict readonly buffer LightBuffer
 {
     Light light[];
 };
 
-layout (std430, binding = 1) restrict readonly buffer MaterialBuffer 
+layout (std430, binding = MATERIAL_BINDING) restrict readonly buffer MaterialBuffer
 {
     Material material[];
-};
-
-// Shadow Maoping //////////////
-in vec4 fragPosLightspace;
-layout(binding = 7, std430) buffer ShadowMapBuffer
-{
-    sampler2D ShadowMapTexture;
 };
 
 uniform mat4 ModelMatrix;
@@ -49,8 +47,11 @@ uniform int matIndex;
 layout( location = 0 ) out vec4 fragmentColor;
 
 
-float CalculateShadow(in vec4 fragPosLightSpace, in vec3 lightDir)
+float calculateShadow(in int lightIndex, in vec3 fragPos, in vec3 lightDir)
 {
+    //transform position to light space
+    vec4 fragPosLightSpace = light[lightIndex].lightSpaceMatrix * vec4(fragPos, 1.0f);
+
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
@@ -61,7 +62,7 @@ float CalculateShadow(in vec4 fragPosLightSpace, in vec3 lightDir)
         return 0.0;
 
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(ShadowMapTexture, projCoords.xy).r; 
+    float closestDepth = texture(sampler2D(light[lightIndex].shadowMap), projCoords.xy).r;
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
 
@@ -83,14 +84,14 @@ float CalculateShadow(in vec4 fragPosLightSpace, in vec3 lightDir)
 
     // PCF : TODO make this selectable
     // TODO use random samples
-    vec2 texelSize = 1.0 / textureSize(ShadowMapTexture, 0);
+    vec2 texelSize = 1.0 / textureSize(sampler2D(light[lightIndex].shadowMap), 0);
     int kernelSize = 13; // TODO make this selectable
     int go = kernelSize / 2;
     for(int x = -go; x <= go; ++x)
     {
         for(int y = -go; y <= go; ++y)
         {
-            float pcfDepth = texture(ShadowMapTexture, projCoords.xy + vec2(x, y) * texelSize).r; 
+            float pcfDepth = texture(sampler2D(light[lightIndex].shadowMap), projCoords.xy + vec2(x, y) * texelSize).r;
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
         }    
     }
@@ -115,36 +116,44 @@ void main()
 
     fragmentColor.rgb = mat.kd*diffuse_color*lightAmbient;
 
+    float ambient = 0.15;
+    float shadowFactor = ambient;
 
     for ( int i = 0; i < light.length(); i++) 
     {
-        vec3 light_camcoord = (ViewMatrix * light[i].pos).xyz;
-        if (light[i].pos.w > 0.001f)
-            lightVector = normalize( light_camcoord - passPosition);
+        if (light[i].type > 0)
+        {
+            vec3 light_camcoord = (ViewMatrix * vec4(light[i].position, 1.0f)).xyz;
+            lightVector = normalize(light_camcoord - passPositionView);
+        }
         else
+        {
+            vec3 light_camcoord = (ViewMatrix * vec4(light[i].position, 0.0f)).xyz;
             lightVector = normalize(light_camcoord);
+        }
+
         float cos_phi = max( dot( passNormal, lightVector), 0.000001f);
 
-        vec3 eye = normalize( -passPosition);
+        vec3 eye = normalize( -passPositionView);
         vec3 reflection = normalize( reflect( -lightVector, passNormal));
         float cos_psi_n = pow( max( dot( reflection, eye), 0.000001f), mat.shininess);
 
-        if (light[i].spot_cutoff < 0.001f)
-            spot = 1.0;
+        if (light[i].type != 2)
+            spot = 1.0f;
         else 
         {
-            float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spot_direction)), 0.000001f);
-            if( cos_phi_spot >= cos( light[i].spot_cutoff))
-                spot = pow( cos_phi_spot, light[i].spot_exponent);
+            float cos_phi_spot = max( dot( -lightVector, normalize(mat3(ViewMatrix) * light[i].spotDirection)), 0.000001f);
+            if( cos_phi_spot >= cos( light[i].spotCutoff))
+                spot = pow( cos_phi_spot, light[i].spotExponent);
             else
                 spot = 0.0f;
         }
-        fragmentColor.rgb += mat.kd * spot * diffuse_color * cos_phi * light[i].col;
-        fragmentColor.rgb += mat.ks * spot * mat.specColor * cos_psi_n * light[i].col;
+        fragmentColor.rgb += mat.kd * spot * diffuse_color * cos_phi * light[i].color;
+        fragmentColor.rgb += mat.ks * spot * mat.specColor * cos_psi_n * light[i].color;
+
+        shadowFactor += (1.0f - calculateShadow(i, passPositionWorld, lightVector));
     }
     
-    float ambient = 0.15;
-    float shadowFactor = ambient + (1 - CalculateShadow(fragPosLightspace, lightVector));
     fragmentColor.rgb *= shadowFactor;
 
     fragmentColor.a = diffuse_alpha;
