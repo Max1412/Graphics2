@@ -63,9 +63,14 @@ public:
     const glm::mat2x3& calculateBoundingBox();
 
     /**
-     * \brief binds the vao & index buffer and uses glDrawArrays
+     * \brief calls forceDraw() if the mesh is enabled for rendering
      */
     void draw() const;
+
+    /**
+    * \brief binds the vao & index buffer and uses glDrawArrays
+    */
+    void forceDraw() const;
 
     /**
      * \brief sets the model matrix

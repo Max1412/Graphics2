@@ -77,11 +77,16 @@ Mesh::Mesh(std::vector<glm::vec3>& vertices, std::vector<glm::vec3>& normals, st
 
 void Mesh::draw() const
 {
-    if (m_enabledForRendering)
+    if(m_enabledForRendering)
     {
-        m_vao.bind();
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
+        forceDraw();
     }
+}
+
+void Mesh::forceDraw() const
+{
+    m_vao.bind();
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, nullptr);
 }
 
 void Mesh::setModelMatrix(const glm::mat4& modelMatrix)

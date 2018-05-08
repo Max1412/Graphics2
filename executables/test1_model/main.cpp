@@ -1,5 +1,6 @@
 #include <glbinding/gl/gl.h>
 #include "Rendering/Binding.h"
+#include <execution>
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -67,6 +68,8 @@ int main()
 
     Timer timer;
 
+    bool cullingOn = true;
+
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -84,8 +87,16 @@ int main()
         sp.use();
 
         // DRAW
-        //modelLoader.draw(sp);
-        modelLoader.drawCulled(sp, playerCamera, glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
+        ImGui::Checkbox("Draw with View Frustum Culling", &cullingOn);
+        if(cullingOn)
+            modelLoader.drawCulled(sp, playerCamera, glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
+        else
+        {
+            //std::for_each(std::execution::par, modelLoader.getMeshes().begin(), modelLoader.getMeshes().end(), [](auto &Mesh) { Mesh->setEnabledForRendering(true); });
+            modelLoader.draw(sp);
+            
+        }
+
 
         timer.stop();
         timer.drawGuiWindow(window);

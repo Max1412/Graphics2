@@ -226,13 +226,10 @@ void ModelImporter::draw(const ShaderProgram& sp) const
     int i = 0;
     for(const auto& mesh : m_meshes)
     {
-        if (mesh->isEnabledForRendering())
-        {
-            m_meshIndexUniform->setContent(i);
-            m_materialIndexUniform->setContent(mesh->getMaterialIndex());
-            sp.updateUniforms();
-            mesh->draw();
-        }
+        m_meshIndexUniform->setContent(i);
+        m_materialIndexUniform->setContent(mesh->getMaterialIndex());
+        sp.updateUniforms();
+        mesh->forceDraw();
         i++;
     }
 }
@@ -283,21 +280,31 @@ void ModelImporter::drawCulled(const ShaderProgram& sp, Camera& cam, float angle
 
     auto cullFunc = [&f](auto& mesh)
     {
-        mesh->setEnabledForRendering(false);
+        mesh->setEnabledForRendering(true);
         //for each plane do ...
         for (int i = 0; i < 6; ++i) {
-            if (f.distance(i, mesh->getBoundingBox()[1]) >= 0.0f ||
-                f.distance(i, mesh->getBoundingBox()[0]) >= 0.0f)
+            if (!(f.distance(i, mesh->getBoundingBox()[1]) >= 0.0f ||
+                f.distance(i, mesh->getBoundingBox()[0]) >= 0.0f))
             {
-                mesh->setEnabledForRendering(true);
-                return;
+                mesh->setEnabledForRendering(false);
             }
         }
     };
 
     std::for_each(std::execution::par, m_meshes.begin(), m_meshes.end(), cullFunc);
 
-    draw(sp);
+    int i = 0;
+    for (const auto& mesh : m_meshes)
+    {
+        if (mesh->isEnabledForRendering())
+        {
+            m_meshIndexUniform->setContent(i);
+            m_materialIndexUniform->setContent(mesh->getMaterialIndex());
+            sp.updateUniforms();
+            mesh->draw();
+        }
+        i++;
+    }
 }
 
 std::vector<std::shared_ptr<Mesh>> ModelImporter::getMeshes() const
