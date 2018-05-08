@@ -1,6 +1,6 @@
 #include <glbinding/gl/gl.h>
 #include "Rendering/Quad.h"
-#include "Rendering/Camera.h"
+#include "Rendering/Trackball.h"
 #include <glm/gtc/matrix_transform.inl>
 #include "Rendering/SparseVoxelOctree.h"
 #include "IO/ModelImporter.h"
@@ -57,7 +57,7 @@ int main()
 
     SparseVoxelOctree svo(scene, 5);
 
-    Camera cam(width, height, 5);
+    Trackball cam(width, height, 5);
 
     Shader vs("SparseVoxelOctree/sfq_rayDir.vert", GL_VERTEX_SHADER);
     Shader fs("SparseVoxelOctree/TraceSparseVoxelOctree.frag", GL_FRAGMENT_SHADER);
