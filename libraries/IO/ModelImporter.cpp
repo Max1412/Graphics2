@@ -89,7 +89,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 
             aiString reltexPath;
             // TODO height, opacity, normal, emissive, ... (use texture count and switch/case to take all of them)
-            for (aiTextureType type : {aiTextureType_DIFFUSE, aiTextureType_SPECULAR})
+            for (aiTextureType type : {aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_OPACITY})
             {
                 if (mat->GetTextureCount(type) == 0)
                     continue;
@@ -106,6 +106,10 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                     if (stbi_is_hdr(absTexPath.string().c_str()))
                     {
                         tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, 4);
+                    }
+                    else if(type == aiTextureType_OPACITY)
+                    {
+                        tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1);
                     }
                     else
                     {
@@ -135,6 +139,18 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                             hasSpec = 0.0f;
                         }
                         break;
+                    case aiTextureType_OPACITY:
+                        gpuMat.opacityTexture = texID;
+                        if (texID == -1)
+                        {
+                            gpuMat.opacity = 1.0f;
+                        }
+                        else
+                        {
+                            // encode "having an opacity texture" like this
+                            gpuMat.opacity = -1.0f;
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -149,9 +165,14 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
             float Ns = -1.0f;
             mat->Get(AI_MATKEY_SHININESS, Ns);
 
+            if(gpuMat.opacity != -1.0f) // only load opacity if no opacity texture exists
+            {
+                mat->Get(AI_MATKEY_OPACITY, gpuMat.opacity);   
+            }
+
             gpuMat.diffColor = glm::vec4(diffcolor.r, diffcolor.g, diffcolor.b, hasDiff);
             gpuMat.specColor = glm::vec4(speccolor.r, speccolor.g, speccolor.b, hasSpec);
-            gpuMat.emissiveColor = glm::vec3(emissivecolor.r, emissivecolor.g, emissivecolor.b);
+            gpuMat.emissiveColor = glm::vec4(emissivecolor.r, emissivecolor.g, emissivecolor.b, 1.0f);
             gpuMat.Ns = Ns;
 
             m_gpuMaterials.push_back(gpuMat);
