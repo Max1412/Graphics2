@@ -8,8 +8,7 @@ using namespace gl;
 
 Light::Light(glm::vec3 color, glm::vec3 direction, glm::ivec2 shadowMapRes) // DIRECTIONAL
 : m_type(LightType::directional), m_shadowMapRes(shadowMapRes),
-m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, m_shadowTexture), m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions),
-m_color(color), m_direction(direction)
+m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, m_shadowTexture), m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     checkParameters();
 
@@ -27,33 +26,45 @@ m_color(color), m_direction(direction)
 
     // init gpu struct
     m_gpuLight.type = static_cast<int>(m_type);
-    m_gpuLight.color = m_color;
-    m_gpuLight.direction = m_direction;
+    m_gpuLight.color = color;
+    m_gpuLight.direction = direction;
     m_gpuLight.shadowMap = m_shadowTexture.generateHandle();
 }
 
 Light::Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::ivec2 shadowMapRes) // POINT
 : m_type(LightType::point), m_shadowMapRes(shadowMapRes),
-m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, m_shadowTexture), m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions),
-m_color(color), m_position(position), m_constant(constant), m_linear(linear), m_quadratic(quadratic)
+m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, m_shadowTexture), m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     checkParameters();
 
+    // TODO THIS IS TEMPORARY; IMPLEMENT OMNIDIR. SHADOW MAPS
+    // init shadowMap 
+    m_shadowTexture.initWithoutData(m_shadowMapRes.x, m_shadowMapRes.y, GL_DEPTH_COMPONENT32F);
+    m_shadowTexture.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+    m_modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", glm::mat4(1.0f));
+    m_lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", glm::mat4(1.0f));
+
+    m_genShadowMapProgram.addUniform(m_modelUniform);
+    m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
+
+    recalculateLightSpaceMatrix();
+
     // init gpu struct
     m_gpuLight.type = static_cast<int>(m_type);
-    m_gpuLight.color = m_color;
-    m_gpuLight.position = m_position;
-    m_gpuLight.constant = m_constant;
-    m_gpuLight.linear = m_linear;
-    m_gpuLight.quadratic = m_quadratic;
+    m_gpuLight.color = color;
+    m_gpuLight.position = position;
+    m_gpuLight.constant = constant;
+    m_gpuLight.linear = linear;
+    m_gpuLight.quadratic = quadratic;
 
-    throw std::runtime_error("POINT LIGHTS NOT SUPPORTED YET");
+    std::cout << "Shadow maps for point lights are not supported yet\n";
+    //throw std::runtime_error("POINT LIGHTS NOT SUPPORTED YET");
 }
 
 Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, glm::ivec2 shadowMapRes) // SPOT
     : m_type(LightType::spot), m_shadowMapRes(shadowMapRes),
-    m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, m_shadowTexture), m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions),
-    m_color(color), m_position(position), m_direction(direction), m_constant(constant), m_linear(linear), m_quadratic(quadratic), m_cutOff(cutOff), m_outerCutOff(outerCutOff)
+    m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, m_shadowTexture), m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     checkParameters();
 
@@ -71,14 +82,14 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
 
     // init gpu struct
     m_gpuLight.type = static_cast<int>(m_type);
-    m_gpuLight.color = m_color;
-    m_gpuLight.position = m_position;
-    m_gpuLight.direction = m_direction;
-    m_gpuLight.constant = m_constant;
-    m_gpuLight.linear = m_linear;
-    m_gpuLight.quadratic = m_quadratic;
-    m_gpuLight.cutOff = m_cutOff;
-    m_gpuLight.outerCutOff = m_outerCutOff;
+    m_gpuLight.color = color;
+    m_gpuLight.position = position;
+    m_gpuLight.direction = direction;
+    m_gpuLight.constant = constant;
+    m_gpuLight.linear = linear;
+    m_gpuLight.quadratic = quadratic;
+    m_gpuLight.cutOff = cutOff;
+    m_gpuLight.outerCutOff = outerCutOff;
     m_gpuLight.shadowMap = m_shadowTexture.generateHandle();
 }
 
@@ -130,8 +141,8 @@ void Light::recalculateLightSpaceMatrix()
     {
         const float nearPlane = 3.0f, farPlane = 18.0f;
         // NOTE: ACOS BECAUSE CUTOFF HAS COS BAKED IN
-        m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.cutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
-        // TODO WHAT TO DO WITH OUTER CUTOFF???
+        m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
+
         m_lightView = lookAt(m_gpuLight.position,
             m_gpuLight.position + m_gpuLight.direction, // aimed at the center
             glm::vec3(0.0f, 1.0f, 0.0f));
@@ -153,27 +164,23 @@ const GPULight& Light::getGpuLight() const
 
 void Light::setPosition(glm::vec3 pos)
 {
-    m_position = pos;
     m_gpuLight.position = pos;
     recalculateLightSpaceMatrix();
 }
 
 void Light::setColor(glm::vec3 col)
 {
-    m_color = col;
     m_gpuLight.color = col;
 }
 
 void Light::setCutoff(float cutoff)
 {
-    m_cutOff = cutoff;
     m_gpuLight.cutOff = cutoff;
     recalculateLightSpaceMatrix();
 }
 
 void Light::setDirection(glm::vec3 dir)
 {
-    m_direction = dir;
     m_gpuLight.direction = dir;
     recalculateLightSpaceMatrix();
 }
@@ -181,7 +188,6 @@ void Light::setDirection(glm::vec3 dir)
 
 void Light::setConstant(float constant)
 {
-    m_constant = constant;
     m_gpuLight.constant = constant;
 }
 
@@ -192,7 +198,6 @@ float Light::getConstant() const
 
 void Light::setLinear(float linear)
 {
-    m_linear = linear;
     m_gpuLight.linear = linear;
 }
 
@@ -203,7 +208,6 @@ float Light::getLinear() const
 
 void Light::setQuadratic(float quadratic)
 {
-    m_quadratic = quadratic;
     m_gpuLight.quadratic = quadratic;
 }
 
@@ -229,7 +233,6 @@ float Light::getCutoff() const
 
 void Light::setOuterCutoff(float cutOff)
 {
-    m_outerCutOff = cutOff;
     m_gpuLight.outerCutOff = cutOff;
 }
 
@@ -246,21 +249,21 @@ glm::vec3 Light::getDirection() const
 
 bool Light::showLightGUI(const std::string& name)
 {
+    std::array<std::string, 3> lightTypeNames = { "Directional", "Point", "Spot" };
+
     ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
     std::stringstream fullName;
-    fullName << name << " (Type: " << static_cast<int>(m_type) << ")";
+    fullName << name << " (Type: " << lightTypeNames[static_cast<int>(m_type)] << ")";
     ImGui::Begin(fullName.str().c_str());
     bool lightChanged = false;
     if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
     {
-        m_color = m_gpuLight.color;
         lightChanged = true;
     }
     if(m_type == LightType::directional || m_type == LightType::spot)
     {
         if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
         {
-            m_direction = m_gpuLight.direction;
             lightChanged = true;
         }
     }
@@ -268,35 +271,29 @@ bool Light::showLightGUI(const std::string& name)
     {
         if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
         {
-            m_cutOff = m_gpuLight.cutOff;
             lightChanged = true;
         }
-        if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, 10.0f))
+        if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
         {
-            m_outerCutOff = m_gpuLight.outerCutOff;
             lightChanged = true;
         }
     }
     if (m_type == LightType::spot || m_type == LightType::point)
     {
-        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -10.0f, 10.0f))
+        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -1000.0f, 1000.0f))
         {
-            m_position = m_gpuLight.position;
             lightChanged = true;
         }
-        if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 10.0f))
+        if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
         {
-            m_constant = m_gpuLight.constant;
             lightChanged = true;
         }
-        if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 10.0f))
+        if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 0.25f))
         {
-            m_linear = m_gpuLight.linear;
             lightChanged = true;
         }
-        if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 10.0f))
+        if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 0.1f))
         {
-            m_quadratic = m_gpuLight.quadratic;
             lightChanged = true;
         }
     }

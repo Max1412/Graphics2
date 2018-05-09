@@ -23,7 +23,7 @@ void main()
     mat4 modelMatrix = modelMatrices[meshIndex];
     mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
     gl_Position = mvp * vec4(vertexPosition, 1.0f);
-    passNormal = vec3(transpose(inverse(modelMatrix)) * vec4(vertexNormal, 0.0f));
+    passNormal = mat3(transpose(inverse(modelMatrix))) * vertexNormal;
     passTexCoord = vertexTexCoord;
     passFragPos = vec3(modelMatrix * vec4(vertexPosition, 1.0f));
 }

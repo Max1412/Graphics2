@@ -101,7 +101,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                 // texture not loaded yet
                 if (m_texturemap.count(reltexPath.C_Str()) == 0)
                 {
-                    auto tex = std::make_shared<Texture>();
+                    auto tex = std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR);
                     // TODO textures with less than 4 channels... detect automatically?
                     if (stbi_is_hdr(absTexPath.string().c_str()))
                     {
@@ -173,10 +173,11 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
             gpuMat.diffColor = glm::vec4(diffcolor.r, diffcolor.g, diffcolor.b, hasDiff);
             gpuMat.specColor = glm::vec4(speccolor.r, speccolor.g, speccolor.b, hasSpec);
             gpuMat.emissiveColor = glm::vec4(emissivecolor.r, emissivecolor.g, emissivecolor.b, 1.0f);
-            if (Ns != 0)
-                gpuMat.Ns = Ns;
-            else
-                gpuMat.Ns = 32.0f;
+            gpuMat.Ns = Ns;
+            //if (Ns != 0)
+            //    gpuMat.Ns = Ns;
+            //else
+            //    gpuMat.Ns = 32.0f;
 
             m_gpuMaterials.push_back(gpuMat);
         }

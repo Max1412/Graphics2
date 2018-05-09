@@ -20,11 +20,11 @@ struct GPULight
     float constant = -1.0f;         // spot, point
     glm::vec3 direction;            // dir, spot
     float linear = -1.0f;         // spot, point
+    int64_t shadowMap;
     float quadratic = -1.0f;      // spot, point
     float cutOff = -1.0f;         // spot
     float outerCutOff = -1.0f;    // spot
-    int32_t pad; // TODO PAD
-    int64_t shadowMap;
+    int32_t pad, pad2, pad3; // TODO PAD
 };
 
 enum class LightType : int
@@ -95,17 +95,6 @@ private:
     std::shared_ptr<Uniform<glm::mat4>> m_lightSpaceUniform;
 
     GPULight m_gpuLight;
-
-    // Lighting parameters
-    glm::vec3 m_color; // all
-    glm::vec3 m_position; // spot, point
-    glm::vec3 m_direction; // dir, spot
-    float m_constant = -1.0f; // spot, point
-    float m_linear = -1.0f;; // spot, point
-    float m_quadratic = -1.0f;; // spot, point
-    float m_cutOff = -1.0f;; // spot
-    float m_outerCutOff = -1.0f;; // spot
-
 };
 
 class LightManager

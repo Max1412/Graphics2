@@ -64,6 +64,7 @@ int main()
     LightManager lightMngr;
     for (int i = 0; i < 1; i++)
     {
+        // spot light
         glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
         glm::vec4 pos = glm::vec4(0.0f, 200.0f, 0.0f, 1.0f);
         glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
@@ -72,11 +73,27 @@ int main()
         float quadratic = 0.032f;
         float cutOff = glm::cos(glm::radians(12.5f));
         float outerCutOff = glm::cos(glm::radians(15.0f));
-        auto li = std::make_shared<Light>(color, pos, dir, constant, linear, quadratic, cutOff, outerCutOff, glm::ivec2(1600, 900));
+        auto spot = std::make_shared<Light>(color, pos, dir, constant, linear, quadratic, cutOff, outerCutOff, glm::ivec2(1600, 900));
+        lightMngr.addLight(spot);
 
-        lightMngr.addLight(li);
+        // directional light
+        auto directional = std::make_shared<Light>(color, glm::vec3(0.0f, -1.0f, 0.0f));
+        lightMngr.addLight(directional);
+
+        // point light
+        auto point = std::make_shared<Light>(color, pos, constant, linear, quadratic);
+        lightMngr.addLight(point);
     }
     lightMngr.uploadLightsToGPU();
+
+    Shader lightDebugVS("lightDebug.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
+    Shader lightDebugGS("lightDebug.geom", GL_GEOMETRY_SHADER, BufferBindings::g_definitions);
+    Shader lightDebugFS("voxelDebug.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+    ShaderProgram lightDebugSP({ lightDebugVS, lightDebugGS, lightDebugFS });
+    lightDebugSP.addUniform(projUniform);
+    lightDebugSP.addUniform(viewUniform);
+    auto voxelSizeUniform = std::make_shared<Uniform<float>>("voxelSize", 10.0f);
+    lightDebugSP.addUniform(voxelSizeUniform);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -91,6 +108,7 @@ int main()
     Timer timer;
 
     bool cullingOn = true;
+    bool lightDebug = true;
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -106,11 +124,14 @@ int main()
         sp.updateUniforms();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        lightMngr.renderShadowMaps(modelLoader.getMeshes());
 
         sp.use();
 
         // DRAW
         ImGui::Checkbox("Draw with View Frustum Culling", &cullingOn);
+        ImGui::Checkbox("Draw light sources as geometry", &lightDebug);
+
         if(cullingOn)
             modelLoader.drawCulled(sp, playerCamera, glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
         else
@@ -119,11 +140,16 @@ int main()
             modelLoader.draw(sp);
             
         }
-        lightMngr.renderShadowMaps(modelLoader.getMeshes());
 
         lightMngr.showLightGUIs();
 
-
+        if (lightDebug)
+        {
+            lightDebugSP.use();
+            lightDebugSP.updateUniforms();
+            glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(lightMngr.getLights().size()));
+        }
+            
         timer.stop();
         timer.drawGuiWindow(window);
 

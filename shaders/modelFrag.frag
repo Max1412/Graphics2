@@ -37,10 +37,10 @@ struct Light
     float constant;         // spot, point
     vec3 direction;         // dir, spot
     float linear;           // spot, point
+    int64_t shadowMap;      // can be sampler2D or samplerCube
     float quadratic;        // spot, point
     float cutOff;           // spot
     float outerCutOff;      // spot
-    int64_t shadowMap;      // can be sampler2D or samplerCube
 };
 
 layout (std430, binding = LIGHTS_BINDING) readonly buffer LightBuffer
@@ -67,17 +67,54 @@ void main()
     else
         specCol = currentMaterial.specColor.rgb;
 
-    vec3 ambient = 0.05 * diffCol; // TODO ambient texture/color from assimp
+    vec3 ambient = 0.25 * diffCol; // TODO ambient texture/color from assimp
     vec3 normal = normalize(passNormal);
     vec3 viewDir = normalize(cameraPos - passFragPos);
 
-    // TODO sum up lights
     vec3 lightingColor = vec3(0.0f);
     lightingColor += ambient;
 
     for(int i = 0; i < lights.length(); i++)
     {
         Light currentLight = lights[i];
+        if(currentLight.type == 0) // D I R E C T I O N A L
+        {
+            vec3 lightDir = normalize(-currentLight.direction);
+
+            // diffuse shading
+            float diff = max(dot(normal, lightDir), 0.0);
+
+            // specular shading
+            vec3 reflectDir = reflect(-lightDir, normal);
+            float spec = pow(max(dot(viewDir, reflectDir), 0.0), currentMaterial.Ns);
+
+            // combine results
+            vec3 diffuse = currentLight.color * diff * diffCol;
+            vec3 specular = currentLight.color * spec * specCol;
+            lightingColor += (diffuse + specular);
+        }
+        if(currentLight.type == 1) // P O I N T
+        {
+            vec3 lightDir = normalize(currentLight.position - passFragPos);
+
+            // diffuse shading
+            float diff = max(dot(normal, lightDir), 0.0);
+
+            // specular shading
+            vec3 reflectDir = reflect(-lightDir, normal);
+            float spec = pow(max(dot(viewDir, reflectDir), 0.0), currentMaterial.Ns);
+
+            // attenuation
+            float distance = length(currentLight.position - passFragPos);
+            float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));    
+
+            // combine results
+            vec3 diffuse = currentLight.color * diff * diffCol;
+            vec3 specular = currentLight.color * spec * specCol;
+            diffuse *= attenuation;
+            specular *= attenuation;
+            lightingColor += (diffuse + specular);
+        }
         if(currentLight.type == 2) // S P O T
         {
             vec3 lightDir = normalize(currentLight.position - passFragPos);
@@ -91,7 +128,7 @@ void main()
 
             // attenuation
             float distance = length(currentLight.position - passFragPos);
-            float attenuation = 1.0 / (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance));    
+            float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));    
 
             // spotlight intensity
             float theta = dot(lightDir, normalize(-currentLight.direction)); 
@@ -114,5 +151,9 @@ void main()
     else
         col.a = currentMaterial.opacity;
 
-    fragColor = col;//vec4(currentMaterial.diffColor.rgb, 1.0);
+    // SPONZA HACK
+    if(col.a <= 0.9f)
+        discard;
+
+    fragColor = col;
 }
