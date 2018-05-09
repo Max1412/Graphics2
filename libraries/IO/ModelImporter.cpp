@@ -92,9 +92,25 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
             for (aiTextureType type : {aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_OPACITY})
             {
                 if (mat->GetTextureCount(type) == 0)
+                {
+                    switch (type)
+                    {
+                    case aiTextureType_DIFFUSE:
+                        hasDiff = 0.0f;
+                        break;
+                    case aiTextureType_SPECULAR:
+                        hasSpec = 0.0f;
+                        break;
+                    case aiTextureType_OPACITY:
+                        gpuMat.opacity = 1.0f;
+                        break;
+                    default:
+                        break;
+                    }
                     continue;
+                }
 
-                uint64_t texID = -1;
+                uint64_t texID = std::numeric_limits<uint64_t>::max();
                 mat->GetTexture(type, 0, &reltexPath);
                 auto absTexPath = path.parent_path() / std::experimental::filesystem::path(reltexPath.C_Str());
 
@@ -127,21 +143,21 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                 {
                     case aiTextureType_DIFFUSE:
                         gpuMat.diffTexture = texID;
-                        if(texID == -1)
+                        if(texID == std::numeric_limits<uint64_t>::max())
                         {
                             hasDiff = 0.0f;
                         }
                         break;
                     case aiTextureType_SPECULAR:
                         gpuMat.specTexture = texID;
-                        if (texID == -1)
+                        if (texID == std::numeric_limits<uint64_t>::max())
                         {
                             hasSpec = 0.0f;
                         }
                         break;
                     case aiTextureType_OPACITY:
                         gpuMat.opacityTexture = texID;
-                        if (texID == -1)
+                        if (texID == std::numeric_limits<uint64_t>::max())
                         {
                             gpuMat.opacity = 1.0f;
                         }
