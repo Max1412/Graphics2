@@ -281,14 +281,28 @@ void ModelImporter::drawCulled(const ShaderProgram& sp, Camera& cam, float angle
     auto cullFunc = [&f](auto& mesh)
     {
         mesh->setEnabledForRendering(true);
-        //for each plane do ...
-        for (int i = 0; i < 6; ++i) {
-            if (!(f.distance(i, mesh->getBoundingBox()[1]) >= 0.0f ||
-                f.distance(i, mesh->getBoundingBox()[0]) >= 0.0f))
+
+        glm::vec3 bmin = mesh->getBoundingBox()[0];
+        glm::vec3 bmax = mesh->getBoundingBox()[1];
+
+        for (int i = 0; i < 6; ++i)
+        {
+            int out = 0;
+            out += (f.distance(i, glm::vec3(bmin.x, bmin.y, bmin.z)) < 0.0) ? 1 : 0;
+            out += (f.distance(i, glm::vec3(bmax.x, bmin.y, bmin.z)) < 0.0) ? 1 : 0;
+            out += (f.distance(i, glm::vec3(bmin.x, bmax.y, bmin.z)) < 0.0) ? 1 : 0;
+            out += (f.distance(i, glm::vec3(bmax.x, bmax.y, bmin.z)) < 0.0) ? 1 : 0;
+            out += (f.distance(i, glm::vec3(bmin.x, bmin.y, bmax.z)) < 0.0) ? 1 : 0;
+            out += (f.distance(i, glm::vec3(bmax.x, bmin.y, bmax.z)) < 0.0) ? 1 : 0;
+            out += (f.distance(i, glm::vec3(bmin.x, bmax.y, bmax.z)) < 0.0) ? 1 : 0;
+            out += (f.distance(i, glm::vec3(bmax.x, bmax.y, bmax.z)) < 0.0) ? 1 : 0;
+            if (out == 8)
             {
                 mesh->setEnabledForRendering(false);
+                return;
             }
         }
+
     };
 
     std::for_each(std::execution::par, m_meshes.begin(), m_meshes.end(), cullFunc);
