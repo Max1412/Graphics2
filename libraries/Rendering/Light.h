@@ -76,6 +76,8 @@ public:
     void setOuterCutoff(float cutOff);
     float getOuterCutoff() const;
 
+    LightType getType() const;
+
 private:
     void checkParameters();
 
@@ -107,6 +109,7 @@ public:
     void uploadLightsToGPU();
 
     bool showLightGUIs();
+    void showRenderShadowMapGUI();
 
     void renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene);
     void updateLightParams();
@@ -120,5 +123,6 @@ private:
 
     Buffer m_lightsBuffer{ GL_SHADER_STORAGE_BUFFER };
     std::vector<std::shared_ptr<Light>> m_lightList;
+    int m_e = 0;
 
 };

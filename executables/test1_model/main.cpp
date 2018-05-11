@@ -62,26 +62,24 @@ int main()
 
     // "generate" lights
     LightManager lightMngr;
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 1; i++) // STANDARD VALUES FOR SPONZA
     {
         // spot light
-        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
-        glm::vec4 pos = glm::vec4(0.0f, 200.0f, 0.0f, 1.0f);
+        glm::vec3 pos = glm::vec3(80.0f, 200.0f, 100.0f);
         glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
-        float constant = 1.0f;
-        float linear = 0.09f;
-        float quadratic = 0.032f;
-        float cutOff = glm::cos(glm::radians(12.5f));
-        float outerCutOff = glm::cos(glm::radians(15.0f));
-        auto spot = std::make_shared<Light>(color, pos, dir, constant, linear, quadratic, cutOff, outerCutOff, glm::ivec2(1600, 900));
+        float cutOff = glm::cos(glm::radians(30.0f));
+        float outerCutOff = glm::cos(glm::radians(35.0f));
+        auto spot = std::make_shared<Light>(glm::vec3(0.0f, 1.0f, 1.0f), pos, dir, 0.05f, 0.002f, 0.0f, cutOff, outerCutOff);
         lightMngr.addLight(spot);
 
         // directional light
-        auto directional = std::make_shared<Light>(color, glm::vec3(0.0f, -1.0f, 0.0f));
+        auto directional = std::make_shared<Light>(glm::vec3(0.15f), glm::vec3(0.0f, -1.0f, 0.0f));
+        directional->setPosition({0.0f, 200.0f, 0.0f}); // position for shadow map only
+        directional->recalculateLightSpaceMatrix();
         lightMngr.addLight(directional);
 
         // point light
-        auto point = std::make_shared<Light>(color, pos, constant, linear, quadratic);
+        auto point = std::make_shared<Light>(glm::vec3(1.0f, 0.3f, 1.0f), glm::vec3(-100.0f, 170.0f, -230.0f) , 0.05f, 0.006f, 0.0f);
         lightMngr.addLight(point);
     }
     lightMngr.uploadLightsToGPU();
@@ -142,6 +140,8 @@ int main()
         }
 
         lightMngr.showLightGUIs();
+
+        lightMngr.showRenderShadowMapGUI();
 
         if (lightDebug)
         {

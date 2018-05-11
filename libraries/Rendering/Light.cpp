@@ -10,6 +10,7 @@ Light::Light(glm::vec3 color, glm::vec3 direction, glm::ivec2 shadowMapRes) // D
 : m_type(LightType::directional), m_shadowMapRes(shadowMapRes),
 m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, m_shadowTexture), m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
+    // TODO USE POSITION TOO, FOR SHADOW MAPS
     checkParameters();
 
     // init shadowMap
@@ -22,13 +23,13 @@ m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_
     m_genShadowMapProgram.addUniform(m_modelUniform);
     m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
 
-    recalculateLightSpaceMatrix();
-
     // init gpu struct
     m_gpuLight.type = static_cast<int>(m_type);
     m_gpuLight.color = color;
     m_gpuLight.direction = direction;
     m_gpuLight.shadowMap = m_shadowTexture.generateHandle();
+
+    recalculateLightSpaceMatrix();
 }
 
 Light::Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::ivec2 shadowMapRes) // POINT
@@ -48,8 +49,6 @@ m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_
     m_genShadowMapProgram.addUniform(m_modelUniform);
     m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
 
-    recalculateLightSpaceMatrix();
-
     // init gpu struct
     m_gpuLight.type = static_cast<int>(m_type);
     m_gpuLight.color = color;
@@ -57,6 +56,8 @@ m_shadowTexture(GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST), m_shadowMapFBO(GL_DEPTH_
     m_gpuLight.constant = constant;
     m_gpuLight.linear = linear;
     m_gpuLight.quadratic = quadratic;
+
+    recalculateLightSpaceMatrix();
 
     std::cout << "Shadow maps for point lights are not supported yet\n";
     //throw std::runtime_error("POINT LIGHTS NOT SUPPORTED YET");
@@ -78,8 +79,6 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
     m_genShadowMapProgram.addUniform(m_modelUniform);
     m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
 
-    recalculateLightSpaceMatrix();
-
     // init gpu struct
     m_gpuLight.type = static_cast<int>(m_type);
     m_gpuLight.color = color;
@@ -91,6 +90,8 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
     m_gpuLight.cutOff = cutOff;
     m_gpuLight.outerCutOff = outerCutOff;
     m_gpuLight.shadowMap = m_shadowTexture.generateHandle();
+
+    recalculateLightSpaceMatrix();
 }
 
 
@@ -115,7 +116,7 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
     //render scene
     std::for_each(scene.begin(), scene.end(), [&](auto& mesh)
     {
-        m_modelUniform->setContent(mesh->getModelMatrix());
+        m_modelUniform->setContent(mesh->getModelMatrix()); // TODO change shader to use model matrix buffer instead
         m_genShadowMapProgram.updateUniforms();
         mesh->draw();
     });
@@ -128,18 +129,19 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
 
 void Light::recalculateLightSpaceMatrix()
 {
-    if (m_type == LightType::directional) 
+    if (m_type == LightType::directional) // TODO position for directional light?
     {
-        const float nearPlane = 3.0f, farPlane = 18.0f;
+        const float nearPlane = 3.0f, farPlane = 1000.0f;
         m_lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
 
         m_lightView = lookAt(m_gpuLight.position,
             glm::vec3(0.0f), // aimed at the center
+            // TODO USE DIRECTION!!!!
             glm::vec3(0.0f, 1.0f, 0.0f));
     }
     else if (m_type == LightType::spot) 
     {
-        const float nearPlane = 3.0f, farPlane = 18.0f;
+        const float nearPlane = 3.0f, farPlane = 1000.0f;
         // NOTE: ACOS BECAUSE CUTOFF HAS COS BAKED IN
         m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
 
@@ -241,6 +243,11 @@ float Light::getOuterCutoff() const
     return m_gpuLight.outerCutOff;
 }
 
+LightType Light::getType() const
+{
+    return m_type;
+}
+
 glm::vec3 Light::getDirection() const
 {
     return m_gpuLight.direction;
@@ -280,7 +287,7 @@ bool Light::showLightGUI(const std::string& name)
     }
     if (m_type == LightType::spot || m_type == LightType::point)
     {
-        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -1000.0f, 1000.0f))
+        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
         {
             lightChanged = true;
         }
@@ -342,6 +349,32 @@ bool LightManager::showLightGUIs()
         }
     });
     return changed;
+}
+
+void LightManager::showRenderShadowMapGUI()
+{
+    std::array<std::string, 3> lightTypeNames = { "Directional", "Point", "Spot" };
+    ImGui::Begin("LightManager: Render Shadow Map");
+    int index = 0;
+    for(auto& light : m_lightList)
+    {
+        std::stringstream fullName;
+        fullName << index << " (Type: " << lightTypeNames[static_cast<int>(light->getType())] << ")";
+        ImGui::RadioButton(fullName.str().c_str(), &m_e, index); ImGui::SameLine();
+        // TODO fix radio buttons
+        index++;
+    }
+    ImGui::End();
+    int index2 = 0;
+    for (auto& light : m_lightList)
+    {
+        if (index2 == m_e)
+        {
+            //light->renderShadowMapToScreen();
+            // TODO render shadow maps to screen fbo (like demo4) for debugging
+        }
+        index2++;
+    }
 }
 
 void LightManager::renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene)
