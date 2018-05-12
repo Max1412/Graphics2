@@ -1,4 +1,5 @@
 #include <glbinding/gl/gl.h>
+#include "Rendering/Light.h"
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -45,9 +46,9 @@ struct FogInfo
 {
     glm::vec3 fogAlbedo;
     float fogAnisotropy;
-    GLuint64 densityMap;
     float fogScatteringCoeff;
     float fogAbsorptionCoeff;
+    float pad1, pad2;
 };
 
 struct NoiseInfo
@@ -194,13 +195,19 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{{playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(1);
 
+    FogInfo fog = { glm::vec3(1.0f), 0.5f, 10.f, 10.f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
-    fogSSBO.setStorage(std::array<FogInfo, 1>{ {glm::vec3(1.0f), 0.5f, GLuint64(0), 0.1f, 0.1f}}, GL_DYNAMIC_STORAGE_BIT); //TODO: put density map handle in here
+    fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(2);
 
 	Buffer noiseSSBO(GL_SHADER_STORAGE_BUFFER);
 	noiseSSBO.setStorage(std::array<NoiseInfo, 1>{ {permTextureID, simplexTextureID, gradientTextureID, time, densityFactor, noiseScale, noiseSpeed}}, GL_DYNAMIC_STORAGE_BIT);
 	noiseSSBO.bindBase(3);
+
+    auto l1 = std::make_shared<Light>(LightType::directional, glm::vec3(1.0f, -1.0f, 1.0f));
+    LightManager lm;
+    lm.addLight(l1);
+    lm.uploadLightsToGPU();
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
 
@@ -228,13 +235,24 @@ int main()
 			noiseSSBO.setContentSubData(densityFactor, offsetof(NoiseInfo, heightDensityFactor));
 		ImGui::End();
 
+        ImGui::Begin("Fog Settings");
+        if (ImGui::SliderFloat3("Albedo", value_ptr(fog.fogAlbedo), 0.0f, 1.0f))
+            fogSSBO.setContentSubData(fog.fogAlbedo, offsetof(FogInfo, fogAlbedo));
+        if (ImGui::SliderFloat("Anisotropy", &fog.fogAnisotropy, 0.0f, 1.0f))
+            fogSSBO.setContentSubData(fog.fogAnisotropy, offsetof(FogInfo, fogAnisotropy));
+        if (ImGui::SliderFloat("Scattering", &fog.fogScatteringCoeff, 0.0f, 100.0f))
+            fogSSBO.setContentSubData(fog.fogScatteringCoeff, offsetof(FogInfo, fogScatteringCoeff));
+        if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 100.0f))
+            fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
+        ImGui::End();
+
         ImGui::Checkbox("Player Camera", &pcActive);
         ImGui::Checkbox("Debug Camera", &dbgcActice);
         if (pcActive)
         {
             playerCamera.update(window);
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
-            //matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, playerCameraPosition));
+            matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
         } 
         if (dbgcActice)
         {
@@ -244,7 +262,7 @@ int main()
         {
             playerCamera.reset();
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
-            //matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, playerCameraPosition));
+            matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
         }
          
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -253,12 +271,14 @@ int main()
         {
             sp.showReloadShaderGUI({ perVoxelShader }, "Voxel");
             //accumSp.showReloadShaderGUI({ accumShader }, "Accumulation");
+            lm.showLightGUIs();
         }
+
+        lm.renderShadowMaps({}); //TODO: put scene in here
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
-
-		noiseSSBO.setContentSubData((float)glfwGetTime(), offsetof(NoiseInfo, time));
+		noiseSSBO.setContentSubData(static_cast<float>(glfwGetTime()), offsetof(NoiseInfo, time));
         sp.use();
         glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
             static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(groupSize))),
