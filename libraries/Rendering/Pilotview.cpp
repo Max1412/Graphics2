@@ -6,13 +6,17 @@
 
 Pilotview::Pilotview(int width, int height) : Camera(width, height)
 {
-    m_dir = glm::vec3(0.0f, 0.0f, -1.0f);
+    Pilotview::reset();
 }
 
 void Pilotview::reset()
 {
     Camera::reset();
     m_dir = glm::vec3(0.0f, 0.0f, -1.0f);
+    m_pos = glm::vec3(0.0f);
+    m_center = m_pos + m_dir;
+    m_viewMatrix = lookAt(m_pos, m_center, m_up);
+    m_phi = glm::pi<float>();
 }
 
 void Pilotview::setDirection(glm::vec3 dir)
