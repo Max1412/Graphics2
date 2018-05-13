@@ -128,8 +128,8 @@ int main()
     imageHoldingSSBO.setStorage(std::vector<GLuint64>{ handle }, GL_DYNAMIC_STORAGE_BIT);
     imageHoldingSSBO.bindBase(0);
 
-    Shader perVoxelShader("perVoxel3.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
-    ShaderProgram sp({ perVoxelShader });
+    Shader scatterLightShader("scatterLight.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
+    ShaderProgram sp({ scatterLightShader });
 
     Shader accumShader("accumulateVoxels.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram accumSp({ accumShader });
@@ -269,7 +269,7 @@ int main()
 
         if constexpr (renderimgui)
         {
-            sp.showReloadShaderGUI({ perVoxelShader }, "Voxel");
+            sp.showReloadShaderGUI({ scatterLightShader }, "Voxel");
             //accumSp.showReloadShaderGUI({ accumShader }, "Accumulation");
             lm.showLightGUIs();
         }
