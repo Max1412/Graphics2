@@ -33,6 +33,8 @@ private:
     int m_numVoxels;
     float m_voxelSize = 0.004f;
     std::shared_ptr<Uniform<float>> m_voxelSizeUniform;
+    std::shared_ptr<Uniform<int>> m_positionSourceUniform;
+    std::shared_ptr<Uniform<int>> m_dataModeUniform;
     glm::mat4 m_projMat;
     std::shared_ptr<Uniform<glm::mat4>> m_viewUniform;
     bool m_wireframe = false;

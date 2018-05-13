@@ -212,8 +212,7 @@ int main()
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
 
     Timer timer;
-    bool pcActive = false;
-    bool dbgcActice = true;
+    int dbgcActive = 1;
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -246,18 +245,19 @@ int main()
             fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
         ImGui::End();
 
-        ImGui::Checkbox("Player Camera", &pcActive);
-        ImGui::Checkbox("Debug Camera", &dbgcActice);
-        if (pcActive)
+        ImGui::Text("Camera control");
+        ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
+        ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
+        if (dbgcActive)
+        {
+            vdbgr.updateCamera(window);
+        }
+        else
         {
             playerCamera.update(window);
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
         } 
-        if (dbgcActice)
-        {
-            vdbgr.updateCamera(window);
-        }
         if (ImGui::Button("Reset Player Camera"))
         {
             playerCamera.reset();
