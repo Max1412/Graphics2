@@ -8,6 +8,8 @@ layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 uniform ivec3 gridDim;
 
+uniform int debugMode = 0;
+
 layout(binding = 0, std430) buffer voxelGridBuffer
 {
     layout(rgba32f) image3D voxelGrid;
@@ -279,10 +281,26 @@ void main()
 
     vec4 outColor = vec4(lighting * scattering, scattering + absorbtion); //TODO: write this value into voxelGrid
 
+    switch (debugMode)
+    {
+    case 1:
+        imageStore(voxelGrid, g_ID, vec4(worldPos, density));
+        break;
+    case 2:
+        imageStore(voxelGrid, g_ID, vec4(worldPos, outColor.r));
+        break;
+    case 3:
+        imageStore(voxelGrid, g_ID, vec4(lighting, density));
+        break;
+    default:
+        imageStore(voxelGrid, g_ID, outColor);
+        break;
+    }
+
 	//if(g_ID.x <= gridDim.x && g_ID.y <= gridDim.y && g_ID.z <= gridDim.z)
-	{
-		imageStore(voxelGrid, g_ID, vec4(worldPos, outColor.r));
-	}
+	//{
+	//	imageStore(voxelGrid, g_ID, vec4(worldPos, outColor.r));
+	//}
 
 }
 

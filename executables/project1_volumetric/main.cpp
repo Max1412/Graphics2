@@ -138,6 +138,9 @@ int main()
     sp.addUniform(u_gridDim);
     accumSp.addUniform(u_gridDim);
 
+    auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 2);
+    sp.addUniform(u_debugMode);
+
 	//set variables and uniforms for noise and density
 	float time = (float)glfwGetTime();
 	float densityFactor = 4.0f;
@@ -243,6 +246,13 @@ int main()
             fogSSBO.setContentSubData(fog.fogScatteringCoeff, offsetof(FogInfo, fogScatteringCoeff));
         if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 100.0f))
             fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
+        ImGui::End();
+
+        ImGui::Begin("Image content settings");
+        ImGui::RadioButton("Full volumetric values (outColor)", &u_debugMode->getContentRef(), 0);
+        ImGui::RadioButton("worldPos, density", &u_debugMode->getContentRef(), 1);
+        ImGui::RadioButton("worldPos, outColor.r", &u_debugMode->getContentRef(), 2);
+        ImGui::RadioButton("lighting, density", &u_debugMode->getContentRef(), 3);
         ImGui::End();
 
         ImGui::Text("Camera control");
