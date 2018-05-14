@@ -1,6 +1,9 @@
 #version 430
 #extension GL_ARB_bindless_texture : require
-#extension GL_ARB_gpu_shader_int64 : require
+//#extension GL_ARB_gpu_shader_int64 : require
+
+#include "common/light.glsl"
+#include "common/material.glsl"
 
 uniform int materialIndex;
 uniform vec3 cameraPos;
@@ -10,43 +13,6 @@ in vec3 passTexCoord;
 in vec3 passFragPos;
 
 out vec4 fragColor;
-
-struct Material
-{
-    sampler2D diffTexture;
-    sampler2D specTexture;
-    sampler2D opacityTexture;
-    float opacity;
-    float Ns;
-    vec4 diffColor;
-    vec4 specColor;
-    vec4 emissiveColor;
-};
-
-layout (std430, binding = MATERIAL_BINDING) readonly buffer MaterialBuffer
-{
-    Material materials[];
-};
-
-struct Light
-{
-    mat4 lightSpaceMatrix;
-    vec3 color;             // all
-    int type;               // 0 directional, 1 point light, 2 spot light
-    vec3 position;          // spot, point
-    float constant;         // spot, point
-    vec3 direction;         // dir, spot
-    float linear;           // spot, point
-    int64_t shadowMap;      // can be sampler2D or samplerCube
-    float quadratic;        // spot, point
-    float cutOff;           // spot
-    float outerCutOff;      // spot
-};
-
-layout (std430, binding = LIGHTS_BINDING) readonly buffer LightBuffer
-{
-    Light lights[];
-};
 
 float calculateCubeShadow(in int lightIndex, in vec3 fragPos, in vec3 lightDir)
 {
