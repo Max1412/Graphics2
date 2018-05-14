@@ -18,6 +18,7 @@ using namespace gl;
 #include "IO/ModelImporter.h"
 #include "Rendering/Mesh.h"
 #include "Rendering/Pilotview.h"
+#include "Rendering/LightManager.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
