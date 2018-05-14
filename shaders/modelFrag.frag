@@ -62,6 +62,12 @@ float calculateShadow(in int lightIndex, in vec3 fragPos, in vec3 lightDir)
     if(projCoords.z > 1.0)
         return 0.0;
 
+    vec2 texSize = textureSize(sampler2D(lights[lightIndex].shadowMap), 0);
+    // if(any(greaterThan(projCoords.xy, vec2(1.0f))))
+    // {
+    //     return 0.0;
+    // }
+
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     float closestDepth = texture(sampler2D(lights[lightIndex].shadowMap), projCoords.xy).r;
     // get depth of current fragment from light's perspective
@@ -76,7 +82,7 @@ float calculateShadow(in int lightIndex, in vec3 fragPos, in vec3 lightDir)
     //bias = 0.0;
 
     float cos_phi = max( dot( normalize(passNormal), normalize(lightDir)), 0.0f);
-    bias = -0.001 * tan( acos( cos_phi ) );
+    bias = -0.00001 * tan( acos( cos_phi ) );
 
     float shadow = 0.0;
 
@@ -125,8 +131,6 @@ void main()
     vec3 normal = normalize(passNormal);
     vec3 viewDir = normalize(cameraPos - passFragPos);
 
-    float shadowFactor = ambientFactor; // TODO use ambient here
-
     vec3 lightingColor = vec3(0.0f);
     lightingColor += ambient;
 
@@ -150,7 +154,9 @@ void main()
             lightingColor += (diffuse + specular);
 
             // TODO shadow doesn't even show up, fix it
-            shadowFactor += (1.0f - calculateShadow(i, passFragPos, lightDir));
+            float shadowFactor = (1.0f - calculateShadow(i, passFragPos, lightDir));
+            vec3 thisLight = shadowFactor * (diffuse + specular);
+            lightingColor += thisLight;
         }
         if(currentLight.type == 1) // P O I N T
         {
@@ -199,12 +205,12 @@ void main()
             vec3 specular = currentLight.color * spec * specCol;
             diffuse *= attenuation * intensity;
             specular *= attenuation * intensity;
-            lightingColor += (diffuse + specular);
-            // TODO shadows look like shit, fix them
-            //shadowFactor += (1.0f - calculateShadow(i, passFragPos, lightDir));
+
+            float shadowFactor = (1.0f - calculateShadow(i, passFragPos, lightDir));
+            vec3 thisLight = shadowFactor * (diffuse + specular);
+            lightingColor += thisLight;
         }
     }
-    lightingColor *= shadowFactor;
 
     vec4 col = vec4(lightingColor, 1.0);
 

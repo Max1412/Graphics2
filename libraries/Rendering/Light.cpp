@@ -118,7 +118,7 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
     {
         m_modelUniform->setContent(mesh->getModelMatrix()); // TODO change shader to use model matrix buffer instead
         m_genShadowMapProgram.updateUniforms();
-        mesh->draw();
+        mesh->draw(); // TODO CULL
     });
 
     //restore previous rendering settings
@@ -129,15 +129,21 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
 
 void Light::recalculateLightSpaceMatrix()
 {
-    if (m_type == LightType::directional) // TODO position for directional light?
+    if (m_type == LightType::directional)
     {
         const float nearPlane = 3.0f, farPlane = 1000.0f;
-        m_lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+        m_lightProjection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, nearPlane, farPlane);
 
-        m_lightView = lookAt(m_gpuLight.position,
-            glm::vec3(0.0f), // aimed at the center
-            // TODO USE DIRECTION!!!!
-            glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::vec3 up(0.0f, 1.0f, 0.0f);
+
+        if (glm::length(glm::cross(m_gpuLight.position + m_gpuLight.direction, up)) < 0.01f)
+        {
+            up = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+
+        m_lightView = glm::lookAt(m_gpuLight.position,
+            m_gpuLight.position + m_gpuLight.direction,
+            up);
     }
     else if (m_type == LightType::spot) 
     {
@@ -145,7 +151,7 @@ void Light::recalculateLightSpaceMatrix()
         // NOTE: ACOS BECAUSE CUTOFF HAS COS BAKED IN
         m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
 
-        m_lightView = lookAt(m_gpuLight.position,
+        m_lightView = glm::lookAt(m_gpuLight.position,
             m_gpuLight.position + m_gpuLight.direction, // aimed at the center
             glm::vec3(0.0f, 1.0f, 0.0f));
     }
