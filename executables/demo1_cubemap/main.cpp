@@ -114,7 +114,7 @@ int main()
     const auto fboTexHandle = fboTex.at(0).getHandle();
     Buffer fboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
     fboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{fboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
-    fboTexHandleBuffer.bindBase(6);
+    fboTexHandleBuffer.bindBase(static_cast<BufferBindings::Binding>(6));
 
     FrameBuffer fbo(fboTex);
 
@@ -130,7 +130,7 @@ int main()
     // put the texture handle into a SSBO
     Buffer textureHandleBuffer(GL_SHADER_STORAGE_BUFFER);
     textureHandleBuffer.setStorage(std::array<GLuint64, 1>{CubemapSkybox.getHandle()}, GL_DYNAMIC_STORAGE_BIT);
-    textureHandleBuffer.bindBase(3);
+    textureHandleBuffer.bindBase(static_cast<BufferBindings::Binding>(3));
 
     // actual stuff
     const Shader vs("demo1.vert", GL_VERTEX_SHADER);
@@ -253,11 +253,11 @@ int main()
     // create buffers for materials and lights
     Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
     lightBuffer.setStorage(lvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-    lightBuffer.bindBase(0);
+    lightBuffer.bindBase(static_cast<BufferBindings::Binding>(0));
 
     Buffer materialBuffer(GL_SHADER_STORAGE_BUFFER);
     materialBuffer.setStorage(mvec, GL_DYNAMIC_STORAGE_BIT);
-    materialBuffer.bindBase(1);
+    materialBuffer.bindBase(static_cast<BufferBindings::Binding>(1));
 
     FogInfo f;
     f.start = 0.0f;

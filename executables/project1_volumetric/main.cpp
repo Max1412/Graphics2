@@ -126,7 +126,7 @@ int main()
 
     Buffer imageHoldingSSBO(GL_SHADER_STORAGE_BUFFER);
     imageHoldingSSBO.setStorage(std::vector<GLuint64>{ handle }, GL_DYNAMIC_STORAGE_BIT);
-    imageHoldingSSBO.bindBase(0);
+    imageHoldingSSBO.bindBase(static_cast<BufferBindings::Binding>(0));
 
     Shader scatterLightShader("scatterLight.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp({ scatterLightShader });
@@ -196,16 +196,16 @@ int main()
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{{playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
-    matrixSSBO.bindBase(1);
+    matrixSSBO.bindBase(static_cast<BufferBindings::Binding>(1));
 
     FogInfo fog = { glm::vec3(1.0f), 0.5f, 10.f, 10.f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
-    fogSSBO.bindBase(2);
+    fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
 
 	Buffer noiseSSBO(GL_SHADER_STORAGE_BUFFER);
 	noiseSSBO.setStorage(std::array<NoiseInfo, 1>{ {permTextureID, simplexTextureID, gradientTextureID, time, densityFactor, noiseScale, noiseSpeed}}, GL_DYNAMIC_STORAGE_BIT);
-	noiseSSBO.bindBase(3);
+	noiseSSBO.bindBase(static_cast<BufferBindings::Binding>(3));
 
     auto l1 = std::make_shared<Light>(glm::vec3(1.0f), glm::vec3(1.0f, -1.0f, 1.0f));
     l1->setPosition({ 0.0f, 10.0f, 0.0f }); // position for shadow map only

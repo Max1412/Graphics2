@@ -76,8 +76,8 @@ SparseVoxelOctree::SparseVoxelOctree(const std::vector<std::shared_ptr<Mesh>>& s
 
 void SparseVoxelOctree::bind() const
 {
-    m_nodePool.bindBase(2);
-    m_nodeColor.bindBase(3);  
+    m_nodePool.bindBase(static_cast<BufferBindings::Binding>(2));
+    m_nodeColor.bindBase(static_cast<BufferBindings::Binding>(3));
 }
 
 void SparseVoxelOctree::update()
@@ -91,12 +91,12 @@ void SparseVoxelOctree::update()
     if constexpr(util::debugmode) { glFinish(); t1 = glfwGetTime(); }
 
     //bind Buffers
-    m_voxelFragmentList.bindBase(0);
-    m_voxelFragmentColor.bindBase(1);
-    m_nodePool.bindBase(2);
-    m_nodeColor.bindBase(3);
-    m_voxelCounter.bindBase(0);
-    m_nodeCounter.bindBase(1);
+    m_voxelFragmentList.bindBase(static_cast<BufferBindings::Binding>(0));
+    m_voxelFragmentColor.bindBase(static_cast<BufferBindings::Binding>(1));
+    m_nodePool.bindBase(static_cast<BufferBindings::Binding>(2));
+    m_nodeColor.bindBase(static_cast<BufferBindings::Binding>(3));
+    m_voxelCounter.bindBase(static_cast<BufferBindings::Binding>(0));
+    m_nodeCounter.bindBase(static_cast<BufferBindings::Binding>(1));
 
     //clear SSBOs
     glGetNamedBufferSubData(m_voxelCounter.getHandle(), 0, 4, &voxelCount);

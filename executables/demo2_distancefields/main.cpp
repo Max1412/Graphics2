@@ -149,7 +149,7 @@ int main()
     // create buffers for materials and lights
     Buffer lightBuffer(GL_SHADER_STORAGE_BUFFER);
     lightBuffer.setStorage(lvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-    lightBuffer.bindBase(0);
+    lightBuffer.bindBase(static_cast<BufferBindings::Binding>(0));
 
     glm::vec4 clear_color(0.1f);
     std::vector<glm::vec3> rotations(5, glm::vec3(0.0f));

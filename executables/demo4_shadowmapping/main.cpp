@@ -80,7 +80,7 @@ int main()
     const auto fboTexHandle = fboTex.at(0).getHandle();
     Buffer fboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
     fboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{fboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
-    fboTexHandleBuffer.bindBase(6);
+    fboTexHandleBuffer.bindBase(static_cast<BufferBindings::Binding>(6));
 
     FrameBuffer fbo(fboTex);
 
