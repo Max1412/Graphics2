@@ -262,54 +262,8 @@ glm::vec3 Light::getDirection() const
 
 bool Light::showLightGUI(const std::string& name)
 {
-    std::array<std::string, 3> lightTypeNames = { "Directional", "Point", "Spot" };
-
-    ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
-    std::stringstream fullName;
-    fullName << name << " (Type: " << lightTypeNames[static_cast<int>(m_type)] << ")";
-    ImGui::Begin(fullName.str().c_str());
-    bool lightChanged = false;
-    if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
-    {
-        lightChanged = true;
-    }
-    if(m_type == LightType::directional || m_type == LightType::spot)
-    {
-        if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
-        {
-            lightChanged = true;
-        }
-    }
-    if (m_type == LightType::spot)
-    {
-        if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
-        {
-            lightChanged = true;
-        }
-    }
-    if (m_type == LightType::spot || m_type == LightType::point)
-    {
-        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 0.25f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 0.1f))
-        {
-            lightChanged = true;
-        }
-    }
+    ImGui::Begin("Light GUI");
+    bool lightChanged = showLightGUIContent(name);
     ImGui::End();
 
     if (lightChanged) recalculateLightSpaceMatrix();
@@ -362,7 +316,7 @@ void LightManager::showRenderShadowMapGUI()
     std::array<std::string, 3> lightTypeNames = { "Directional", "Point", "Spot" };
     ImGui::Begin("LightManager: Render Shadow Map");
     int index = 0;
-    for(auto& light : m_lightList)
+    for (auto& light : m_lightList)
     {
         std::stringstream fullName;
         fullName << index << " (Type: " << lightTypeNames[static_cast<int>(light->getType())] << ")";
@@ -381,6 +335,23 @@ void LightManager::showRenderShadowMapGUI()
         }
         index2++;
     }
+}
+
+bool LightManager::showLightGUIsContent()
+{
+	bool changed = false;
+	int index = 0;
+	std::for_each(m_lightList.begin(), m_lightList.end(), [this, &changed, &index](auto& light)
+	{
+		index++;
+		ImGui::Separator();
+		if (light->showLightGUIContent(std::string("Light ") + std::to_string(index)))
+		{
+			updateLightParams(light);
+			changed = true;
+		}
+	});
+	return changed;
 }
 
 void LightManager::renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene)
@@ -427,4 +398,57 @@ void LightManager::addLight(std::shared_ptr<Light> light)
 std::vector<std::shared_ptr<Light>> LightManager::getLights() const
 {
     return m_lightList;
+}
+
+bool Light::showLightGUIContent(const std::string& name)
+{
+    std::array<std::string, 3> lightTypeNames = { "Directional", "Point", "Spot" };
+
+    ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+    std::stringstream fullName;
+    fullName << name << " (Type: " << lightTypeNames[static_cast<int>(m_type)] << ")";
+    bool lightChanged = false;
+    ImGui::Text(fullName.str().c_str());
+    if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
+    {
+        lightChanged = true;
+    }
+    if (m_type == LightType::directional || m_type == LightType::spot)
+    {
+        if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
+        {
+            lightChanged = true;
+        }
+    }
+    if (m_type == LightType::spot)
+    {
+        if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
+        {
+            lightChanged = true;
+        }
+        if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
+        {
+            lightChanged = true;
+        }
+    }
+    if (m_type == LightType::spot || m_type == LightType::point)
+    {
+        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
+        {
+            lightChanged = true;
+        }
+        if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
+        {
+            lightChanged = true;
+        }
+        if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 0.25f))
+        {
+            lightChanged = true;
+        }
+        if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 0.1f))
+        {
+            lightChanged = true;
+        }
+    }
+    return lightChanged;
 }

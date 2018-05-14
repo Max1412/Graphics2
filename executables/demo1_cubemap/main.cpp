@@ -268,7 +268,7 @@ int main()
     std::vector<FogInfo> fogvec{f};
     Buffer fogBuffer(GL_SHADER_STORAGE_BUFFER);
     fogBuffer.setStorage(fogvec, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-    fogBuffer.bindBase(2);
+    fogBuffer.bindBase(static_cast<BufferBindings::Binding>(2));
 
     const glm::vec4 clearColor(0.1f);
 

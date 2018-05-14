@@ -50,6 +50,7 @@ public:
     void recalculateLightSpaceMatrix();
 
     bool showLightGUI(const std::string& name = "Light");
+	bool showLightGUIContent(const std::string& name = "Light");
 
     // getters & setters 
     void setColor(glm::vec3 col);
@@ -109,7 +110,9 @@ public:
     void uploadLightsToGPU();
 
     bool showLightGUIs();
+
     void showRenderShadowMapGUI();
+	bool showLightGUIsContent();
 
     void renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene);
     void updateLightParams();

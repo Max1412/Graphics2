@@ -29,6 +29,12 @@ public:
     T getContent() const;
 
     /**
+    * \brief returns a reference to the current content
+    * \return current content
+    */
+    T& getContentRef();
+
+    /**
      * \brief returns the 'content-has-been-changed'-flag
      * \return change flag
      */
@@ -80,6 +86,14 @@ void Uniform<T>::hasBeenUpdated(const GLuint shaderProgramHandle)
 template <typename T>
 T Uniform<T>::getContent() const
 {
+    return m_content;
+}
+
+template <typename T>
+T& Uniform<T>::getContentRef()
+{
+    for (auto& flags : m_associatedShaderProgramUpdatedFlags)
+        flags.second = true;
     return m_content;
 }
 

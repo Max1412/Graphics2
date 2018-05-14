@@ -1,4 +1,5 @@
 #include <glbinding/gl/gl.h>
+#include "Rendering/Light.h"
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -45,9 +46,9 @@ struct FogInfo
 {
     glm::vec3 fogAlbedo;
     float fogAnisotropy;
-    GLuint64 densityMap;
     float fogScatteringCoeff;
     float fogAbsorptionCoeff;
+    float pad1, pad2;
 };
 
 struct NoiseInfo
@@ -127,8 +128,8 @@ int main()
     imageHoldingSSBO.setStorage(std::vector<GLuint64>{ handle }, GL_DYNAMIC_STORAGE_BIT);
     imageHoldingSSBO.bindBase(0);
 
-    Shader perVoxelShader("perVoxel3.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
-    ShaderProgram sp({ perVoxelShader });
+    Shader scatterLightShader("scatterLight.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
+    ShaderProgram sp({ scatterLightShader });
 
     Shader accumShader("accumulateVoxels.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram accumSp({ accumShader });
@@ -136,6 +137,9 @@ int main()
     auto u_gridDim = std::make_shared<Uniform<glm::ivec3>>("gridDim", glm::ivec3(gridWidth, gridHeight, gridDepth));
     sp.addUniform(u_gridDim);
     accumSp.addUniform(u_gridDim);
+
+    auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 2);
+    sp.addUniform(u_debugMode);
 
 	//set variables and uniforms for noise and density
 	float time = (float)glfwGetTime();
@@ -194,19 +198,26 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{{playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(1);
 
+    FogInfo fog = { glm::vec3(1.0f), 0.5f, 10.f, 10.f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
-    fogSSBO.setStorage(std::array<FogInfo, 1>{ {glm::vec3(1.0f), 0.5f, GLuint64(0), 0.1f, 0.1f}}, GL_DYNAMIC_STORAGE_BIT); //TODO: put density map handle in here
+    fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(2);
 
 	Buffer noiseSSBO(GL_SHADER_STORAGE_BUFFER);
 	noiseSSBO.setStorage(std::array<NoiseInfo, 1>{ {permTextureID, simplexTextureID, gradientTextureID, time, densityFactor, noiseScale, noiseSpeed}}, GL_DYNAMIC_STORAGE_BIT);
 	noiseSSBO.bindBase(3);
 
+    auto l1 = std::make_shared<Light>(glm::vec3(1.0f), glm::vec3(1.0f, -1.0f, 1.0f));
+    l1->setPosition({ 0.0f, 10.0f, 0.0f }); // position for shadow map only
+    l1->recalculateLightSpaceMatrix();
+    LightManager lm;
+    lm.addLight(l1);
+    lm.uploadLightsToGPU();
+
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
 
     Timer timer;
-    bool pcActive = false;
-    bool dbgcActice = true;
+    int dbgcActive = 1;
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -216,49 +227,24 @@ int main()
         
         glfwPollEvents();
         
-        if constexpr (renderimgui)
-            ImGui_ImplGlfwGL3_NewFrame();
-
-		ImGui::Begin("Density and Noise Settings");
-		if (ImGui::SliderFloat("Noise Scale", &noiseScale, 0.0f, 20.0f))
-			noiseSSBO.setContentSubData(noiseScale, offsetof(NoiseInfo, noiseScale));
-		if (ImGui::SliderFloat("Noise Speed", &noiseSpeed, 0.0f, 1.0f))
-			noiseSSBO.setContentSubData(noiseSpeed, offsetof(NoiseInfo, noiseSpeed));
-		if (ImGui::SliderFloat("Density Factor", &densityFactor, 0.0f, 10.0f))
-			noiseSSBO.setContentSubData(densityFactor, offsetof(NoiseInfo, heightDensityFactor));
-		ImGui::End();
-
-        ImGui::Checkbox("Player Camera", &pcActive);
-        ImGui::Checkbox("Debug Camera", &dbgcActice);
-        if (pcActive)
-        {
-            playerCamera.update(window);
-            matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
-            //matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, playerCameraPosition));
-        } 
-        if (dbgcActice)
+        if (dbgcActive)
         {
             vdbgr.updateCamera(window);
         }
-        if (ImGui::Button("Reset Player Camera"))
+        else
         {
-            playerCamera.reset();
+            playerCamera.update(window);
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
-            //matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, playerCameraPosition));
-        }
+            matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
+        } 
          
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if constexpr (renderimgui)
-        {
-            sp.showReloadShaderGUI({ perVoxelShader }, "Voxel");
-            //accumSp.showReloadShaderGUI({ accumShader }, "Accumulation");
-        }
+        lm.renderShadowMaps({}); //TODO: put scene in here
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
-
-		noiseSSBO.setContentSubData((float)glfwGetTime(), offsetof(NoiseInfo, time));
+		noiseSSBO.setContentSubData(static_cast<float>(glfwGetTime()), offsetof(NoiseInfo, time));
         sp.use();
         glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
             static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(groupSize))),
@@ -279,12 +265,113 @@ int main()
 
         timer.stop();
 
-        if constexpr (renderimgui)
-        {
-            timer.drawGuiWindow(window);
-            ImGui::Render();
-            ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
-        }
+		if constexpr (renderimgui)
+		{	//imgui window
+			ImGui_ImplGlfwGL3_NewFrame();
+			static int tab = 0;
+			ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize);
+			//Menu
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::MenuItem("Density"))
+					tab = 1;
+				if (ImGui::MenuItem("Camera"))
+					tab = 2;
+				if (ImGui::MenuItem("Renderer"))
+					tab = 3;
+				if (ImGui::MenuItem("Light"))
+					tab = 4;
+				if (ImGui::MenuItem("Fog"))
+					tab = 5;
+				if (ImGui::MenuItem("Image"))
+					tab = 6;
+				ImGui::MenuItem("     ");
+				//ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20);
+				if (ImGui::MenuItem("x"))
+					tab = 0;
+				ImGui::EndMenuBar();
+			}
+			//Body
+			switch (tab) {
+				//Density
+			case 1:
+			{
+				ImGui::Text("Density and Noise Settings");
+				ImGui::Separator();
+				if (ImGui::SliderFloat("Noise Scale", &noiseScale, 0.0f, 20.0f))
+					noiseSSBO.setContentSubData(noiseScale, offsetof(NoiseInfo, noiseScale));
+				if (ImGui::SliderFloat("Noise Speed", &noiseSpeed, 0.0f, 1.0f))
+					noiseSSBO.setContentSubData(noiseSpeed, offsetof(NoiseInfo, noiseSpeed));
+				if (ImGui::SliderFloat("Density Factor", &densityFactor, 0.0f, 10.0f))
+					noiseSSBO.setContentSubData(densityFactor, offsetof(NoiseInfo, heightDensityFactor));
+				break;
+			}
+			//Camera
+			case 2:
+			{
+				ImGui::Text("Camera Settings");
+				ImGui::Separator();
+				ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
+				ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
+				if (ImGui::Button("Reset Player Camera"))
+				{
+					playerCamera.reset();
+					matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
+					matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
+				}
+				vdbgr.drawCameraGuiContent();
+				break;
+			}
+			//Voxel debug renderer and shaders
+			case 3:
+			{
+				vdbgr.drawGuiContent();
+				sp.showReloadShaderGUIContent({ scatterLightShader }, "Voxel");
+				//accumSp.showReloadShaderGUIContent({ accumShader }, "Accumulation");
+				break;
+			}
+			//Light
+			case 4:
+			{
+				ImGui::Text("Light Settings");
+				lm.showLightGUIsContent();
+				break;
+			}
+			//Fog
+			case 5:
+			{
+				ImGui::Text("Fog Settings");
+				if (ImGui::SliderFloat3("Albedo", value_ptr(fog.fogAlbedo), 0.0f, 1.0f))
+					fogSSBO.setContentSubData(fog.fogAlbedo, offsetof(FogInfo, fogAlbedo));
+				if (ImGui::SliderFloat("Anisotropy", &fog.fogAnisotropy, 0.0f, 1.0f))
+					fogSSBO.setContentSubData(fog.fogAnisotropy, offsetof(FogInfo, fogAnisotropy));
+				if (ImGui::SliderFloat("Scattering", &fog.fogScatteringCoeff, 0.0f, 100.0f))
+					fogSSBO.setContentSubData(fog.fogScatteringCoeff, offsetof(FogInfo, fogScatteringCoeff));
+				if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 100.0f))
+					fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
+				break;
+			}
+
+			case 6:
+			{
+				ImGui::Text("Image content settings");
+				ImGui::RadioButton("Full volumetric values (outColor)", &u_debugMode->getContentRef(), 0);
+				ImGui::RadioButton("worldPos, density", &u_debugMode->getContentRef(), 1);
+				ImGui::RadioButton("worldPos, outColor.r", &u_debugMode->getContentRef(), 2);
+				ImGui::RadioButton("lighting, density", &u_debugMode->getContentRef(), 3);
+				break;
+			}
+
+			default:
+				break;
+
+			}
+			if (tab) ImGui::Separator();
+			timer.drawGuiContent(window);
+			ImGui::End();
+			ImGui::Render();
+			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+		}
 
         glfwSwapBuffers(window);
     }

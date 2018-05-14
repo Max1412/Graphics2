@@ -8,6 +8,8 @@ layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 uniform ivec3 gridDim;
 
+uniform int debugMode = 0;
+
 layout(binding = 0, std430) buffer voxelGridBuffer
 {
     layout(rgba32f) image3D voxelGrid;
@@ -24,7 +26,6 @@ layout(binding = 2, std430) buffer fogBuffer
 {
     vec3 fogAlbedo;
     float fogAnisotropy;
-    layout(rgba32f) image3D densityMap;
     float fogScatteringCoeff;
     float fogAbsorptionCoeff;
 };
@@ -43,11 +44,12 @@ layout(binding = 3, std430) buffer noiseBuffer
 //TODO: generate light buffer on cpu
 struct Light
 {
-    vec4 pos; //pos.w=0 directional, pos.w=1 point light
-    vec3 col;
-    float spot_cutoff; //no spotlight if cutoff=0
-    vec3 spot_direction;
-    float spot_exponent;
+    vec3 position;
+    int type; //0 directional, 1 point light, 2 spot light
+    vec3 color;
+    float spotCutoff;
+    vec3 spotDirection;
+    float spotExponent;
     mat4 lightSpaceMatrix;
     uint64_t shadowMap; //can be sampler2D or samplerCube
 };
@@ -205,10 +207,50 @@ float getPhaseFunction(float g, vec3 lightVec, vec3 viewVec) // vectors must be 
     return (1.0f / (4.0f * 3.14159265359f)) * (1.0f - g * g) / pow((1.0f + g * g - 2.0f * g * cosTheta), 1.5f);
 }
 
-vec3 getLight(int lightIndex)
+float calculateShadow(in int lightIndex, in vec3 worldPos)
 {
-    //TODO: evaluate actual incoming light (cutoff, occlusion, etc...)
-    return lights[lightIndex].col;
+    //transform position to light space
+    vec4 worldPosLightSpace = lights[lightIndex].lightSpaceMatrix * vec4(worldPos, 1.0f);
+
+    // perform perspective divide
+    vec3 projCoords = worldPosLightSpace.xyz / worldPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // handle sampling outside the shadow mapping "far" border
+    if (projCoords.z > 1.0f)
+        return 1.0f;
+
+    // get closest depth value from light's perspective (using [0,1] range worldPosLight as coords)
+    float closestDepth = texture(sampler2D(lights[lightIndex].shadowMap), projCoords.xy).r; //TODO: use cube map for point lights
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+
+    float shadow = currentDepth > closestDepth ? 1.0f : 0.0f;
+
+    return shadow;
+}
+
+vec3 getLight(int lightIndex, vec3 worldPos)
+{
+    Light currentLight = lights[lightIndex];
+
+    // occlusion / shadow
+    float shadow = 1.0f - calculateShadow(lightIndex, worldPos);
+
+    // cutoff (spotlight)
+    if (currentLight.type == 2)
+    {
+        vec3 light_camcoord = (playerViewMatrix * vec4(currentLight.position, 1.0f)).xyz;
+        vec3 lightVector = normalize(light_camcoord - (playerViewMatrix * vec4(worldPos, 1.0f)).xyz);
+        float cos_phi_spot = max(dot(-lightVector, normalize(mat3(playerViewMatrix) * currentLight.spotDirection)), 0.000001f);
+        if (cos_phi_spot >= cos(currentLight.spotCutoff))
+            shadow *= pow(cos_phi_spot, currentLight.spotExponent);
+        else
+            shadow = 0.0f;
+    }
+
+    return shadow * currentLight.color;
 }
 
 void main()
@@ -231,18 +273,34 @@ void main()
 
     for (int i = 0; i < lights.length(); ++i)
     {
-        vec3 lightDir = normalize(lights[i].pos.xyz - worldPos);
-        lighting += getLight(i) * getPhaseFunction(fogAnisotropy, lightDir, viewDir);
+        vec3 lightDir = lights[i].type == 0 ? normalize(lights[i].position) : normalize(lights[i].position - worldPos);
+        lighting += getLight(i, worldPos) * getPhaseFunction(fogAnisotropy, lightDir, viewDir);
     }
 
     lighting *= fogAlbedo;
 
     vec4 outColor = vec4(lighting * scattering, scattering + absorbtion); //TODO: write this value into voxelGrid
 
+    switch (debugMode)
+    {
+    case 1:
+        imageStore(voxelGrid, g_ID, vec4(worldPos, density));
+        break;
+    case 2:
+        imageStore(voxelGrid, g_ID, vec4(worldPos, outColor.r));
+        break;
+    case 3:
+        imageStore(voxelGrid, g_ID, vec4(lighting, density));
+        break;
+    default:
+        imageStore(voxelGrid, g_ID, outColor);
+        break;
+    }
+
 	//if(g_ID.x <= gridDim.x && g_ID.y <= gridDim.y && g_ID.z <= gridDim.z)
-	{
-		imageStore(voxelGrid, g_ID, vec4(worldPos, density));//vec4(g_ID, 1.0f));
-	}
+	//{
+	//	imageStore(voxelGrid, g_ID, vec4(worldPos, outColor.r));
+	//}
 
 }
 

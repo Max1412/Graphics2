@@ -38,7 +38,7 @@ public:
      * \brief binds the buffer to a binding layout
      * \param binding 
      */
-    [[deprecated("Only for demos, use enum instead")]]
+    [[deprecated("To explictily use arbitrary bindings, cast to binding")]]
     void bindBase(unsigned int binding) const;
 
 

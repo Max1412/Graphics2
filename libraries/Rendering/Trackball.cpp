@@ -4,19 +4,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "../Utils/UtilCollection.h"
 
-Trackball::Trackball(int width, int height, float radius) : Camera(width, height)
+Trackball::Trackball(int width, int height, float radius) : Camera(width, height), m_radius(radius)
 {
-    m_pos = glm::vec3(0.0f, 0.0f, radius);
-    m_radius = radius;
-
-    m_viewMatrix = lookAt(m_center + m_pos, m_center, m_up);
+    Trackball::reset();
 }
 
 void Trackball::reset()
 {
     Camera::reset();
     m_pos = glm::vec3(0.0f, 0.0f, m_radius);
-
     m_viewMatrix = lookAt(m_center + m_pos, m_center, m_up);
 }
 

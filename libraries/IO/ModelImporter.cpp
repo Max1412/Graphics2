@@ -243,6 +243,7 @@ void ModelImporter::registerUniforms(ShaderProgram& sp) const
 
 void ModelImporter::draw(const ShaderProgram& sp) const
 {
+    sp.use();
     int i = 0;
     for(const auto& mesh : m_meshes)
     {
@@ -256,77 +257,92 @@ void ModelImporter::draw(const ShaderProgram& sp) const
 
 void ModelImporter::drawCulled(const ShaderProgram& sp, Camera& cam, float angle, float ratio, float near, float far) const
 {
-    glm::vec3 p = cam.getPosition();
-    glm::vec3 Z = -glm::normalize(cam.getCenter() - cam.getPosition());
+    const glm::vec3 p = cam.getPosition();
+    const glm::vec3 z = -glm::normalize(cam.getCenter() - cam.getPosition());
 
-    float tang = glm::tan(angle * 0.5f);
-    float nh = near * tang;
-    float nw = nh * ratio;
-    float fh = far * tang;
-    float fw = fh * ratio;
+    const float tang = glm::tan(angle * 0.5f);
+    const float nh = near * tang;
+    const float nw = nh * ratio;
+    const float fh = far * tang;
+    const float fw = fh * ratio;
 
     // X axis of camera with given "up" vector and Z axis
-    glm::vec3 X = glm::normalize(glm::cross(glm::vec3(0.f, 1.f, 0.f), Z));
+    const glm::vec3 x = glm::normalize(glm::cross(glm::vec3(0.f, 1.f, 0.f), z));
 
     // the real "up" vector is the cross product of Z and X
-    glm::vec3 Y = glm::cross(Z, X);
+    const glm::vec3 y = glm::cross(z, x);
 
     // compute the centers of the near and far planes
-    glm::vec3 nc = p - Z * near;
-    glm::vec3 fc = p - Z * far;
+    const glm::vec3 nc = p - z * near;
+    const glm::vec3 fc = p - z * far;
 
     // compute the 4 corners of the frustum on the near plane
-    glm::vec3 ntl = nc + Y * nh - X * nw;
-    glm::vec3 ntr = nc + Y * nh + X * nw;
-    glm::vec3 nbl = nc - Y * nh - X * nw;
-    glm::vec3 nbr = nc - Y * nh + X * nw;
+    const glm::vec3 ntl = nc + y * nh - x * nw;
+    const glm::vec3 ntr = nc + y * nh + x * nw;
+    const glm::vec3 nbl = nc - y * nh - x * nw;
+    const glm::vec3 nbr = nc - y * nh + x * nw;
 
     // compute the 4 corners of the frustum on the far plane
-    glm::vec3 ftl = fc + Y * fh - X * fw;
-    glm::vec3 ftr = fc + Y * fh + X * fw;
-    glm::vec3 fbl = fc - Y * fh - X * fw;
-    glm::vec3 fbr = fc - Y * fh + X * fw;
+    const glm::vec3 ftl = fc + y * fh - x * fw;
+    const glm::vec3 ftr = fc + y * fh + x * fw;
+    const glm::vec3 fbl = fc - y * fh - x * fw;
+    const glm::vec3 fbr = fc - y * fh + x * fw;
 
     // compute the six planes
-    // the function set3Points assumes that the points
+    // the function setNormalFromPoints assumes that the points
     // are given in counter clockwise order
     FrustumGeo f;
-    f.set3Points(FrustumGeo::TOP, ntr, ntl, ftl);
-    f.set3Points(FrustumGeo::BOTTOM, nbl, nbr, fbr);
-    f.set3Points(FrustumGeo::LEFT, ntl, nbl, fbl);
-    f.set3Points(FrustumGeo::RIGHT, nbr, ntr, fbr);
-    f.set3Points(FrustumGeo::NEAR, ntl, ntr, nbr);
-    f.set3Points(FrustumGeo::FAR, ftr, ftl, fbl);
+    f.setNormalFromPoints(FrustumGeo::TOP, ntr, ntl, ftl);
+    f.setNormalFromPoints(FrustumGeo::BOTTOM, nbl, nbr, fbr);
+    f.setNormalFromPoints(FrustumGeo::LEFT, ntl, nbl, fbl);
+    f.setNormalFromPoints(FrustumGeo::RIGHT, nbr, ntr, fbr);
+    f.setNormalFromPoints(FrustumGeo::NEAR, ntl, ntr, nbr);
+    f.setNormalFromPoints(FrustumGeo::FAR, ftr, ftl, fbl);
 
-    auto cullFunc = [&f](auto& mesh)
+    // set frustum vertices
+    // caution! points have to lay on their respective planes (by index) 
+    f.points = { ntr, nbl, ntl, fbr, nbr, ftr, ftl, fbl };
+
+    const auto cullFunc = [&f](const auto& mesh)
     {
         mesh->setEnabledForRendering(true);
 
-        glm::vec3 bmin = mesh->getBoundingBox()[0];
-        glm::vec3 bmax = mesh->getBoundingBox()[1];
+        const glm::vec3 bmin = mesh->getBoundingBox()[0];
+        const glm::vec3 bmax = mesh->getBoundingBox()[1];
 
+        bool out;
+
+        // clip bounding box vertices on frustum planes
         for (int i = 0; i < 6; ++i)
         {
-            int out = 0;
-            out += (f.distance(i, glm::vec3(bmin.x, bmin.y, bmin.z)) < 0.0) ? 1 : 0;
-            out += (f.distance(i, glm::vec3(bmax.x, bmin.y, bmin.z)) < 0.0) ? 1 : 0;
-            out += (f.distance(i, glm::vec3(bmin.x, bmax.y, bmin.z)) < 0.0) ? 1 : 0;
-            out += (f.distance(i, glm::vec3(bmax.x, bmax.y, bmin.z)) < 0.0) ? 1 : 0;
-            out += (f.distance(i, glm::vec3(bmin.x, bmin.y, bmax.z)) < 0.0) ? 1 : 0;
-            out += (f.distance(i, glm::vec3(bmax.x, bmin.y, bmax.z)) < 0.0) ? 1 : 0;
-            out += (f.distance(i, glm::vec3(bmin.x, bmax.y, bmax.z)) < 0.0) ? 1 : 0;
-            out += (f.distance(i, glm::vec3(bmax.x, bmax.y, bmax.z)) < 0.0) ? 1 : 0;
-            if (out == 8)
+            out = true;
+            out &= (f.distance(i, glm::vec3(bmin.x, bmin.y, bmin.z)) < 0.0f);
+            out &= (f.distance(i, glm::vec3(bmax.x, bmin.y, bmin.z)) < 0.0f);
+            out &= (f.distance(i, glm::vec3(bmin.x, bmax.y, bmin.z)) < 0.0f);
+            out &= (f.distance(i, glm::vec3(bmax.x, bmax.y, bmin.z)) < 0.0f);
+            out &= (f.distance(i, glm::vec3(bmin.x, bmin.y, bmax.z)) < 0.0f);
+            out &= (f.distance(i, glm::vec3(bmax.x, bmin.y, bmax.z)) < 0.0f);
+            out &= (f.distance(i, glm::vec3(bmin.x, bmax.y, bmax.z)) < 0.0f);
+            out &= (f.distance(i, glm::vec3(bmax.x, bmax.y, bmax.z)) < 0.0f);
+            if (out)
             {
                 mesh->setEnabledForRendering(false);
                 return;
             }
         }
 
+        // clip frustum vertices on bounding boxes (needed for some edge-cases)
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            out = true; for (int i = 0; i < 8; i++) out &= (f.points[i][axis] > bmax[axis]); if (out) { mesh->setEnabledForRendering(false); return; }
+            out = true; for (int i = 0; i < 8; i++) out &= (f.points[i][axis] < bmin[axis]); if (out) { mesh->setEnabledForRendering(false); return; }
+        }
+        
     };
 
     std::for_each(std::execution::par, m_meshes.begin(), m_meshes.end(), cullFunc);
 
+    sp.use();
     int i = 0;
     for (const auto& mesh : m_meshes)
     {
@@ -335,7 +351,7 @@ void ModelImporter::drawCulled(const ShaderProgram& sp, Camera& cam, float angle
             m_meshIndexUniform->setContent(i);
             m_materialIndexUniform->setContent(mesh->getMaterialIndex());
             sp.updateUniforms();
-            mesh->draw();
+            mesh->forceDraw();
         }
         i++;
     }

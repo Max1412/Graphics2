@@ -4,32 +4,22 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "imgui/imgui.h"
 
-Camera::Camera(int width, int height)
+Camera::Camera(int width, int height) : m_width(width), m_height(height)
 {
-    m_pos = glm::vec3(0.0f, 0.0f, 1.0f);
-    m_center = glm::vec3(0.0f, 0.0f, 0.0f);
-    m_up = glm::vec3(0.0f, 1.0f, 0.0f);
-
     m_sensitivity = 0.1f;
-    m_theta = glm::pi<float>() / 2.0f;
-    m_phi = 0.f;
-    m_width = width;
-    m_height = height;
 
-    m_viewMatrix = lookAt(m_center + m_pos, m_center, m_up);
-    m_oldX = width / 2.f;
-    m_oldY = height / 2.f;
+    Camera::reset();
 }
 
 void Camera::reset()
 {
-    m_pos = glm::vec3(0.0f, 0.0f, 1.0f);
-    m_center = glm::vec3(0.0f, 0.0f, 0.0f);
+    m_pos = glm::vec3(0.0f);
+    m_center = glm::vec3(0.0f);
     m_up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     m_theta = glm::pi<float>() / 2.0f;
     m_phi = 0.f;
-    m_viewMatrix = lookAt(m_center + m_pos, m_center, m_up);
+    m_viewMatrix = lookAt(m_pos, m_center, m_up);
     m_oldX = m_width / 2.f;
     m_oldY = m_height / 2.f;
 }

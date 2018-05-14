@@ -14,14 +14,16 @@ struct FrustumGeo
     };
 
     std::array<glm::vec3, 6> normals;
-    std::array<glm::vec3, 6> points;
+    std::array<glm::vec3, 8> points;
 
-    void set3Points(Plane plane, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
+    // the function setNormalFromPoints assumes that the points
+    // are given in counter clockwise order
+    void setNormalFromPoints(Plane plane, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
     {
-        points[plane] = v2;
         normals[plane] = glm::normalize(glm::cross(v3 - v2, v1 - v2));
     }
 
+    // gets the smallest distance from a point to a plane
     float distance(int plane, const glm::vec3& p) 
     {
         return glm::dot(normals[plane], p - points[plane]);

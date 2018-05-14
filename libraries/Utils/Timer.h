@@ -28,6 +28,12 @@ public:
      */
     void drawGuiWindow(GLFWwindow* window);
 
+	/**
+	* \brief returns conent for imgui with the frametime and a graph
+	* \param window
+	*/
+	void drawGuiContent(GLFWwindow* window);
+
 private:
     std::vector<float> m_ftimes;
     GLuint m_query;
