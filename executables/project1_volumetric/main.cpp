@@ -225,39 +225,6 @@ int main()
         
         glfwPollEvents();
         
-        if constexpr (renderimgui)
-            ImGui_ImplGlfwGL3_NewFrame();
-
-		ImGui::Begin("Density and Noise Settings");
-		if (ImGui::SliderFloat("Noise Scale", &noiseScale, 0.0f, 20.0f))
-			noiseSSBO.setContentSubData(noiseScale, offsetof(NoiseInfo, noiseScale));
-		if (ImGui::SliderFloat("Noise Speed", &noiseSpeed, 0.0f, 1.0f))
-			noiseSSBO.setContentSubData(noiseSpeed, offsetof(NoiseInfo, noiseSpeed));
-		if (ImGui::SliderFloat("Density Factor", &densityFactor, 0.0f, 10.0f))
-			noiseSSBO.setContentSubData(densityFactor, offsetof(NoiseInfo, heightDensityFactor));
-		ImGui::End();
-
-        ImGui::Begin("Fog Settings");
-        if (ImGui::SliderFloat3("Albedo", value_ptr(fog.fogAlbedo), 0.0f, 1.0f))
-            fogSSBO.setContentSubData(fog.fogAlbedo, offsetof(FogInfo, fogAlbedo));
-        if (ImGui::SliderFloat("Anisotropy", &fog.fogAnisotropy, 0.0f, 1.0f))
-            fogSSBO.setContentSubData(fog.fogAnisotropy, offsetof(FogInfo, fogAnisotropy));
-        if (ImGui::SliderFloat("Scattering", &fog.fogScatteringCoeff, 0.0f, 100.0f))
-            fogSSBO.setContentSubData(fog.fogScatteringCoeff, offsetof(FogInfo, fogScatteringCoeff));
-        if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 100.0f))
-            fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
-        ImGui::End();
-
-        ImGui::Begin("Image content settings");
-        ImGui::RadioButton("Full volumetric values (outColor)", &u_debugMode->getContentRef(), 0);
-        ImGui::RadioButton("worldPos, density", &u_debugMode->getContentRef(), 1);
-        ImGui::RadioButton("worldPos, outColor.r", &u_debugMode->getContentRef(), 2);
-        ImGui::RadioButton("lighting, density", &u_debugMode->getContentRef(), 3);
-        ImGui::End();
-
-        ImGui::Text("Camera control");
-        ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
-        ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
         if (dbgcActive)
         {
             vdbgr.updateCamera(window);
@@ -268,21 +235,8 @@ int main()
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
         } 
-        if (ImGui::Button("Reset Player Camera"))
-        {
-            playerCamera.reset();
-            matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
-            matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
-        }
          
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        if constexpr (renderimgui)
-        {
-            sp.showReloadShaderGUI({ scatterLightShader }, "Voxel");
-            //accumSp.showReloadShaderGUI({ accumShader }, "Accumulation");
-            lm.showLightGUIs();
-        }
 
         lm.renderShadowMaps({}); //TODO: put scene in here
 
@@ -309,12 +263,113 @@ int main()
 
         timer.stop();
 
-        if constexpr (renderimgui)
-        {
-            timer.drawGuiWindow(window);
-            ImGui::Render();
-            ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
-        }
+		if constexpr (renderimgui)
+		{	//imgui window
+			ImGui_ImplGlfwGL3_NewFrame();
+			static int tab = 0;
+			ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize);
+			//Menu
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::MenuItem("Density"))
+					tab = 1;
+				if (ImGui::MenuItem("Camera"))
+					tab = 2;
+				if (ImGui::MenuItem("Renderer"))
+					tab = 3;
+				if (ImGui::MenuItem("Light"))
+					tab = 4;
+				if (ImGui::MenuItem("Fog"))
+					tab = 5;
+				if (ImGui::MenuItem("Image"))
+					tab = 6;
+				ImGui::MenuItem("     ");
+				//ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20);
+				if (ImGui::MenuItem("x"))
+					tab = 0;
+				ImGui::EndMenuBar();
+			}
+			//Body
+			switch (tab) {
+				//Density
+			case 1:
+			{
+				ImGui::Text("Density and Noise Settings");
+				ImGui::Separator();
+				if (ImGui::SliderFloat("Noise Scale", &noiseScale, 0.0f, 20.0f))
+					noiseSSBO.setContentSubData(noiseScale, offsetof(NoiseInfo, noiseScale));
+				if (ImGui::SliderFloat("Noise Speed", &noiseSpeed, 0.0f, 1.0f))
+					noiseSSBO.setContentSubData(noiseSpeed, offsetof(NoiseInfo, noiseSpeed));
+				if (ImGui::SliderFloat("Density Factor", &densityFactor, 0.0f, 10.0f))
+					noiseSSBO.setContentSubData(densityFactor, offsetof(NoiseInfo, heightDensityFactor));
+				break;
+			}
+			//Camera
+			case 2:
+			{
+				ImGui::Text("Camera Settings");
+				ImGui::Separator();
+				ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
+				ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
+				if (ImGui::Button("Reset Player Camera"))
+				{
+					playerCamera.reset();
+					matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
+					matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
+				}
+				vdbgr.drawCameraGuiContent();
+				break;
+			}
+			//Voxel debug renderer and shaders
+			case 3:
+			{
+				vdbgr.drawGuiContent();
+				sp.showReloadShaderGUIContent({ scatterLightShader }, "Voxel");
+				//accumSp.showReloadShaderGUIContent({ accumShader }, "Accumulation");
+				break;
+			}
+			//Light
+			case 4:
+			{
+				ImGui::Text("Light Settings");
+				lm.showLightGUIsContent();
+				break;
+			}
+			//Fog
+			case 5:
+			{
+				ImGui::Text("Fog Settings");
+				if (ImGui::SliderFloat3("Albedo", value_ptr(fog.fogAlbedo), 0.0f, 1.0f))
+					fogSSBO.setContentSubData(fog.fogAlbedo, offsetof(FogInfo, fogAlbedo));
+				if (ImGui::SliderFloat("Anisotropy", &fog.fogAnisotropy, 0.0f, 1.0f))
+					fogSSBO.setContentSubData(fog.fogAnisotropy, offsetof(FogInfo, fogAnisotropy));
+				if (ImGui::SliderFloat("Scattering", &fog.fogScatteringCoeff, 0.0f, 100.0f))
+					fogSSBO.setContentSubData(fog.fogScatteringCoeff, offsetof(FogInfo, fogScatteringCoeff));
+				if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 100.0f))
+					fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
+				break;
+			}
+
+			case 6:
+			{
+				ImGui::Text("Image content settings");
+				ImGui::RadioButton("Full volumetric values (outColor)", &u_debugMode->getContentRef(), 0);
+				ImGui::RadioButton("worldPos, density", &u_debugMode->getContentRef(), 1);
+				ImGui::RadioButton("worldPos, outColor.r", &u_debugMode->getContentRef(), 2);
+				ImGui::RadioButton("lighting, density", &u_debugMode->getContentRef(), 3);
+				break;
+			}
+
+			default:
+				break;
+
+			}
+			if (tab) ImGui::Separator();
+			timer.drawGuiContent(window);
+			ImGui::End();
+			ImGui::Render();
+			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+		}
 
         glfwSwapBuffers(window);
     }
