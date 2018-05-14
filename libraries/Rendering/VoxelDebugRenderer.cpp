@@ -61,6 +61,15 @@ void VoxelDebugRenderer::drawGuiContent()
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
+	ImGui::Text("Voxel position source");
+	ImGui::RadioButton("Pos = Image.xyz", &m_positionSourceUniform->getContentRef(), 0); ImGui::SameLine();
+	ImGui::RadioButton("Pos = Grid coords", &m_positionSourceUniform->getContentRef(), 1);
+
+	ImGui::Text("Voxel color source");
+	ImGui::RadioButton("Col = Image.xyz", &m_dataModeUniform->getContentRef(), 0); ImGui::SameLine();
+	ImGui::RadioButton("Col = Image.w", &m_dataModeUniform->getContentRef(), 1); ImGui::SameLine();
+	ImGui::RadioButton("Col = Grid coords", &m_dataModeUniform->getContentRef(), 2);
+	ImGui::Separator();
 	ImGui::Text("Reload Shaders");
 	m_sp.showReloadShaderGUIContent(m_shaders, "DebugRenderer Shaderprogram");
 }
