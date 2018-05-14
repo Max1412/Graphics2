@@ -23,6 +23,8 @@ public:
     VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInfo screenInfo);
     void updateCamera(GLFWwindow* window);
     void draw();
+	void drawGuiContent();
+	void drawCameraGuiContent();
 
 private:
     glm::ivec3 m_gridDim;

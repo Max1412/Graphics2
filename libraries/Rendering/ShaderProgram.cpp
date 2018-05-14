@@ -321,24 +321,29 @@ void ShaderProgram::showReloadShaderGUI(const std::vector<Shader>& shaders, std:
 {
     ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin(name.data());
-    for (const Shader& shader : shaders) {
-        std::stringstream ss;
-        ss << "Reload: " << shader.getShaderType();
-        if (ImGui::Button(ss.str().c_str()))
-        {
-            try
-            {
-                shader.init();
-                changeShader(shader);
-                use();
-                forceUpdateUniforms();
-            }
-            catch (std::runtime_error& err)
-            {
-                std::cout << "Shader could not be loaded, not using it" << std::endl;
-                std::cout << err.what() << std::endl;
-            }
-        }
-    }
+	showReloadShaderGUIContent(shaders, name);
     ImGui::End();
+}
+
+void ShaderProgram::showReloadShaderGUIContent(const std::vector<Shader>& shaders, std::string_view name)
+{
+	for (const Shader& shader : shaders) {
+		std::stringstream ss;
+		ss << "Reload: " << shader.getShaderType();
+		if (ImGui::Button(ss.str().c_str()))
+		{
+			try
+			{
+				shader.init();
+				changeShader(shader);
+				use();
+				forceUpdateUniforms();
+			}
+			catch (std::runtime_error& err)
+			{
+				std::cout << "Shader could not be loaded, not using it" << std::endl;
+				std::cout << err.what() << std::endl;
+			}
+		}
+	}
 }

@@ -36,43 +36,40 @@ void VoxelDebugRenderer::updateCamera(GLFWwindow* window)
 
 void VoxelDebugRenderer::draw()
 {
-    m_sp.showReloadShaderGUI(m_shaders, "DebugRenderer Shaderprogram");
-
-    ImGui::Begin("Voxel Debug Renderer Settings");
-    if (ImGui::DragFloat("Voxel Size", &m_voxelSize, 0.0001f, 0.0f, 0.5f,"%.6f"))
-    {
-        m_voxelSizeUniform->setContent(m_voxelSize);
-    }
-    if (ImGui::Button("Reset Camera"))
-    {
-        m_camera.reset();
-        m_viewUniform->setContent(m_camera.getView());
-    }
-    ImGui::Checkbox("Render Wireframe", &m_wireframe);
-    if (m_wireframe)
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-    else
-    {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    ImGui::Text("Voxel position source");
-    ImGui::RadioButton("Pos = Image.xyz", &m_positionSourceUniform->getContentRef(), 0); ImGui::SameLine();
-    ImGui::RadioButton("Pos = Grid coords", &m_positionSourceUniform->getContentRef(), 1);
-
-    ImGui::Text("Voxel color source");
-    ImGui::RadioButton("Col = Image.xyz", &m_dataModeUniform->getContentRef(), 0); ImGui::SameLine();
-    ImGui::RadioButton("Col = Image.w", &m_dataModeUniform->getContentRef(), 1); ImGui::SameLine();
-    ImGui::RadioButton("Col = Grid coords", &m_dataModeUniform->getContentRef(), 2);
-
-    ImGui::End();
-
     m_sp.use();
     m_sp.updateUniforms();
 
     m_emptyVao.bind();
     glDrawArrays(GL_POINTS, 0, m_numVoxels);
     glBindVertexArray(0);
+}
+
+void VoxelDebugRenderer::drawGuiContent()
+{
+	ImGui::Text("Voxel Debug Renderer Settings");
+	ImGui::Separator();
+	if (ImGui::DragFloat("Voxel Size", &m_voxelSize, 0.0001f, 0.0f, 0.05f, "%.6f"))
+	{
+		m_voxelSizeUniform->setContent(m_voxelSize);
+	}
+	ImGui::Checkbox("Render Wireframe", &m_wireframe);
+	if (m_wireframe)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	ImGui::Text("Reload Shaders");
+	m_sp.showReloadShaderGUIContent(m_shaders, "DebugRenderer Shaderprogram");
+}
+
+void VoxelDebugRenderer::drawCameraGuiContent()
+{
+	if (ImGui::Button("Reset Camera"))
+	{
+		m_camera.reset();
+		m_viewUniform->setContent(m_camera.getView());
+	}
 }

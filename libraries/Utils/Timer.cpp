@@ -57,3 +57,23 @@ void Timer::drawGuiWindow(GLFWwindow* window)
     }
     ImGui::End();
 }
+
+void Timer::drawGuiContent(GLFWwindow* window)
+{
+	ImGui::PlotLines("Frametime", m_ftimes.data(), static_cast<int>(m_ftimes.size()), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
+	auto flaccTime = 0.0f;
+	if (m_ftimes.size() > 21)
+	{
+		for (auto i = m_ftimes.size() - 21; i < m_ftimes.size(); ++i)
+		{
+			flaccTime += m_ftimes.at(i);
+		}
+		flaccTime /= 20.0f;
+	}
+	ImGui::Value("Frametime (milliseconds)", flaccTime);
+	ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 65);
+	if (ImGui::Button("Save FBO"))
+	{
+		util::saveFBOtoFile("demo1", window);
+	}
+}

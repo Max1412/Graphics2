@@ -76,6 +76,14 @@ public:
      */
     void showReloadShaderGUI(const std::vector<Shader>& shaders, std::string_view name = "Generic Shaderprogram");
 
+	/**
+	* \brief returns "reload vertex/fragment shader" gui content to use with imgui
+	* \param vshader the vertex shader to be changed/reloaded
+	* \param fshader the fragment shader to be changed/reloaded
+	* \param name debug name in the GUI
+	*/
+	void showReloadShaderGUIContent(const std::vector<Shader>& shaders, std::string_view name = "Generic Shaderprogram");
+
 private:
     GLuint m_shaderProgramHandle;
     std::unordered_map<GLenum, Shader> m_shaderMap;
