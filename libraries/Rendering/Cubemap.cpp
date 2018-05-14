@@ -6,7 +6,7 @@ Cubemap::Cubemap(GLenum minFilter, GLenum maxFilter) : Texture(GL_TEXTURE_CUBE_M
 {
 }
 
-void Cubemap::initWithoutData(int width, int height, GLenum internalFormat, GLenum format, GLenum type, const int levels)
+void Cubemap::initWithoutData(int width, int height, GLenum internalFormat, GLenum format, GLenum type, int levels) // TODO fix unused params
 {
     glTextureStorage2D(m_name, levels, internalFormat, width, height);
     m_width = width;

@@ -90,12 +90,14 @@ private:
     glm::mat4 m_lightProjection;
     glm::mat4 m_lightView;
 
-    Texture m_shadowTexture;
+    std::shared_ptr<Texture> m_shadowTexture;
     FrameBuffer m_shadowMapFBO;
     ShaderProgram m_genShadowMapProgram;
 
     std::shared_ptr<Uniform<glm::mat4>> m_modelUniform;
     std::shared_ptr<Uniform<glm::mat4>> m_lightSpaceUniform;
+    std::shared_ptr<Uniform<glm::vec3>> m_lightPosUniform;
+
 
     GPULight m_gpuLight;
 };

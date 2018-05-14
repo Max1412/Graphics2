@@ -48,6 +48,19 @@ layout (std430, binding = LIGHTS_BINDING) readonly buffer LightBuffer
     Light lights[];
 };
 
+float calculateCubeShadow(in int lightIndex, in vec3 fragPos, in vec3 lightDir)
+{
+    Light currentLight = lights[lightIndex];
+    vec3 fragToLight = fragPos - currentLight.position;
+    float shadowDepth = texture(samplerCube(currentLight.shadowMap), fragToLight).r;
+    shadowDepth *= 1000;
+    float currentDepth = length(fragToLight);
+    float bias = 0.05; 
+    float shadow = currentDepth - bias > shadowDepth ? 1.0 : 0.0;
+
+    return shadow;
+}
+
 float calculateShadow(in int lightIndex, in vec3 fragPos, in vec3 lightDir)
 {
     //transform position to light space
@@ -61,12 +74,6 @@ float calculateShadow(in int lightIndex, in vec3 fragPos, in vec3 lightDir)
     // handle sampling outside the shadow mapping "far" border
     if(projCoords.z > 1.0)
         return 0.0;
-
-    vec2 texSize = textureSize(sampler2D(lights[lightIndex].shadowMap), 0);
-    // if(any(greaterThan(projCoords.xy, vec2(1.0f))))
-    // {
-    //     return 0.0;
-    // }
 
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     float closestDepth = texture(sampler2D(lights[lightIndex].shadowMap), projCoords.xy).r;
@@ -178,7 +185,10 @@ void main()
             vec3 specular = currentLight.color * spec * specCol;
             diffuse *= attenuation;
             specular *= attenuation;
-            lightingColor += (diffuse + specular);
+
+            float shadowFactor = (1.0f - calculateCubeShadow(i, passFragPos, lightDir));
+            vec3 thisLight = shadowFactor * (diffuse + specular);
+            lightingColor += thisLight;
         }
         if(currentLight.type == 2) // S P O T
         {
