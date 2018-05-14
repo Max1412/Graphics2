@@ -111,7 +111,6 @@ public:
 
     bool showLightGUIs();
 
-    void showRenderShadowMapGUI();
 	bool showLightGUIsContent();
 
     void renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene);

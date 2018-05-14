@@ -118,7 +118,7 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
     {
         m_modelUniform->setContent(mesh->getModelMatrix()); // TODO change shader to use model matrix buffer instead
         m_genShadowMapProgram.updateUniforms();
-        mesh->draw(); // TODO CULL
+        mesh->forceDraw(); // TODO CULL
     });
 
     //restore previous rendering settings
@@ -131,8 +131,8 @@ void Light::recalculateLightSpaceMatrix()
 {
     if (m_type == LightType::directional)
     {
-        const float nearPlane = 3.0f, farPlane = 1000.0f;
-        m_lightProjection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, nearPlane, farPlane);
+        const float nearPlane = 3.0f, farPlane = 3000.0f;
+        m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, nearPlane, farPlane);
 
         glm::vec3 up(0.0f, 1.0f, 0.0f);
 
@@ -309,32 +309,6 @@ bool LightManager::showLightGUIs()
         }
     });
     return changed;
-}
-
-void LightManager::showRenderShadowMapGUI()
-{
-    std::array<std::string, 3> lightTypeNames = { "Directional", "Point", "Spot" };
-    ImGui::Begin("LightManager: Render Shadow Map");
-    int index = 0;
-    for (auto& light : m_lightList)
-    {
-        std::stringstream fullName;
-        fullName << index << " (Type: " << lightTypeNames[static_cast<int>(light->getType())] << ")";
-        ImGui::RadioButton(fullName.str().c_str(), &m_e, index); ImGui::SameLine();
-        // TODO fix radio buttons
-        index++;
-    }
-    ImGui::End();
-    int index2 = 0;
-    for (auto& light : m_lightList)
-    {
-        if (index2 == m_e)
-        {
-            //light->renderShadowMapToScreen();
-            // TODO render shadow maps to screen fbo (like demo4) for debugging
-        }
-        index2++;
-    }
 }
 
 bool LightManager::showLightGUIsContent()

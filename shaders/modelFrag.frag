@@ -126,7 +126,7 @@ void main()
     else
         specCol = currentMaterial.specColor.rgb;
 
-    float ambientFactor = 0.25;
+    float ambientFactor = 0.15;
     vec3 ambient = ambientFactor * diffCol; // TODO ambient texture/color from assimp
     vec3 normal = normalize(passNormal);
     vec3 viewDir = normalize(cameraPos - passFragPos);
@@ -151,7 +151,7 @@ void main()
             // combine results
             vec3 diffuse = currentLight.color * diff * diffCol;
             vec3 specular = currentLight.color * spec * specCol;
-            lightingColor += (diffuse + specular);
+            //lightingColor += (diffuse + specular);
 
             // TODO shadow doesn't even show up, fix it
             float shadowFactor = (1.0f - calculateShadow(i, passFragPos, lightDir));

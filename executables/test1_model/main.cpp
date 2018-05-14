@@ -74,7 +74,7 @@ int main()
 
         // directional light
         auto directional = std::make_shared<Light>(glm::vec3(0.15f), glm::vec3(0.0f, -1.0f, 0.0f));
-        directional->setPosition({0.0f, 200.0f, 0.0f}); // position for shadow map only
+        directional->setPosition({0.0f, 2000.0f, 0.0f}); // position for shadow map only
         directional->recalculateLightSpaceMatrix();
         lightMngr.addLight(directional);
 
@@ -140,8 +140,6 @@ int main()
         }
 
         lightMngr.showLightGUIs();
-
-        lightMngr.showRenderShadowMapGUI();
 
         if (lightDebug)
         {
