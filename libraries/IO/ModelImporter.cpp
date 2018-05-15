@@ -117,7 +117,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                 // texture not loaded yet
                 if (m_texturemap.count(reltexPath.C_Str()) == 0)
                 {
-                    auto tex = std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR);
+                    auto tex = std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
                     // TODO textures with less than 4 channels... detect automatically?
                     if (stbi_is_hdr(absTexPath.string().c_str()))
                     {
@@ -132,6 +132,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         tex->loadFromFile(absTexPath);
                     }
                     texID = tex->generateHandle();
+                    tex->generateMipmap();
                     m_texturemap.emplace(reltexPath.C_Str(), tex);
                 }
                 else // texture already loaded, store handle
