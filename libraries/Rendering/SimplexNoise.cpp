@@ -5,8 +5,7 @@ SimplexNoise::SimplexNoise()
     m_time = static_cast<float>(glfwGetTime());
 
     {
-        char *pixels;
-        pixels = (char*)malloc(256 * 256 * 4);
+		std::array<char, 256 * 256 * 4> pixels;
         for (int i = 0; i<256; i++)
             for (int j = 0; j<256; j++) 
             {
@@ -21,11 +20,10 @@ SimplexNoise::SimplexNoise()
         m_permTexture.initWithData2D(pixels, 256, 256);
     }
 
-    m_simplexTexture.initWithData1D(m_simplex4.data(), 64);
+    m_simplexTexture.initWithData1D(m_simplex4, 64);
 
     {
-        char *pixels;
-        pixels = (char*)malloc(256 * 256 * 4);
+		std::array<char, 256 * 256 * 4> pixels;
         for (int i = 0; i<256; i++)
             for (int j = 0; j<256; j++) 
             {

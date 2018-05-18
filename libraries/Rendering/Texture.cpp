@@ -72,30 +72,6 @@ GLuint64 Texture::generateHandle()
     return m_handle;
 }
 
-void Texture::initWithData1D(const void *data, GLint width, GLenum internalFormat, GLenum format, GLenum type)
-{
-	glTextureStorage1D(m_name, 1, internalFormat, width);
-	glTextureSubImage1D(m_name, 0, 0, width, format, type, data);
-	m_width = width;
-}
-
-void Texture::initWithData2D(const void *data, GLint width, GLint height, GLenum internalFormat, GLenum format, GLenum type)
-{
-	glTextureStorage2D(m_name, 1, internalFormat, width, height);
-	glTextureSubImage2D(m_name, 0, 0, 0, width, height, format, type, data);
-	m_width = width;
-	m_height = height;
-}
-
-void Texture::initWithData3D(const void *data, GLint width, GLint height, GLint depth, GLenum internalFormat, GLenum format, GLenum type)
-{
-	glTextureStorage3D(m_name, 1, internalFormat, width, height, depth);
-	glTextureSubImage3D(m_name, 0, 0, 0, 0, width, height, depth, format, type, data);
-	m_width = width;
-	m_height = height;
-	m_depth = depth;
-}
-
 void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 {
     glTextureStorage2D(m_name, 1, internalFormat, width, height);

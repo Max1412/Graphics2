@@ -46,22 +46,13 @@ public:
 
     /**
      * \brief uses glBufferStorage, buffer will be immutable
-     * \tparam T data type
-     * \param data input data as vector
+     * \tparam T container type
+     * \param data input data as std container
      * \param flags buffer flags
      */
-    template <typename T>
-    void setStorage(const std::vector<T>& data, BufferStorageMask flags);
+	template<typename T, typename = std::void_t<decltype(std::data(std::declval<T>())), typename T::value_type>>
+	void setStorage(const T& container, BufferStorageMask flags);
 
-    /**
-     * \brief uses glBufferStorage, buffer will be immutable
-     * \tparam T data type
-     * \tparam N array size
-     * \param data input data as array
-     * \param flags buffer flags
-     */
-    template <typename T, size_t N>
-    void setStorage(const std::array<T, N>& data, BufferStorageMask flags);
 
     /**
      * \brief maps the buffer, writes data, unmaps the buffer
@@ -116,29 +107,16 @@ private:
 // BufferStorage Functions (immutable)
 // call these only once on the same buffer
 //
-template <typename T>
-void Buffer::setStorage(const std::vector<T>& data, BufferStorageMask flags)
+template<typename T, typename>
+void Buffer::setStorage(const T& container, BufferStorageMask flags)
 {
     util::getGLerror(__LINE__, __FUNCTION__);
     m_bufferFlags = flags;
     if (m_isImmutable)
         throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
-    glNamedBufferStorage(m_bufferHandle, data.size() * sizeof(T), data.data(), flags);
+    glNamedBufferStorage(m_bufferHandle, container.size() * sizeof(T::value_type), container.data(), flags);
     m_isImmutable = true;
-    m_typeSize = sizeof(T);
-    util::getGLerror(__LINE__, __FUNCTION__);
-}
-
-template <typename T, size_t N>
-void Buffer::setStorage(const std::array<T, N>& data, BufferStorageMask flags)
-{
-    util::getGLerror(__LINE__, __FUNCTION__);
-    m_bufferFlags = flags;
-    if (m_isImmutable)
-        throw std::runtime_error("Buffer is immutable, cannot reallocate buffer data");
-    glNamedBufferStorage(m_bufferHandle, data.size() * sizeof(T), data.data(), flags);
-    m_isImmutable = true;
-    m_typeSize = sizeof(T);
+    m_typeSize = sizeof(T::value_type);
     util::getGLerror(__LINE__, __FUNCTION__);
 }
 
