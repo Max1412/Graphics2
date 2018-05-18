@@ -327,9 +327,10 @@ void ShaderProgram::showReloadShaderGUI(const std::vector<Shader>& shaders, std:
 
 void ShaderProgram::showReloadShaderGUIContent(const std::vector<Shader>& shaders, std::string_view name)
 {
+	ImGui::Text(name.data());
 	for (const Shader& shader : shaders) {
 		std::stringstream ss;
-		ss << "Reload: " << shader.getShaderType();
+		ss << "Reload: " << shader.getShaderType() << " " << name.data()[0];
 		if (ImGui::Button(ss.str().c_str()))
 		{
 			try

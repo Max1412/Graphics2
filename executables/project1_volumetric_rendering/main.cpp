@@ -30,7 +30,7 @@ using namespace gl;
 constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
 constexpr float screenNear = 0.1f;
-constexpr float screenFar = 1000.f;
+constexpr float screenFar = 10000.f;
 constexpr int gridWidth = screenWidth / 10;
 constexpr int gridHeight = screenHeight / 10;
 constexpr int gridDepth = static_cast<int>(screenFar) / 100;
@@ -57,7 +57,7 @@ struct FogInfo
 int main()
 {
     // init glfw, open window, manage context
-    GLFWwindow* window = util::setupGLFWwindow(screenWidth, screenHeight, "Rapid Testing Executable");
+    GLFWwindow* window = util::setupGLFWwindow(screenWidth, screenHeight, "Volumetric Lighting/Fog");
     glfwSwapInterval(0);
     // init opengl
     util::initGL();
@@ -71,7 +71,9 @@ int main()
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
 
-    Image voxelGrid(GL_TEXTURE_3D, GL_NEAREST, GL_NEAREST);
+	// V O L U M E T R I C
+
+    Image voxelGrid(GL_TEXTURE_3D, GL_LINEAR, GL_LINEAR);
     voxelGrid.initWithoutData3D(gridWidth, gridHeight, gridDepth, GL_RGBA32F);
     GLuint64 handle = voxelGrid.generateImageHandle(GL_RGBA32F);
     voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
@@ -90,7 +92,7 @@ int main()
     sp.addUniform(u_gridDim);
     accumSp.addUniform(u_gridDim);
 
-    auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 2);
+    auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 0);
     sp.addUniform(u_debugMode);
 
     Pilotview playerCamera(screenWidth, screenHeight);
@@ -108,40 +110,72 @@ int main()
     SimplexNoise noise;
     noise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
-    auto l1 = std::make_shared<Light>(glm::vec3(1.0f), glm::vec3(1.0f, -1.0f, 1.0f));
-    l1->setPosition({ 0.0f, 10.0f, 0.0f }); // position for shadow map only
-    l1->recalculateLightSpaceMatrix();
-    LightManager lm;
-    lm.addLight(l1);
-    lm.uploadLightsToGPU();
-
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
 
     Timer timer;
-    int dbgcActive = 1;
+    int dbgcActive = 0;
+	bool dbgrndr = false;
+
+	// R E N D E R I N G
+	auto projUniform = std::make_shared<Uniform<glm::mat4>>("projectionMatrix", playerProj);
+	auto viewUniform = std::make_shared<Uniform<glm::mat4>>("viewMatrix", playerCamera.getView());
+	auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", playerCamera.getPosition());
+
+	Shader modelVertexShader("modelVert.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
+	Shader modelFragmentShader("modelFrag.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+	ShaderProgram modelSp(modelVertexShader, modelFragmentShader);
+
+	modelSp.addUniform(projUniform);
+	modelSp.addUniform(viewUniform);
+	modelSp.addUniform(cameraPosUniform);
+
+	ModelImporter modelLoader("sponza/sponza.obj", 1);
+	modelLoader.registerUniforms(modelSp);
+
+	// lights (parameters intended for sponza)
+	LightManager lightMngr;
+
+	auto directional = std::make_shared<Light>(glm::vec3(0.15f), glm::vec3(0.0f, -1.0f, 0.0f));
+	directional->setPosition({ 0.0f, 2000.0f, 0.0f }); // position for shadow map only
+	directional->recalculateLightSpaceMatrix();
+	lightMngr.addLight(directional);
+
+	lightMngr.uploadLightsToGPU();
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    while (!glfwWindowShouldClose(window))
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	while (!glfwWindowShouldClose(window))
     {
         timer.start();
 
         glfwPollEvents();
 
+		vdbgr.updateCamera(window);
+
         if (dbgcActive)
         {
-            vdbgr.updateCamera(window);
+            //vdbgr.updateCamera(window);
         }
         else
         {
             playerCamera.update(window);
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
-        }
+			viewUniform->setContent(playerCamera.getView());
+			cameraPosUniform->setContent(playerCamera.getPosition());
+		}
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        lm.renderShadowMaps({}); //TODO: put scene in here
+		lightMngr.renderShadowMaps(modelLoader.getMeshes()); //TODO: put scene in here
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
@@ -156,13 +190,16 @@ int main()
 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        //accumSp.use();
-        //glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(8))),
-        //    static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(8))), 1);
+        accumSp.use();
+        glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(8))),
+            static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(8))), 1);
 
-        //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        vdbgr.draw();
+        //vdbgr.draw();
+
+		if(!dbgrndr)
+			modelLoader.drawCulled(modelSp, playerCamera, glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, 10000.0f);
 
         timer.stop();
 
@@ -219,7 +256,9 @@ int main()
                     playerCamera.reset();
                     matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
                     matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
-                }
+					viewUniform->setContent(playerCamera.getView());
+					cameraPosUniform->setContent(playerCamera.getPosition());
+				}
                 vdbgr.drawCameraGuiContent();
                 break;
             }
@@ -228,14 +267,21 @@ int main()
             {
                 vdbgr.drawGuiContent();
                 sp.showReloadShaderGUIContent({ scatterLightShader }, "Voxel");
-                //accumSp.showReloadShaderGUIContent({ accumShader }, "Accumulation");
+                accumSp.showReloadShaderGUIContent({ accumShader }, "Accumulation");
+				modelSp.showReloadShaderGUIContent({ modelVertexShader, modelFragmentShader }, "Forward Rendering");
+				ImGui::Checkbox("Render Debug Renderer", &dbgrndr);
+				if (dbgrndr)
+				{
+					dbgcActive = true;
+					vdbgr.draw();
+				}
                 break;
             }
             //Light
             case 4:
             {
                 ImGui::Text("Light Settings");
-                lm.showLightGUIsContent();
+				lightMngr.showLightGUIsContent();
                 break;
             }
             //Fog

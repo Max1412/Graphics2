@@ -15,6 +15,7 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 vec4 accumulateScattering(in vec4 front, in vec4 back)
 {
     vec3 light = front.rgb + clamp(exp(-front.a), 0.0f, 1.0f) * back.rgb;
+    //vec3 light = front.rgb + front.a * back.rgb;
     return vec4(light, front.a + back.a);
 }
 

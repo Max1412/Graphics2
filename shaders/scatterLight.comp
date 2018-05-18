@@ -251,7 +251,7 @@ void main()
 
     vec3 viewDir = normalize(worldPos - camPos);
 
-    vec3 lighting = vec3(0.f);
+    vec3 lighting = vec3(0.25f);
 
     //TODO: add sunlight and ambient to lighting?!
 

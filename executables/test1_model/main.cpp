@@ -80,8 +80,8 @@ int main()
         lightMngr.addLight(directional);
 
         // point light
-        auto point = std::make_shared<Light>(glm::vec3(1.0f, 0.3f, 1.0f), glm::vec3(-100.0f, 170.0f, -230.0f) , 0.05f, 0.006f, 0.0f);
-        lightMngr.addLight(point);
+        //auto point = std::make_shared<Light>(glm::vec3(1.0f, 0.3f, 1.0f), glm::vec3(-100.0f, 170.0f, -230.0f) , 0.05f, 0.006f, 0.0f);
+        //lightMngr.addLight(point);
     }
     lightMngr.uploadLightsToGPU();
 

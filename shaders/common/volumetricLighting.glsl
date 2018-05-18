@@ -4,13 +4,13 @@
 
 layout(binding = 0, std430) buffer voxelGridBuffer
 {
-    layout(rgba32f) sampler3D voxelGrid;
+    sampler3D voxelGrid;
 };
 
 vec3 applyVolumetricLightingManual(in vec3 colorWithoutVolumetric)
 {
     float originalZ = gl_FragCoord.z / gl_FragCoord.w;
-    vec3 texCoord = vec3(gl_FragCoord.xy, originalZ);
+    vec3 texCoord = vec3(gl_FragCoord.xy / vec2(1600.0, 900.0), 83.0);
     vec4 texEntry = texture(voxelGrid, texCoord);
     return colorWithoutVolumetric * texEntry.w + texEntry.xyz;
 }
@@ -19,6 +19,6 @@ vec3 applyVolumetricLightingManual(in vec3 colorWithoutVolumetric)
 vec4 getVolumetricLighting()
 {
     float originalZ = gl_FragCoord.z / gl_FragCoord.w;
-    vec3 texCoord = vec3(gl_FragCoord.xy, originalZ);
+    vec3 texCoord = vec3(gl_FragCoord.xy / vec2(1600, 900), originalZ);
     return texture(voxelGrid, texCoord);
 }
