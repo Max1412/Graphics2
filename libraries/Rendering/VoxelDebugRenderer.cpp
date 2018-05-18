@@ -7,7 +7,7 @@
 #include "imgui/imgui.h"
 
 VoxelDebugRenderer::VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInfo screenInfo)
-    : m_gridDim(gridDim), m_screenInfo(screenInfo), m_camera(m_screenInfo.width, m_screenInfo.height, 10.0f),
+    : m_gridDim(gridDim), m_screenInfo(screenInfo), m_camera(m_screenInfo.width, m_screenInfo.height),
     m_shaders{ Shader{ "voxeldebug.vert", GL_VERTEX_SHADER }, Shader{ "voxeldebug.geom", GL_GEOMETRY_SHADER }, Shader{ "voxeldebug.frag", GL_FRAGMENT_SHADER } },
     m_sp(m_shaders)
 {
@@ -15,8 +15,8 @@ VoxelDebugRenderer::VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInf
     m_projMat = glm::perspective(glm::radians(60.0f), m_screenInfo.width / static_cast<float>(m_screenInfo.height), m_screenInfo.near, m_screenInfo.far);
     glm::mat4 view = m_camera.getView();
     m_viewUniform = std::make_shared<Uniform<glm::mat4>>("dViewMat", view);
-    auto projUniform = std::make_shared<Uniform<glm::mat4>>("dProjMat", m_projMat);
-    auto gridDimUniform = std::make_shared<Uniform<glm::ivec3>>("gridDim", gridDim);
+    const auto projUniform = std::make_shared<Uniform<glm::mat4>>("dProjMat", m_projMat);
+    const auto gridDimUniform = std::make_shared<Uniform<glm::ivec3>>("gridDim", gridDim);
     m_voxelSizeUniform = std::make_shared<Uniform<float>>("voxelSize", m_voxelSize);
     m_positionSourceUniform = std::make_shared<Uniform<int>>("positionSource", 0);
     m_dataModeUniform = std::make_shared<Uniform<int>>("dataMode", 0);
@@ -34,7 +34,7 @@ void VoxelDebugRenderer::updateCamera(GLFWwindow* window)
     m_viewUniform->setContent(m_camera.getView());
 }
 
-void VoxelDebugRenderer::draw()
+void VoxelDebugRenderer::draw() const
 {
     m_sp.use();
     m_sp.updateUniforms();

@@ -94,7 +94,7 @@ int main()
     sp.addUniform(u_debugMode);    
 
     Pilotview playerCamera(screenWidth, screenHeight);
-    glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
+    const glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{{playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);

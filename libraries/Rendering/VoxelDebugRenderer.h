@@ -6,6 +6,7 @@
 #include "glm/glm.hpp"
 #include "VertexArray.h"
 #include "Trackball.h"
+#include "Pilotview.h"
 
 struct ScreenInfo
 {
@@ -22,14 +23,14 @@ class VoxelDebugRenderer
 public:
     VoxelDebugRenderer(const glm::ivec3 gridDim, const ScreenInfo screenInfo);
     void updateCamera(GLFWwindow* window);
-    void draw();
+    void draw() const;
 	void drawGuiContent();
 	void drawCameraGuiContent();
 
 private:
     glm::ivec3 m_gridDim;
     ScreenInfo m_screenInfo;
-    Trackball m_camera;
+    Pilotview m_camera;
     std::vector<Shader> m_shaders;
     ShaderProgram m_sp;
     int m_numVoxels;
