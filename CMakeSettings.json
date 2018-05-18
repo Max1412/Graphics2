@@ -5,13 +5,13 @@
       "generator": "Visual Studio 15 2017 Win64",
       "configurationType": "Debug",
       "inheritEnvironments": ["msvc_x64_x64"],
-      "buildRoot": "${env.USERPROFILE}\\CMakeBuild\\${workspaceHash}\\build\\${name}",
+      "buildRoot": "${projectDir}\\CMakeBuild\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-m -v:minimal",
       "variables": [
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "C:\\Users\\mm\\Documents\\Uni-Archiv\\vcpkg\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
+          "value": ""
         },
         {
           "name": "VCPKG_TARGET_TRIPLET",
