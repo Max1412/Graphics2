@@ -10,9 +10,9 @@ layout(binding = 0, std430) buffer voxelGridBuffer
 vec3 applyVolumetricLightingManual(in vec3 colorWithoutVolumetric)
 {
     float originalZ = gl_FragCoord.z / gl_FragCoord.w;
-    vec3 texCoord = vec3(gl_FragCoord.xy / vec2(1600.0, 900.0), 83.0);
+    vec3 texCoord = vec3(gl_FragCoord.xy / vec2(1600.0, 900.0), originalZ / 10.f);
     vec4 texEntry = texture(voxelGrid, texCoord);
-    return colorWithoutVolumetric * texEntry.w + texEntry.xyz;
+    return colorWithoutVolumetric * (1.0f - texEntry.w) + texEntry.xyz;
 }
 
 // CAUTION: to use this you have to enable blending with glBlendFunc(GL_ONE, GL_SRC_ALPHA)

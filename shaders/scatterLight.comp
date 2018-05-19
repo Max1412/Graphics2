@@ -228,14 +228,14 @@ void main()
 
     vec3 viewDir = normalize(worldPos - camPos);
 
-    vec3 lighting = vec3(0.25f);
+    vec3 lighting = vec3(0.1f);
 
     //TODO: add sunlight and ambient to lighting?!
 
     for (int i = 0; i < lights.length(); ++i)
     {
-        vec3 lightDir = lights[i].type == 0 ? normalize(lights[i].direction) : normalize(lights[i].position - worldPos);
-        lighting += getLight(i, worldPos) * getPhaseFunction(fogAnisotropy, lightDir, viewDir);
+        vec3 lightDir = lights[i].type == 0 ? normalize(-lights[i].direction) : normalize(lights[i].position - worldPos);
+        lighting += getLight(i, worldPos)/* * getPhaseFunction(fogAnisotropy, lightDir, viewDir)*/;
     }
 
     lighting *= fogAlbedo;

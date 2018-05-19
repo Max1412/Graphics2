@@ -103,7 +103,7 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(static_cast<BufferBindings::Binding>(1));
 
-    FogInfo fog = { glm::vec3(1.0f), 0.5f, 10.f, 10.f };
+    FogInfo fog = { glm::vec3(1.0f), 0.5f, 30.f, 10.f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
@@ -128,7 +128,7 @@ int main()
 
 	modelSp.addUniform(projUniform);
 	modelSp.addUniform(viewUniform);
-	modelSp.addUniform(cameraPosUniform);
+	//modelSp.addUniform(cameraPosUniform);
 
 	ModelImporter modelLoader("sponza/sponza.obj", 1);
 	modelLoader.registerUniforms(modelSp);

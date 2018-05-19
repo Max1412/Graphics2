@@ -13,6 +13,7 @@ in vec3 passFragPos;
 #include "common/light.glsl"
 #include "common/material.glsl"
 #include "common/shadowMapping.glsl"
+#include "common/volumetricLighting.glsl"
 
 out vec4 fragColor;
 
@@ -121,6 +122,7 @@ void main()
             lightingColor += thisLight;
         }
     }
+    lightingColor = applyVolumetricLightingManual(lightingColor);
     vec4 col = vec4(lightingColor, 1.0);
 
     if (currentMaterial.opacity == -1.0f) // has opacity texture instead of opacity
