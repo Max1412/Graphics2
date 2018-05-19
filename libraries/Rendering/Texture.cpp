@@ -94,7 +94,19 @@ void Texture::setWrap(const GLenum wrapS, const GLenum wrapT) const
     if (wrapS == GL_CLAMP_TO_BORDER && wrapT == GL_CLAMP_TO_BORDER)
     {
         glm::vec4 borderColor(1.0f);
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, value_ptr(borderColor));
+        glTextureParameterfv(m_name, GL_TEXTURE_BORDER_COLOR, value_ptr(borderColor));
+    }
+}
+
+void Texture::setWrap(GLenum wrapS, GLenum wrapT, GLenum wrapR) const
+{
+    glTextureParameteri(m_name, GL_TEXTURE_WRAP_S, wrapS);
+    glTextureParameteri(m_name, GL_TEXTURE_WRAP_T, wrapT);
+    glTextureParameteri(m_name, GL_TEXTURE_WRAP_R, wrapR);
+    if (wrapS == GL_CLAMP_TO_BORDER && wrapT == GL_CLAMP_TO_BORDER && wrapR == GL_CLAMP_TO_BORDER)
+    {
+        glm::vec4 borderColor(1.0f);
+        glTextureParameterfv(m_name, GL_TEXTURE_BORDER_COLOR, value_ptr(borderColor));
     }
 }
 

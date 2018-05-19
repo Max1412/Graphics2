@@ -24,6 +24,7 @@ public:
     virtual void initWithoutData3D(int width, int height, int depth, GLenum internalFormat);
 
     void setWrap(GLenum wrapS, GLenum wrapT) const;
+    void setWrap(GLenum wrapS, GLenum wrapT, GLenum wrapR) const;
     void setMinMagFilter(GLenum minFilter, GLenum magFilter) const;
     void generateMipmap() const;
 

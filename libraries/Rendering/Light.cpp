@@ -16,8 +16,10 @@ m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_d
     checkParameters();
 
     // init shadowMap
-    m_shadowTexture->initWithoutData(m_shadowMapRes.x, m_shadowMapRes.y, GL_DEPTH_COMPONENT32F);
     m_shadowTexture->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(m_shadowTexture->getName(), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTextureParameteri(m_shadowTexture->getName(), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    m_shadowTexture->initWithoutData(m_shadowMapRes.x, m_shadowMapRes.y, GL_DEPTH_COMPONENT32F);
 
     m_modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", glm::mat4(1.0f));
     m_lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", glm::mat4(1.0f));
@@ -80,8 +82,10 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
     checkParameters();
 
     // init shadowMap
-    m_shadowTexture->initWithoutData(m_shadowMapRes.x, m_shadowMapRes.y, GL_DEPTH_COMPONENT32F);
     m_shadowTexture->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(m_shadowTexture->getName(), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTextureParameteri(m_shadowTexture->getName(), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    m_shadowTexture->initWithoutData(m_shadowMapRes.x, m_shadowMapRes.y, GL_DEPTH_COMPONENT32F);
 
     m_modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", glm::mat4(1.0f));
     m_lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", glm::mat4(1.0f));

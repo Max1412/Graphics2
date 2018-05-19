@@ -3,6 +3,7 @@
 //#extension GL_ARB_compute_variable_group_size : require
 
 #include "common/light.glsl"
+#include "common/shadowMapping.glsl"
 
 //layout(local_size_variable) in;
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
@@ -190,36 +191,12 @@ float getPhaseFunction(float g, vec3 lightVec, vec3 viewVec) // vectors must be 
     return (1.0f / (4.0f * 3.14159265359f)) * (1.0f - g * g) / pow((1.0f + g * g - 2.0f * g * cosTheta), 1.5f);
 }
 
-float calculateShadow(in int lightIndex, in vec3 worldPos)
-{
-    //transform position to light space
-    vec4 worldPosLightSpace = lights[lightIndex].lightSpaceMatrix * vec4(worldPos, 1.0f);
-
-    // perform perspective divide
-    vec3 projCoords = worldPosLightSpace.xyz / worldPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-
-    // handle sampling outside the shadow mapping "far" border
-    if (projCoords.z > 1.0f)
-        return 1.0f;
-
-    // get closest depth value from light's perspective (using [0,1] range worldPosLight as coords)
-    float closestDepth = texture(sampler2D(lights[lightIndex].shadowMap), projCoords.xy).r; //TODO: use cube map for point lights
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-
-    float shadow = currentDepth > closestDepth ? 1.0f : 0.0f;
-
-    return shadow;
-}
-
 vec3 getLight(int lightIndex, vec3 worldPos)
 {
     Light currentLight = lights[lightIndex];
 
     // occlusion / shadow
-    float shadow = 1.0f - calculateShadow(lightIndex, worldPos);
+    float shadow = calculateShadow(lightIndex, worldPos);
 
     // cutoff (spotlight)
     if (currentLight.type == 2)

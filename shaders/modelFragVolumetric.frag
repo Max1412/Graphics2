@@ -24,13 +24,13 @@ void main()
     vec3 specCol = vec3(1.0f);
 
     // diffuse color or texture
-    if(currentMaterial.diffColor.a != 0.0f)
+    if (currentMaterial.diffColor.a != 0.0f)
         diffCol = texture(currentMaterial.diffTexture, passTexCoord.rg).rgb;
     else
         diffCol = currentMaterial.diffColor.rgb;
 
     // specular color or texture TODO USE THIS
-    if(currentMaterial.specColor.a != 0.0f)
+    if (currentMaterial.specColor.a != 0.0f)
         specCol = texture(currentMaterial.specTexture, passTexCoord.rg).rgb;
     else
         specCol = currentMaterial.specColor.rgb;
@@ -43,10 +43,10 @@ void main()
     vec3 lightingColor = vec3(0.0f);
     lightingColor += ambient;
 
-    for(int i = 0; i < lights.length(); i++)
+    for (int i = 0; i < lights.length(); i++)
     {
         Light currentLight = lights[i];
-        if(currentLight.type == 0) // D I R E C T I O N A L
+        if (currentLight.type == 0) // D I R E C T I O N A L
         {
             vec3 lightDir = normalize(-currentLight.direction);
 
@@ -65,7 +65,7 @@ void main()
             vec3 thisLight = shadowFactor * (diffuse + specular);
             lightingColor += thisLight;
         }
-        if(currentLight.type == 1) // P O I N T
+        if (currentLight.type == 1) // P O I N T
         {
             vec3 lightDir = normalize(currentLight.position - passFragPos);
 
@@ -78,7 +78,7 @@ void main()
 
             // attenuation
             float distance = length(currentLight.position - passFragPos);
-            float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));    
+            float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));
 
             // combine results
             vec3 diffuse = currentLight.color * diff * diffCol;
@@ -90,7 +90,7 @@ void main()
             vec3 thisLight = shadowFactor * (diffuse + specular);
             lightingColor += thisLight;
         }
-        if(currentLight.type == 2) // S P O T
+        if (currentLight.type == 2) // S P O T
         {
             vec3 lightDir = normalize(currentLight.position - passFragPos);
 
@@ -103,10 +103,10 @@ void main()
 
             // attenuation
             float distance = length(currentLight.position - passFragPos);
-            float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));    
+            float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));
 
             // spotlight intensity
-            float theta = dot(lightDir, normalize(-currentLight.direction)); 
+            float theta = dot(lightDir, normalize(-currentLight.direction));
             float epsilon = currentLight.cutOff - currentLight.outerCutOff;
             float intensity = clamp((theta - currentLight.outerCutOff) / epsilon, 0.0, 1.0);
 
@@ -123,13 +123,13 @@ void main()
     }
     vec4 col = vec4(lightingColor, 1.0);
 
-    if(currentMaterial.opacity == -1.0f) // has opacity texture instead of opacity
+    if (currentMaterial.opacity == -1.0f) // has opacity texture instead of opacity
         col.a = texture(currentMaterial.opacityTexture, passTexCoord.rg).r;
     else
         col.a = currentMaterial.opacity;
 
     // SPONZA HACK
-    if(col.a <= 0.9f)
+    if (col.a <= 0.9f)
         discard;
 
     fragColor = col;

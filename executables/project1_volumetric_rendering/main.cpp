@@ -74,7 +74,8 @@ int main()
 	// V O L U M E T R I C
 
     Image voxelGrid(GL_TEXTURE_3D, GL_LINEAR, GL_LINEAR);
-    voxelGrid.initWithoutData3D(gridWidth, gridHeight, gridDepth, GL_RGBA32F);
+    voxelGrid.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    voxelGrid.initWithoutData3D(gridWidth, gridHeight, gridDepth, GL_RGBA32F);    
     GLuint64 handle = voxelGrid.generateImageHandle(GL_RGBA32F);
     voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
@@ -122,7 +123,7 @@ int main()
 	auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", playerCamera.getPosition());
 
 	Shader modelVertexShader("modelVert.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
-	Shader modelFragmentShader("modelFrag.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+	Shader modelFragmentShader("modelFragVolumetric.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
 	ShaderProgram modelSp(modelVertexShader, modelFragmentShader);
 
 	modelSp.addUniform(projUniform);
@@ -175,7 +176,7 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		lightMngr.renderShadowMaps(modelLoader.getMeshes()); //TODO: put scene in here
+		lightMngr.renderShadowMaps(modelLoader.getMeshes());
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
