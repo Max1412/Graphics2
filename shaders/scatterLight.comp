@@ -10,6 +10,8 @@ layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 uniform ivec3 gridDim;
 
+uniform float maxRange;
+
 uniform int debugMode = 0;
 
 layout(binding = 0, std430) buffer voxelGridBuffer
@@ -43,7 +45,7 @@ layout(binding = 3, std430) buffer noiseBuffer
 	float noiseSpeed;
 };
 
-vec3 getWorldPos(ivec3 voxelPos)
+vec3 getWorldPos_old(ivec3 voxelPos) //seems to produce wrong coordinates
 {
     vec3 centerOffset = 0.5f / gridDim; // for translation into center of voxel
 
@@ -52,21 +54,55 @@ vec3 getWorldPos(ivec3 voxelPos)
     float n = m32 / (m22 - 1.0f); // playerCameraNear
     float f = n * (m22 - 1.0f) / (m22 + 1.0); // playerCameraFar
 
+    f = 1000;
+    n = 0.1;
+
     vec3 uvPos = vec3(voxelPos) / gridDim + centerOffset;
-    uvPos.z = (f + n - 2.0f * n * f / uvPos.z) / (f - n); // de-linearize depth
+    //uvPos.z = (f + n - 2.0f * n * f / uvPos.z) / (f - n); // de-linearize depth
 
     uvPos *= 2.0f;
     uvPos -= vec3(1.0f);
 
-    vec4 worldSpacePos = inverse(playerProjMatrix * playerViewMatrix) * vec4(uvPos, 1.0f);
+    vec4 viewSpacePos = inverse(playerProjMatrix) * vec4(uvPos, 1.0f);
+
+    //viewSpacePos.z *= exp(maxRange * viewSpacePos.z); //use exponential depth
+
+    vec4 worldSpacePos = inverse(playerViewMatrix) * viewSpacePos;
     worldSpacePos.xyzw /= worldSpacePos.w; // perspective division
+
 
     return worldSpacePos.xyz;
 }
 
+vec3 getWorldPos(ivec3 voxelPos)
+{
+    vec3 camView = transpose(playerViewMatrix)[2].xyz;
+
+    //float m22 = playerProjMatrix[2][2];
+    //float m32 = playerProjMatrix[3][2];
+    //float n = m32 / (m22 - 1.0f); // playerCameraNear
+    //float f = n * (m22 - 1.0f) / (m22 + 1.0); // playerCameraFar
+
+    float n = 0.1f;
+    float f = maxRange;
+
+    float zDist = n + (float(voxelPos.z) / float(gridDim.z)) * (f - n);
+
+    zDist *= exp(-float(gridDim.z - voxelPos.z - 1) / float(gridDim.z)); //use exponential depth
+
+    vec2 uv = 2.0f * (vec2(voxelPos.xy) / vec2(gridDim.xy) - 0.5f);
+    vec4 world_uv = inverse(playerProjMatrix * playerViewMatrix) * vec4(uv, 0, 1);
+    world_uv /= world_uv.w;
+    vec3 dir = normalize(world_uv.xyz - camPos);
+
+    vec3 worldPos = camPos + zDist / abs(dot(dir, camView)) * dir;
+    return worldPos;
+
+}
+
 float getZLayerThickness(int zLayer) 
 {
-    return 1.0f / float(gridDim.z); //TODO: change to exponential distribution
+    return exp(-float(gridDim.z - zLayer - 1) / float(gridDim.z)); //TODO: do we need near/far scaling here?
 }
 
 float getDensity(vec3 worldPos)
@@ -221,26 +257,26 @@ void main()
     vec3 worldPos = getWorldPos(g_ID);
 
     float thickness = getZLayerThickness(g_ID.z);
-    float density = getDensity(worldPos);
+    float density = 0.2f;// getDensity(worldPos);
 
     float scattering = fogScatteringCoeff * density * thickness;
     float absorbtion = fogAbsorptionCoeff * density * thickness;
 
     vec3 viewDir = normalize(worldPos - camPos);
 
-    vec3 lighting = vec3(0.1f);
+    vec3 lighting = vec3(0.0f);
 
     //TODO: add sunlight and ambient to lighting?!
 
     for (int i = 0; i < lights.length(); ++i)
     {
         vec3 lightDir = lights[i].type == 0 ? normalize(-lights[i].direction) : normalize(lights[i].position - worldPos);
-        lighting += getLight(i, worldPos)/* * getPhaseFunction(fogAnisotropy, lightDir, viewDir)*/;
+        lighting += getLight(i, worldPos) * getPhaseFunction(fogAnisotropy, lightDir, viewDir);
     }
 
     lighting *= fogAlbedo;
 
-    vec4 outColor = vec4(lighting * scattering, scattering + absorbtion); //TODO: write this value into voxelGrid
+    vec4 outColor = vec4(lighting * scattering, scattering + absorbtion);
 
     switch (debugMode)
     {

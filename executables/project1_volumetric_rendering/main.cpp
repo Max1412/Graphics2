@@ -31,9 +31,9 @@ constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
 constexpr float screenNear = 0.1f;
 constexpr float screenFar = 10000.f;
-constexpr int gridWidth = screenWidth / 10;
-constexpr int gridHeight = screenHeight / 10;
-constexpr int gridDepth = static_cast<int>(screenFar) / 100;
+constexpr int gridWidth = 320;
+constexpr int gridHeight = 180;
+constexpr int gridDepth = 256;
 constexpr int groupSize = 4;
 
 constexpr bool renderimgui = true;
@@ -96,6 +96,9 @@ int main()
     auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 0);
     sp.addUniform(u_debugMode);
 
+    auto u_maxRange = std::make_shared<Uniform<float>>("maxRange", 3000.0f);
+    sp.addUniform(u_maxRange);
+
     Pilotview playerCamera(screenWidth, screenHeight);
     glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
 
@@ -103,7 +106,7 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(static_cast<BufferBindings::Binding>(1));
 
-    FogInfo fog = { glm::vec3(1.0f), 0.5f, 30.f, 10.f };
+    FogInfo fog = { glm::vec3(1.0f), 0.5f, 0.2f, 0.2f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
@@ -136,10 +139,19 @@ int main()
 	// lights (parameters intended for sponza)
 	LightManager lightMngr;
 
-	auto directional = std::make_shared<Light>(glm::vec3(0.15f), glm::vec3(0.0f, -1.0f, 0.0f));
+    // directional light
+	auto directional = std::make_shared<Light>(glm::vec3(10.f), glm::vec3(0.0f, -1.0f, -0.2f));
 	directional->setPosition({ 0.0f, 2000.0f, 0.0f }); // position for shadow map only
 	directional->recalculateLightSpaceMatrix();
 	lightMngr.addLight(directional);
+
+    // spot light
+    glm::vec3 pos = glm::vec3(80.0f, 200.0f, 100.0f);
+    glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
+    float cutOff = glm::cos(glm::radians(30.0f));
+    float outerCutOff = glm::cos(glm::radians(35.0f));
+    auto spot = std::make_shared<Light>(glm::vec3(0.0f, 1.0f, 1.0f), pos, dir, 0.05f, 0.002f, 0.0f, cutOff, outerCutOff);
+    lightMngr.addLight(spot);
 
 	lightMngr.uploadLightsToGPU();
 
@@ -252,6 +264,7 @@ int main()
                 ImGui::Separator();
                 ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
                 ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
+                ImGui::SliderFloat("Camera max voxel range", &u_maxRange->getContentRef(), 10.0f, screenFar);
                 if (ImGui::Button("Reset Player Camera"))
                 {
                     playerCamera.reset();
@@ -293,9 +306,9 @@ int main()
                     fogSSBO.setContentSubData(fog.fogAlbedo, offsetof(FogInfo, fogAlbedo));
                 if (ImGui::SliderFloat("Anisotropy", &fog.fogAnisotropy, 0.0f, 1.0f))
                     fogSSBO.setContentSubData(fog.fogAnisotropy, offsetof(FogInfo, fogAnisotropy));
-                if (ImGui::SliderFloat("Scattering", &fog.fogScatteringCoeff, 0.0f, 100.0f))
+                if (ImGui::SliderFloat("Scattering", &fog.fogScatteringCoeff, 0.0f, 1.0f))
                     fogSSBO.setContentSubData(fog.fogScatteringCoeff, offsetof(FogInfo, fogScatteringCoeff));
-                if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 100.0f))
+                if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 1.0f))
                     fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
                 break;
             }

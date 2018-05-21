@@ -33,7 +33,7 @@ constexpr float screenNear = 0.1f;
 constexpr float screenFar = 1000.f;
 constexpr int gridWidth = screenWidth / 10;
 constexpr int gridHeight = screenHeight / 10;
-constexpr int gridDepth = static_cast<int>(screenFar) / 100;
+constexpr int gridDepth = 100;
 constexpr int groupSize = 4;
 
 constexpr bool renderimgui = true;
@@ -91,7 +91,10 @@ int main()
     accumSp.addUniform(u_gridDim);
 
     auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 2);
-    sp.addUniform(u_debugMode);    
+    sp.addUniform(u_debugMode);
+
+    auto u_maxRange = std::make_shared<Uniform<float>>("maxRange", 10.0f);
+    sp.addUniform(u_maxRange);
 
     Pilotview playerCamera(screenWidth, screenHeight);
     const glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
@@ -214,6 +217,7 @@ int main()
 				ImGui::Separator();
 				ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
 				ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
+                ImGui::SliderFloat("Camera max range", &u_maxRange->getContentRef(), 0.0f, 100.0f);
 				if (ImGui::Button("Reset Player Camera"))
 				{
 					playerCamera.reset();

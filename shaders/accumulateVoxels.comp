@@ -33,14 +33,14 @@ void main()
 	{
         vec4 accum = imageLoad(voxelGrid, g_ID);
         // TODO not sure if we need exponential data when usign non-exp. grids & shadow maps
-        //writeOutputExponential(g_ID, accum);
+        writeOutputExponential(g_ID, accum);
         for (g_ID.z = 1; g_ID.z < gridDim.z; ++g_ID.z)
         {
             vec4 nextVal = imageLoad(voxelGrid, g_ID);
-            /*accum = accumulateScattering(accum, nextVal);
-            writeOutputExponential(g_ID, accum);*/
-            accum += nextVal;
-            imageStore(voxelGrid, g_ID, accum);
+            accum = accumulateScattering(accum, nextVal);
+            writeOutputExponential(g_ID, accum);
+            /*accum += nextVal;
+            imageStore(voxelGrid, g_ID, accum);*/
         }
 	}
 }
