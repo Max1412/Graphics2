@@ -14,12 +14,9 @@ uniform float maxRange;
 
 uniform int debugMode = 0;
 
-layout(binding = 0, std430) buffer voxelGridBuffer
-{
-    layout(rgba32f) image3D voxelGrid;
-};
+layout(bindless_image, rgba32f) uniform image3D voxelGrid;
 
-layout(binding = 1, std430) buffer cameraBuffer
+layout(binding = CAMERA_BINDING, std430) buffer cameraBuffer
 {
     mat4 playerViewMatrix;
     mat4 playerProjMatrix;
@@ -102,7 +99,8 @@ vec3 getWorldPos(ivec3 voxelPos)
 
 float getZLayerThickness(int zLayer) 
 {
-    return exp(-float(gridDim.z - zLayer - 1) / float(gridDim.z)); //TODO: do we need near/far scaling here?
+    //return 1.0f; //linear depth
+    return exp(-float(gridDim.z - zLayer - 1) / float(gridDim.z));
 }
 
 float getDensity(vec3 worldPos)

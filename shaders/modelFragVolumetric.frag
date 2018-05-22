@@ -3,12 +3,18 @@
 //#extension GL_ARB_gpu_shader_int64 : require
 
 uniform int materialIndex;
-uniform vec3 cameraPos;
-uniform mat4 viewMatrix;
+
+layout(binding = CAMERA_BINDING, std430) buffer cameraBuffer
+{
+    mat4 viewMatrix;
+    mat4 projectionMatrix;
+    vec3 camPos;
+};
 
 in vec3 passNormal;
 in vec3 passTexCoord;
-in vec3 passFragPos;
+in vec3 passWorldPos;
+in vec3 passViewPos;
 
 #include "common/light.glsl"
 #include "common/material.glsl"
@@ -39,7 +45,7 @@ void main()
     float ambientFactor = 0.15;
     vec3 ambient = ambientFactor * diffCol; // TODO ambient texture/color from assimp
     vec3 normal = normalize(passNormal);
-    vec3 viewDir = normalize(cameraPos - passFragPos);
+    vec3 viewDir = normalize(camPos - passWorldPos);
 
     vec3 lightingColor = vec3(0.0f);
     lightingColor += ambient;
@@ -62,13 +68,13 @@ void main()
             vec3 diffuse = currentLight.color * diff * diffCol;
             vec3 specular = currentLight.color * spec * specCol;
 
-            float shadowFactor = calculateShadowPCF(i, passFragPos, passNormal, lightDir);
+            float shadowFactor = calculateShadowPCF(i, passWorldPos, passNormal, lightDir);
             vec3 thisLight = shadowFactor * (diffuse + specular);
             lightingColor += thisLight;
         }
         if (currentLight.type == 1) // P O I N T
         {
-            vec3 lightDir = normalize(currentLight.position - passFragPos);
+            vec3 lightDir = normalize(currentLight.position - passWorldPos);
 
             // diffuse shading
             float diff = max(dot(normal, lightDir), 0.0);
@@ -78,7 +84,7 @@ void main()
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), currentMaterial.Ns);
 
             // attenuation
-            float distance = length(currentLight.position - passFragPos);
+            float distance = length(currentLight.position - passWorldPos);
             float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));
 
             // combine results
@@ -87,13 +93,13 @@ void main()
             diffuse *= attenuation;
             specular *= attenuation;
 
-            float shadowFactor = (1.0f - calculateCubeShadow(i, passFragPos, lightDir));
+            float shadowFactor = (1.0f - calculateCubeShadow(i, passWorldPos, lightDir));
             vec3 thisLight = shadowFactor * (diffuse + specular);
             lightingColor += thisLight;
         }
         if (currentLight.type == 2) // S P O T
         {
-            vec3 lightDir = normalize(currentLight.position - passFragPos);
+            vec3 lightDir = normalize(currentLight.position - passWorldPos);
 
             // diffuse shading
             float diff = max(dot(normal, lightDir), 0.0);
@@ -103,7 +109,7 @@ void main()
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), currentMaterial.Ns);
 
             // attenuation
-            float distance = length(currentLight.position - passFragPos);
+            float distance = length(currentLight.position - passWorldPos);
             float attenuation = 1.0 / max(0.001f, (currentLight.constant + currentLight.linear * distance + currentLight.quadratic * (distance * distance)));
 
             // spotlight intensity
@@ -117,12 +123,12 @@ void main()
             diffuse *= attenuation * intensity;
             specular *= attenuation * intensity;
 
-            float shadowFactor = calculateShadowPCF(i, passFragPos, passNormal, lightDir);
+            float shadowFactor = calculateShadowPCF(i, passWorldPos, passNormal, lightDir);
             vec3 thisLight = shadowFactor * (diffuse + specular);
             lightingColor += thisLight;
         }
     }
-    lightingColor = applyVolumetricLightingManual(lightingColor);
+    lightingColor = applyVolumetricLightingManual(lightingColor, passViewPos.z);
     vec4 col = vec4(lightingColor, 1.0);
 
     if (currentMaterial.opacity == -1.0f) // has opacity texture instead of opacity

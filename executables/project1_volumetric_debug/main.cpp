@@ -73,18 +73,17 @@ int main()
 
     Image voxelGrid(GL_TEXTURE_3D, GL_NEAREST, GL_NEAREST);
     voxelGrid.initWithoutData3D(gridWidth, gridHeight, gridDepth, GL_RGBA32F);
-    GLuint64 handle = voxelGrid.generateImageHandle(GL_RGBA32F);
     voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
-
-    Buffer imageHoldingSSBO(GL_SHADER_STORAGE_BUFFER);
-    imageHoldingSSBO.setStorage(std::vector<GLuint64>{ handle }, GL_DYNAMIC_STORAGE_BIT);
-    imageHoldingSSBO.bindBase(static_cast<BufferBindings::Binding>(0));
 
     Shader scatterLightShader("scatterLight.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp({ scatterLightShader });
 
     Shader accumShader("accumulateVoxels.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram accumSp({ accumShader });
+
+    auto u_voxelGridImg = std::make_shared<Uniform<GLuint64>>("voxelGrid", voxelGrid.generateImageHandle(GL_RGBA32F));
+    sp.addUniform(u_voxelGridImg);
+    accumSp.addUniform(u_voxelGridImg);
 
     auto u_gridDim = std::make_shared<Uniform<glm::ivec3>>("gridDim", glm::ivec3(gridWidth, gridHeight, gridDepth));
     sp.addUniform(u_gridDim);
@@ -101,7 +100,7 @@ int main()
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{{playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
-    matrixSSBO.bindBase(static_cast<BufferBindings::Binding>(1));
+    matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
     FogInfo fog = { glm::vec3(1.0f), 0.5f, 10.f, 10.f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
@@ -119,6 +118,7 @@ int main()
     lm.uploadLightsToGPU();
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
+    glBindImageTexture(0, voxelGrid.getName(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
 
     Timer timer;
     int dbgcActive = 1;

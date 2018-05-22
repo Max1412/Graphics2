@@ -17,15 +17,12 @@ using namespace gl;
 #include "Rendering/Uniform.h"
 #include "Rendering/Image.h"
 #include "IO/ModelImporter.h"
-#include "Rendering/Mesh.h"
 #include "Rendering/VoxelDebugRenderer.h"
 #include "Rendering/Pilotview.h"
 #include "Rendering/LightManager.h"
 
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
-#include "Rendering/FrameBuffer.h"
 
 constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
@@ -76,18 +73,17 @@ int main()
     Image voxelGrid(GL_TEXTURE_3D, GL_LINEAR, GL_LINEAR);
     voxelGrid.setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
     voxelGrid.initWithoutData3D(gridWidth, gridHeight, gridDepth, GL_RGBA32F);    
-    GLuint64 handle = voxelGrid.generateImageHandle(GL_RGBA32F);
     voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
-
-    Buffer imageHoldingSSBO(GL_SHADER_STORAGE_BUFFER);
-    imageHoldingSSBO.setStorage(std::vector<GLuint64>{ handle }, GL_DYNAMIC_STORAGE_BIT);
-    imageHoldingSSBO.bindBase(static_cast<BufferBindings::Binding>(0));
 
     Shader scatterLightShader("scatterLight.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp({ scatterLightShader });
 
     Shader accumShader("accumulateVoxels.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions);
     ShaderProgram accumSp({ accumShader });
+
+    auto u_voxelGridImg = std::make_shared<Uniform<GLuint64>>("voxelGrid", voxelGrid.generateImageHandle(GL_RGBA32F));
+    sp.addUniform(u_voxelGridImg);
+    accumSp.addUniform(u_voxelGridImg);
 
     auto u_gridDim = std::make_shared<Uniform<glm::ivec3>>("gridDim", glm::ivec3(gridWidth, gridHeight, gridDepth));
     sp.addUniform(u_gridDim);
@@ -104,7 +100,7 @@ int main()
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
-    matrixSSBO.bindBase(static_cast<BufferBindings::Binding>(1));
+    matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
     FogInfo fog = { glm::vec3(1.0f), 0.5f, 0.2f, 0.2f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
@@ -115,23 +111,24 @@ int main()
     noise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
+    glBindImageTexture(0, voxelGrid.getName(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
 
     Timer timer;
     int dbgcActive = 0;
 	bool dbgrndr = false;
 
 	// R E N D E R I N G
-	auto projUniform = std::make_shared<Uniform<glm::mat4>>("projectionMatrix", playerProj);
-	auto viewUniform = std::make_shared<Uniform<glm::mat4>>("viewMatrix", playerCamera.getView());
-	auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", playerCamera.getPosition());
 
-	Shader modelVertexShader("modelVert.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
+	Shader modelVertexShader("modelVertVolumetric.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
 	Shader modelFragmentShader("modelFragVolumetric.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
 	ShaderProgram modelSp(modelVertexShader, modelFragmentShader);
 
-	modelSp.addUniform(projUniform);
-	modelSp.addUniform(viewUniform);
-	//modelSp.addUniform(cameraPosUniform);
+    auto u_voxelGridTex = std::make_shared<Uniform<GLuint64>>("voxelGrid", voxelGrid.generateHandle());
+    auto u_screenRes = std::make_shared<Uniform<glm::vec2>>("screenRes", glm::vec2(screenWidth, screenHeight));
+
+	modelSp.addUniform(u_maxRange);
+    modelSp.addUniform(u_voxelGridTex);
+    modelSp.addUniform(u_screenRes);
 
 	ModelImporter modelLoader("sponza/sponza.obj", 1);
 	modelLoader.registerUniforms(modelSp);
@@ -182,8 +179,6 @@ int main()
             playerCamera.update(window);
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
-			viewUniform->setContent(playerCamera.getView());
-			cameraPosUniform->setContent(playerCamera.getPosition());
 		}
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -270,8 +265,6 @@ int main()
                     playerCamera.reset();
                     matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
                     matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
-					viewUniform->setContent(playerCamera.getView());
-					cameraPosUniform->setContent(playerCamera.getPosition());
 				}
                 vdbgr.drawCameraGuiContent();
                 break;

@@ -4,10 +4,7 @@
 
 uniform ivec3 gridDim;
 
-layout(binding = 0, std430) buffer voxelGridBuffer
-{
-    layout(rgba32f) image3D voxelGrid;
-};
+layout(bindless_image, rgba32f) uniform image3D voxelGrid;
 
 //layout(local_size_variable) in;
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;

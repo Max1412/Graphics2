@@ -2,23 +2,24 @@
 
 #include "light.glsl"
 
-layout(binding = 0, std430) buffer voxelGridBuffer
-{
-    sampler3D voxelGrid;
-};
+layout(bindless_sampler) uniform sampler3D voxelGrid;
+uniform float maxRange;
+uniform vec2 screenRes;
 
-vec3 applyVolumetricLightingManual(in vec3 colorWithoutVolumetric)
+vec3 applyVolumetricLightingManual(in vec3 colorWithoutVolumetric, in float viewZ)
 {
-    float originalZ = gl_FragCoord.z / gl_FragCoord.w;
-    vec3 texCoord = vec3(gl_FragCoord.xy / vec2(1600.0, 900.0), originalZ / 10.0f); //TODO: hack! find the correct z-value!!
+    float zDist = -viewZ / maxRange;
+    zDist /= exp(-1.f+zDist); //use exponential depth
+    vec3 texCoord = vec3(gl_FragCoord.xy / screenRes, zDist);
     vec4 texEntry = texture(voxelGrid, texCoord);
     return colorWithoutVolumetric * texEntry.w + texEntry.xyz;
 }
 
 // CAUTION: to use this you have to enable blending with glBlendFunc(GL_ONE, GL_SRC_ALPHA)
-vec4 getVolumetricLighting()
+vec4 getVolumetricLighting(in float viewZ)
 {
-    float originalZ = gl_FragCoord.z / gl_FragCoord.w;
-    vec3 texCoord = vec3(gl_FragCoord.xy / vec2(1600, 900), originalZ);
+    float zDist = -viewZ / maxRange;
+    zDist /= exp(-1.f + zDist); //use exponential depth
+    vec3 texCoord = vec3(gl_FragCoord.xy / screenRes, zDist);
     return texture(voxelGrid, texCoord);
 }

@@ -8,10 +8,7 @@ uniform ivec3 gridDim;
 uniform int positionSource = 0;
 uniform int dataMode = 0;
 
-layout(binding = 0, std430) buffer voxelGridBuffer
-{
-    layout(rgba32f) image3D voxelGrid;
-};
+layout(binding = 0, rgba32f) uniform image3D voxelGrid;
 
 void main()
 {
