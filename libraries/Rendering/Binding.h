@@ -6,6 +6,7 @@ namespace BufferBindings
 {
     enum class Binding : int
     {
+        cameraParameters = 7,
         lights = 8,
         materials = 9,
         modelMatrices = 10
@@ -20,6 +21,7 @@ namespace BufferBindings
     };
 
     inline std::vector<glsp::definition> g_definitions = {
+        glsp::definition("CAMERA_BINDING", static_cast<int>(Binding::cameraParameters)),
         glsp::definition("LIGHTS_BINDING", static_cast<int>(Binding::lights)),
         glsp::definition("MATERIAL_BINDING", static_cast<int>(Binding::materials)),
         glsp::definition("MODELMATRICES_BINDING", static_cast<int>(Binding::modelMatrices)),
