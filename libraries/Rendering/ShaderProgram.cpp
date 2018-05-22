@@ -243,6 +243,17 @@ void ShaderProgram::updateUniforms() const
                 a->hasBeenUpdated(m_shaderProgramHandle);
             }
         }
+        // case uint64-handle
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<GLuint64>>).hash_code())
+        {
+            if (auto a = std::any_cast<std::shared_ptr<Uniform<GLuint64>>>(n.first);
+            a->getChangeFlag(m_shaderProgramHandle)
+                )
+            {
+                glProgramUniformHandleui64ARB(m_shaderProgramHandle, n.second, a->getContent());
+                a->hasBeenUpdated(m_shaderProgramHandle);
+            }
+        }
         else
         {
             throw std::runtime_error("Uniform type not supported yet.");
@@ -308,6 +319,12 @@ void ShaderProgram::forceUpdateUniforms()
         {
             const auto a = std::any_cast<std::shared_ptr<Uniform<glm::ivec3>>>(n.first);
             glProgramUniform3iv(m_shaderProgramHandle, n.second, 1, value_ptr(a->getContent()));
+        }
+        // case uint64-handle
+        else if (n.first.type().hash_code() == typeid(std::shared_ptr<Uniform<GLuint64>>).hash_code())
+        {
+            const auto a = std::any_cast<std::shared_ptr<Uniform<GLuint64>>>(n.first);
+            glProgramUniformHandleui64ARB(m_shaderProgramHandle, n.second, a->getContent());
         }
         else
         {
