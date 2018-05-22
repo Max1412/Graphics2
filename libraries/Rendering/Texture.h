@@ -31,7 +31,7 @@ public:
     template <typename T>
     void clearTexture(GLenum format, GLenum type, T data, GLint level = 0) const
     {
-        glClearTexImage(m_name, 0, format, type, &data);
+        glClearTexImage(m_name, level, format, type, &data);
     }
 
     GLuint64 getHandle() const;
@@ -51,6 +51,7 @@ protected:
 template<typename T, typename>
 void Texture::initWithData1D(const T& container, GLint width, GLenum internalFormat, GLenum format, GLenum type)
 {
+    glEnable(GL_TEXTURE_1D);
 	glTextureStorage1D(m_name, 1, internalFormat, width);
 	glTextureSubImage1D(m_name, 0, 0, width, format, type, container.data());
 	m_width = width;
@@ -59,6 +60,7 @@ void Texture::initWithData1D(const T& container, GLint width, GLenum internalFor
 template<typename T, typename>
 void Texture::initWithData2D(const T& container, GLint width, GLint height, GLenum internalFormat, GLenum format, GLenum type)
 {
+    glEnable(GL_TEXTURE_2D);
 	glTextureStorage2D(m_name, 1, internalFormat, width, height);
 	glTextureSubImage2D(m_name, 0, 0, 0, width, height, format, type, container.data());
 	m_width = width;
@@ -68,6 +70,7 @@ void Texture::initWithData2D(const T& container, GLint width, GLint height, GLen
 template<typename T, typename>
 void Texture::initWithData3D(const T& container, GLint width, GLint height, GLint depth, GLenum internalFormat, GLenum format, GLenum type)
 {
+    glEnable(GL_TEXTURE_3D);
 	glTextureStorage3D(m_name, 1, internalFormat, width, height, depth);
 	glTextureSubImage3D(m_name, 0, 0, 0, 0, width, height, depth, format, type, container.data());
 	m_width = width;

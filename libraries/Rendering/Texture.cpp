@@ -28,6 +28,7 @@ Texture::~Texture()
 
 void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
+    glEnable(GL_TEXTURE_2D);
     int imageWidth, imageHeight, numChannels;
     if (type != GL_FLOAT)
     {
@@ -74,6 +75,7 @@ GLuint64 Texture::generateHandle()
 
 void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 {
+    glEnable(GL_TEXTURE_2D);
     glTextureStorage2D(m_name, 1, internalFormat, width, height);
     m_width = width;
     m_height = height;
@@ -81,6 +83,7 @@ void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 
 void Texture::initWithoutData3D(int width, int height, int depth, GLenum internalFormat)
 {
+    glEnable(GL_TEXTURE_3D);
 	glTextureStorage3D(m_name, 1, internalFormat, width, height, depth);
 	m_width = width;
 	m_height = height;
