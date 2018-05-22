@@ -40,6 +40,11 @@ void Pilotview::update(GLFWwindow* window)
         m_sensitivity *= 100; // fast mode
     }
 
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        m_sensitivity *= 0.1f; // slow mode
+    }
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         m_pos += m_dir * m_sensitivity;
