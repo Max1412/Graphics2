@@ -75,6 +75,10 @@ namespace util
     void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                 const GLchar* message, const void* userParam)
     {
+        //ignore unbound texture warning
+        if (id == 131204)
+            return;
+
         std::cout << "OpenGL debug callback called!" << '\n';
         std::cout << "Source: ";
         switch (source)
