@@ -22,12 +22,15 @@ public:
     SimplexNoise();
 
     float m_time;
-    float m_densityFactor = 4.0f;
-    float m_noiseScale = 6.0f;
+    float m_densityFactor = 0.0f;
+    float m_noiseScale = 0.01f;
     float m_noiseSpeed = 0.1f;
 
     void bindNoiseBuffer(BufferBindings::Binding binding) const;
     Buffer& getNoiseBuffer();
+
+    bool showNoiseGUI();
+    bool showNoiseGUIContent();
 
 private:
     Texture m_permTexture{ GL_TEXTURE_2D, GL_NEAREST, GL_NEAREST };

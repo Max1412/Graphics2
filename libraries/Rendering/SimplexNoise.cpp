@@ -1,4 +1,5 @@
 #include "SimplexNoise.h"
+#include "imgui/imgui.h"
 
 SimplexNoise::SimplexNoise()
 {
@@ -49,4 +50,36 @@ void SimplexNoise::bindNoiseBuffer(BufferBindings::Binding binding) const
 Buffer& SimplexNoise::getNoiseBuffer()
 {
     return m_noiseSSBO;
+}
+
+bool SimplexNoise::showNoiseGUI()
+{
+    ImGui::Begin("Noise GUI");
+    const bool noiseChanged = showNoiseGUIContent();
+    ImGui::End();
+
+    return noiseChanged;
+}
+
+bool SimplexNoise::showNoiseGUIContent()
+{
+    bool res = false;
+    ImGui::Text("Density and Noise Settings");
+    ImGui::Separator();
+    if (ImGui::SliderFloat("Noise Scale", &m_noiseScale, 0.0f, 0.1f))
+    {
+        getNoiseBuffer().setContentSubData(m_noiseScale, offsetof(GpuNoiseInfo, noiseScale)); 
+        res = true;
+    }        
+    if (ImGui::SliderFloat("Noise Speed", &m_noiseSpeed, 0.0f, 1.0f))
+    {
+        getNoiseBuffer().setContentSubData(m_noiseSpeed, offsetof(GpuNoiseInfo, noiseSpeed)); 
+        res = true;
+    }
+    if (ImGui::SliderFloat("Density Factor", &m_densityFactor, 0.0f, 1.0f))
+    {
+        getNoiseBuffer().setContentSubData(m_densityFactor, offsetof(GpuNoiseInfo, heightDensityFactor)); 
+        res = true;
+    }
+    return res;
 }

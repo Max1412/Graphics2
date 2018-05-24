@@ -48,7 +48,8 @@ struct FogInfo
     float fogAnisotropy;
     float fogScatteringCoeff;
     float fogAbsorptionCoeff;
-    float pad1, pad2;
+    float fogDensity;
+    float pad1;
 };
 
 int main()
@@ -102,7 +103,7 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
-    FogInfo fog = { glm::vec3(1.0f), 0.5f, 0.2f, 0.2f };
+    FogInfo fog = { glm::vec3(1.0f), 0.5f, 0.2f, 0.2f, 0.2f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
@@ -242,14 +243,7 @@ int main()
                 //Density
             case 1:
             {
-                ImGui::Text("Density and Noise Settings");
-                ImGui::Separator();
-                if (ImGui::SliderFloat("Noise Scale", &noise.m_noiseScale, 0.0f, 20.0f))
-                    noise.getNoiseBuffer().setContentSubData(noise.m_noiseScale, offsetof(GpuNoiseInfo, noiseScale));
-                if (ImGui::SliderFloat("Noise Speed", &noise.m_noiseSpeed, 0.0f, 1.0f))
-                    noise.getNoiseBuffer().setContentSubData(noise.m_noiseSpeed, offsetof(GpuNoiseInfo, noiseSpeed));
-                if (ImGui::SliderFloat("Density Factor", &noise.m_densityFactor, 0.0f, 10.0f))
-                    noise.getNoiseBuffer().setContentSubData(noise.m_densityFactor, offsetof(GpuNoiseInfo, heightDensityFactor));
+                noise.showNoiseGUIContent();
                 break;
             }
             //Camera
@@ -303,6 +297,8 @@ int main()
                     fogSSBO.setContentSubData(fog.fogScatteringCoeff, offsetof(FogInfo, fogScatteringCoeff));
                 if (ImGui::SliderFloat("Absorption", &fog.fogAbsorptionCoeff, 0.0f, 1.0f))
                     fogSSBO.setContentSubData(fog.fogAbsorptionCoeff, offsetof(FogInfo, fogAbsorptionCoeff));
+                if (ImGui::SliderFloat("Density", &fog.fogDensity, 0.0f, 1.0f))
+                    fogSSBO.setContentSubData(fog.fogDensity, offsetof(FogInfo, fogDensity));
                 break;
             }
 
