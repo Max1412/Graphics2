@@ -29,6 +29,7 @@ layout(binding = 2, std430) buffer fogBuffer
     float fogAnisotropy;
     float fogScatteringCoeff;
     float fogAbsorptionCoeff;
+    float fogDensity;
 };
 
 layout(binding = 3, std430) buffer noiseBuffer
@@ -103,13 +104,13 @@ float getZLayerThickness(int zLayer)
     return exp(-float(gridDim.z - zLayer - 1) / float(gridDim.z));
 }
 
-float getDensity(vec3 worldPos)
+float getNoise(vec3 worldPos)
 {
 	//calculate simplex 4d noise
 	//original implementation from Stefan Gustavson ITN-LiTH
-	const float one = 0.00390625;
-	const float f4 = 0.309016994375f;
-	const float g4 = 0.138196601125f;
+	float one = 0.00390625;
+	float f4 = 0.309016994375f;
+	float g4 = 0.138196601125f;
 
 	vec4 P = vec4(noiseScale * worldPos, noiseSpeed * time);
 	// Skew the (x,y,z,w) space to determine which cell of 24 simplices we're in
@@ -215,37 +216,14 @@ float getDensity(vec3 worldPos)
     //calculate density
 	float outNoise = 0.5 + 0.5f * snoise;
 	float density = 0.4f * exp(-worldPos.y * heightDensityFactor);
-	float outDensity = (outNoise + density) / 2.0f;
-    return outDensity;
+	float outDensity = (outNoise + density) * 0.5f;
+    return clamp(outDensity, 0.0f, 1.0f);
 }
 
 float getPhaseFunction(float g, vec3 lightVec, vec3 viewVec) // vectors must be normalized!
 {
     float cosTheta = dot(-viewVec, lightVec);
     return (1.0f / (4.0f * 3.14159265359f)) * (1.0f - g * g) / pow((1.0f + g * g - 2.0f * g * cosTheta), 1.5f);
-}
-
-vec3 getLight(int lightIndex, vec3 worldPos)
-{
-    Light currentLight = lights[lightIndex];
-
-    // occlusion / shadow
-    float shadow = calculateShadow(lightIndex, worldPos);
-
-    // cutoff (spotlight)
-    if (currentLight.type == 2)
-    {
-        vec3 light_camcoord = (playerViewMatrix * vec4(currentLight.position, 1.0f)).xyz;
-        vec3 lightDir = normalize(light_camcoord - (playerViewMatrix * vec4(worldPos, 1.0f)).xyz);
-
-        // spotlight intensity
-        float theta = dot(lightDir, normalize(-currentLight.direction));
-        float epsilon = currentLight.cutOff - currentLight.outerCutOff;
-        float intensity = clamp((theta - currentLight.outerCutOff) / epsilon, 0.0, 1.0);
-        shadow *= intensity;
-    }
-
-    return shadow * currentLight.color;
 }
 
 void main()
@@ -255,21 +233,22 @@ void main()
     vec3 worldPos = getWorldPos(g_ID);
 
     float thickness = getZLayerThickness(g_ID.z);
-    float density = 0.2f;// getDensity(worldPos);
+    float density = fogDensity * getNoise(worldPos);
 
     float scattering = fogScatteringCoeff * density * thickness;
     float absorbtion = fogAbsorptionCoeff * density * thickness;
 
     vec3 viewDir = normalize(worldPos - camPos);
 
-    vec3 lighting = vec3(0.0f);
+    vec3 lighting = ambient;
 
     //TODO: add sunlight and ambient to lighting?!
 
     for (int i = 0; i < lights.length(); ++i)
     {
-        vec3 lightDir = lights[i].type == 0 ? normalize(-lights[i].direction) : normalize(lights[i].position - worldPos);
-        lighting += getLight(i, worldPos) * getPhaseFunction(fogAnisotropy, lightDir, viewDir);
+        LightResult lRes = getLight(i, worldPos, viewDir, vec3(1.0f), 0.0f);
+        float shadowFactor = calculateShadow(i, worldPos);
+        lighting += shadowFactor * lRes.diffuse * getPhaseFunction(fogAnisotropy, lRes.direction, viewDir);
     }
 
     lighting *= fogAlbedo;
@@ -291,11 +270,5 @@ void main()
         imageStore(voxelGrid, g_ID, outColor);
         break;
     }
-
-	//if(g_ID.x <= gridDim.x && g_ID.y <= gridDim.y && g_ID.z <= gridDim.z)
-	//{
-	//	imageStore(voxelGrid, g_ID, vec4(worldPos, outColor.r));
-	//}
-
 }
 
