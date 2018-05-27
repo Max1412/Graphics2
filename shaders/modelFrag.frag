@@ -1,4 +1,4 @@
-#version 430
+#version 460
 #extension GL_ARB_bindless_texture : require
 //#extension GL_ARB_gpu_shader_int64 : require
 
@@ -10,6 +10,8 @@ in vec3 passNormal;
 in vec3 passTexCoord;
 in vec3 passFragPos;
 
+flat in uint passDrawID;
+
 #include "common/light.glsl"
 #include "common/material.glsl"
 #include "common/shadowMapping.glsl"
@@ -18,7 +20,8 @@ out vec4 fragColor;
 
 void main()
 {
-    Material currentMaterial = materials[materialIndex];
+    uint matIndex = materialIndices[passDrawID];
+    Material currentMaterial = materials[matIndex];
 
     vec3 diffCol = vec3(1.0f);
     vec3 specCol = vec3(1.0f);

@@ -51,7 +51,7 @@ int main()
     auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", playerCamera.getPosition());
 
 
-    Shader modelVertexShader("modelVert.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
+    Shader modelVertexShader("modelVertMultiDraw.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
     Shader modelFragmentShader("modelFrag.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp(modelVertexShader, modelFragmentShader);
     sp.addUniform(projUniform);
@@ -106,7 +106,7 @@ int main()
 
     Timer timer;
 
-    bool cullingOn = true;
+    bool cullingOn = false;
     bool lightDebug = true;
 
     // render loop
@@ -136,7 +136,7 @@ int main()
         else
         {
             //std::for_each(std::execution::par, modelLoader.getMeshes().begin(), modelLoader.getMeshes().end(), [](auto &Mesh) { Mesh->setEnabledForRendering(true); });
-            modelLoader.draw(sp);
+            modelLoader.multiDraw(sp);
             
         }
 

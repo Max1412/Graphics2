@@ -12,7 +12,8 @@
 #include <unordered_set>
 
 ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename, int test)
-: m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER)
+: m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER),
+m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER)
 {
 
     m_meshIndexUniform = std::make_shared<Uniform<int>>("meshIndex", -1);
@@ -208,11 +209,56 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 
     std::cout << "Loading complete: " << filename.string() << std::endl;
 
+    static_assert(sizeof(void*) == sizeof(size_t));
+    size_t start = 0;
+    int baseVertexOffset = 0;
+    for (int i = 0; i < m_meshes.size(); i++)
+    {
+        const auto& mesh = m_meshes.at(i);
+
+        m_gpuMaterialIndices.push_back(mesh->getMaterialIndex());
+
+        m_counts.push_back(static_cast<GLsizei>(mesh->getIndices().size()));
+
+        m_starts.push_back(start);
+        start += mesh->getIndices().size() * sizeof(uint32_t);
+
+        m_baseVertexOffsets.push_back(baseVertexOffset);
+        baseVertexOffset += mesh->getVertices().size();
+
+        m_allTheIndices.insert(m_allTheIndices.end(), mesh->getIndices().begin(), mesh->getIndices().end());
+        m_allTheVertices.insert(m_allTheVertices.end(), mesh->getVertices().begin(), mesh->getVertices().end());
+        m_allTheNormals.insert(m_allTheNormals.end(), mesh->getNormals().begin(), mesh->getNormals().end());
+        m_allTheTexCoords.insert(m_allTheTexCoords.end(), mesh->getTexCoords().begin(), mesh->getTexCoords().end());
+    }
+
+    m_gpuMaterialIndicesBuffer.setStorage(m_gpuMaterialIndices, GL_DYNAMIC_STORAGE_BIT);
+    m_gpuMaterialIndicesBuffer.bindBase(BufferBindings::Binding::materialIndices);
+
+    m_counts.shrink_to_fit();
+    m_starts.shrink_to_fit();
+    m_allTheIndices.shrink_to_fit();
+    m_allTheVertices.shrink_to_fit();
+    m_allTheNormals.shrink_to_fit();
+    m_allTheTexCoords.shrink_to_fit();
+
+    m_multiDrawIndexBuffer.setStorage(m_allTheIndices, GL_DYNAMIC_STORAGE_BIT);
+
+    m_multiDrawVertexBuffer.setStorage(m_allTheVertices, GL_DYNAMIC_STORAGE_BIT);
+    m_multiDrawNormalBuffer.setStorage(m_allTheNormals, GL_DYNAMIC_STORAGE_BIT);
+    m_multiDrawTexCoordBuffer.setStorage(m_allTheTexCoords, GL_DYNAMIC_STORAGE_BIT);
+
+    m_multiDrawVao.connectBuffer(m_multiDrawVertexBuffer, BufferBindings::VertexAttributeLocation::vertices, 3, GL_FLOAT, GL_FALSE);
+    m_multiDrawVao.connectBuffer(m_multiDrawNormalBuffer, BufferBindings::VertexAttributeLocation::normals, 3, GL_FLOAT, GL_FALSE);
+    m_multiDrawVao.connectBuffer(m_multiDrawTexCoordBuffer, BufferBindings::VertexAttributeLocation::texCoords, 3, GL_FLOAT, GL_FALSE);
+
+    m_multiDrawVao.connectIndexBuffer(m_multiDrawIndexBuffer);
 }
 
 // OLD CONSTRUCTOR FOR COMPATABILITY
 ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename)
-    : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER)
+    : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER)
+    , m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER)
 {
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();
@@ -238,8 +284,22 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 
 void ModelImporter::registerUniforms(ShaderProgram& sp) const
 {
-    sp.addUniform(m_meshIndexUniform);
-    sp.addUniform(m_materialIndexUniform);
+    try
+    {
+        sp.addUniform(m_meshIndexUniform);
+    }
+    catch (std::runtime_error& e)
+    {
+        std::cout << "WARNING: No Mesh Index Uniform avaiable. TODO: make this selectable for multidraw\n";
+    }
+    try
+    {
+        sp.addUniform(m_materialIndexUniform);
+    }
+    catch (std::runtime_error& e)
+    {
+        std::cout << "WARNING: No Material Index Uniform avaiable. TODO: make this selectable for multidraw\n";
+    }
 }
 
 void ModelImporter::draw(const ShaderProgram& sp) const
@@ -254,6 +314,14 @@ void ModelImporter::draw(const ShaderProgram& sp) const
         mesh->forceDraw();
         i++;
     }
+}
+
+void ModelImporter::multiDraw(const ShaderProgram& sp) const
+{
+    //m_materialIndexUniform->setContent(m_meshes.at(0)->getMaterialID());
+    sp.use();
+    m_multiDrawVao.bind();
+    glMultiDrawElementsBaseVertex(GL_TRIANGLES, m_counts.data(), GL_UNSIGNED_INT, reinterpret_cast<const GLvoid* const*>(m_starts.data()), static_cast<GLsizei>(m_counts.size()), m_baseVertexOffsets.data());
 }
 
 void ModelImporter::drawCulled(const ShaderProgram& sp, Camera& cam, float angle, float ratio, float near, float far) const
