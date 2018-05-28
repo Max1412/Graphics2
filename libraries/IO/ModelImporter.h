@@ -27,6 +27,14 @@ struct PhongGPUMaterial
     glm::vec4 emissiveColor;
 };
 
+struct Indirect
+{
+    unsigned count;
+    unsigned instanceCount;
+    unsigned firstIndex;
+    unsigned baseVertex;
+    unsigned baseInstance;
+};
 
 class ModelImporter
 {
@@ -38,7 +46,7 @@ public:
 
     void draw(const ShaderProgram& sp) const;
     void multiDraw(const ShaderProgram& sp) const;
-    void drawCulled(const ShaderProgram& sp, Camera& cam, float angle, float ratio, float near, float far) const;
+    void drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const;
 
     void registerUniforms(ShaderProgram& sp) const;
 
@@ -60,13 +68,13 @@ private:
     std::shared_ptr<Uniform<int>> m_materialIndexUniform;
 
     // multi-draw buffers
-    std::vector<GLsizei> m_counts;
-    std::vector<uint64_t> m_starts;
-    std::vector<int> m_baseVertexOffsets;
     std::vector<unsigned> m_allTheIndices;
     std::vector<glm::vec3> m_allTheVertices;
     std::vector<glm::vec3> m_allTheNormals;
     std::vector<glm::vec3> m_allTheTexCoords;
+
+    std::vector<Indirect> m_indirectDrawParams;
+    Buffer m_indirectDrawBuffer;
 
     Buffer m_multiDrawIndexBuffer;
     Buffer m_multiDrawVertexBuffer;

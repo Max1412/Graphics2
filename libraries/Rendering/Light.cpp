@@ -4,13 +4,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 #include "Cubemap.h"
+#include "IO/ModelImporter.h"
 
 using namespace gl;
 
 Light::Light(glm::vec3 color, glm::vec3 direction, glm::ivec2 shadowMapRes) // DIRECTIONAL
 : m_type(LightType::directional), m_shadowMapRes(shadowMapRes),
 m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
-m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
+m_genShadowMapProgram("lightTransformMD.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     // TODO USE POSITION TOO, FOR SHADOW MAPS
     checkParameters();
@@ -24,7 +25,7 @@ m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_d
     m_modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", glm::mat4(1.0f));
     m_lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", glm::mat4(1.0f));
 
-    m_genShadowMapProgram.addUniform(m_modelUniform);
+    //m_genShadowMapProgram.addUniform(m_modelUniform);
     m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
 
     // init gpu struct
@@ -77,7 +78,7 @@ m_genShadowMapProgram({
 Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, glm::ivec2 shadowMapRes) // SPOT
     : m_type(LightType::spot), m_shadowMapRes(shadowMapRes),
     m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
-   m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
+   m_genShadowMapProgram("lightTransformMD.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     checkParameters();
 
@@ -90,7 +91,7 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
     m_modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", glm::mat4(1.0f));
     m_lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", glm::mat4(1.0f));
 
-    m_genShadowMapProgram.addUniform(m_modelUniform);
+    //m_genShadowMapProgram.addUniform(m_modelUniform);
     m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
 
     // init gpu struct
@@ -109,7 +110,7 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
 }
 
 
-void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
+void Light::renderShadowMap(const ModelImporter& mi)
 {
     if (!m_hasShadowMap)
         return;
@@ -131,12 +132,49 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
         m_lightPosUniform->setContent(m_gpuLight.position);
 
     //render scene
-    std::for_each(scene.begin(), scene.end(), [&](auto& mesh)
+    mi.multiDraw(m_genShadowMapProgram);
+
+    //restore previous rendering settings
+    m_shadowMapFBO.unbind();
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glCullFace(GL_BACK);
+}
+
+void Light::renderShadowMapCulled(const ModelImporter& mi)
+{
+    if (!m_hasShadowMap)
+        return;
+
+    // no culling for point lights
+    if (m_type == LightType::point)
     {
-        m_modelUniform->setContent(mesh->getModelMatrix()); // TODO change shaders to use model matrix buffer instead
-        m_genShadowMapProgram.updateUniforms();
-        mesh->forceDraw(); // TODO CULL
-    });
+        //renderShadowMap(mi);
+        std::cout << "Shadow maps for point lights not supported\n";
+    }
+
+    recalculateLightSpaceMatrix();
+
+    //store old viewport
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    //set sm settings
+    m_genShadowMapProgram.use();
+    glViewport(0, 0, m_shadowMapRes.x, m_shadowMapRes.y);
+    m_shadowMapFBO.bind();
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+
+    if (m_type == LightType::point && m_lightPosUniform->getContent() != m_gpuLight.position)
+        m_lightPosUniform->setContent(m_gpuLight.position);
+
+    float angle = 180.0f; // for orthographic projection
+
+    if (m_type == LightType::spot)
+        angle = 2.0f*glm::acos(m_gpuLight.outerCutOff);
+
+    //render scene
+    mi.drawCulled(m_genShadowMapProgram, m_lightView, angle, static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 3.0f, 3000.0f);
 
     //restore previous rendering settings
     m_shadowMapFBO.unbind();

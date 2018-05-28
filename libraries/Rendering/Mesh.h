@@ -35,7 +35,7 @@ public:
      * \brief returns indices as vectors of uint
      * \return indices
      */
-    const std::vector<unsigned int>& getIndices() const;
+    const std::vector<unsigned>& getIndices() const;
 
     /**
      * \brief returns the model matrix
@@ -91,7 +91,7 @@ private:
     std::vector<glm::vec3> m_vertices;
     std::vector<glm::vec3> m_normals;
     std::vector<glm::vec3> m_texCoords;
-    std::vector<unsigned int> m_indices;
+    std::vector<unsigned> m_indices;
 
     bool m_enabledForRendering = true;
 

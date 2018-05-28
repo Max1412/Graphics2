@@ -21,7 +21,9 @@ public:
 
     bool showLightGUIsContent();
 
-    void renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& scene);
+    void renderShadowMaps(const ModelImporter& mi);
+    void renderShadowMapsCulled(const ModelImporter& scene);
+
     void updateLightParams();
     void updateLightParams(std::shared_ptr<Light> light);
 

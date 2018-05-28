@@ -9,6 +9,7 @@
 #include "FrameBuffer.h"
 
 
+class ModelImporter;
 using namespace gl;
 
 struct GPULight
@@ -43,7 +44,8 @@ public:
     Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // POINT
     Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // SPOT
 
-    void renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene);
+    void renderShadowMap(const ModelImporter& mi);
+    void renderShadowMapCulled(const ModelImporter& mi);
 
     const GPULight& getGpuLight() const;
 

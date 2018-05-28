@@ -120,8 +120,8 @@ int main()
 
 	// R E N D E R I N G
 
-	Shader modelVertexShader("modelVertVolumetric.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
-	Shader modelFragmentShader("modelFragVolumetric.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+	Shader modelVertexShader("modelVertVolumetricMD.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
+	Shader modelFragmentShader("modelFragVolumetricMD.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
 	ShaderProgram modelSp(modelVertexShader, modelFragmentShader);
 
     auto u_voxelGridTex = std::make_shared<Uniform<GLuint64>>("voxelGrid", voxelGrid.generateHandle());
@@ -184,7 +184,7 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		lightMngr.renderShadowMaps(modelLoader.getMeshes());
+		lightMngr.renderShadowMaps(modelLoader);
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
@@ -207,8 +207,8 @@ int main()
 
         //vdbgr.draw();
 
-		if(!dbgrndr)
-			modelLoader.drawCulled(modelSp, playerCamera, glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, 10000.0f);
+        if (!dbgrndr)
+            modelLoader.multiDraw(modelSp);// , playerCamera.getView(), glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, 10000.0f);
 
         timer.stop();
 

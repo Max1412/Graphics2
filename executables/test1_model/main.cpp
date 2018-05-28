@@ -52,7 +52,7 @@ int main()
 
 
     Shader modelVertexShader("modelVertMultiDraw.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
-    Shader modelFragmentShader("modelFrag.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+    Shader modelFragmentShader("modelFragMD.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp(modelVertexShader, modelFragmentShader);
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
@@ -107,6 +107,8 @@ int main()
     Timer timer;
 
     bool cullingOn = false;
+    bool cullingForShadowOn = false;
+
     bool lightDebug = true;
 
     // render loop
@@ -123,16 +125,21 @@ int main()
         sp.updateUniforms();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        lightMngr.renderShadowMaps(modelLoader.getMeshes());
+
+        if (cullingForShadowOn)
+            lightMngr.renderShadowMapsCulled(modelLoader);
+        else
+            lightMngr.renderShadowMaps(modelLoader);
 
         sp.use();
 
         // DRAW
         ImGui::Checkbox("Draw with View Frustum Culling", &cullingOn);
+        ImGui::Checkbox("Draw Shadow Maps with View Frustum Culling", &cullingForShadowOn);
         ImGui::Checkbox("Draw light sources as geometry", &lightDebug);
 
         if(cullingOn)
-            modelLoader.drawCulled(sp, playerCamera, glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
+            modelLoader.drawCulled(sp, playerCamera.getView(), glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
         else
         {
             //std::for_each(std::execution::par, modelLoader.getMeshes().begin(), modelLoader.getMeshes().end(), [](auto &Mesh) { Mesh->setEnabledForRendering(true); });

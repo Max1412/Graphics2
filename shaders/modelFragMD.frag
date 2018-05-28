@@ -2,7 +2,6 @@
 #extension GL_ARB_bindless_texture : require
 //#extension GL_ARB_gpu_shader_int64 : require
 
-uniform int materialIndex;
 uniform vec3 cameraPos;
 uniform mat4 viewMatrix;
 

@@ -12,8 +12,9 @@
 #include <unordered_set>
 
 ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename, int test)
-: m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER),
-m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER)
+    : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER),
+    m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER),
+    m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER)
 {
 
     m_meshIndexUniform = std::make_shared<Uniform<int>>("meshIndex", -1);
@@ -210,40 +211,39 @@ m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRA
     std::cout << "Loading complete: " << filename.string() << std::endl;
 
     static_assert(sizeof(void*) == sizeof(size_t));
-    size_t start = 0;
-    int baseVertexOffset = 0;
-    for (int i = 0; i < m_meshes.size(); i++)
+    unsigned start = 0;
+    unsigned baseVertexOffset = 0;
+    for (const auto& mesh : m_meshes)
     {
-        const auto& mesh = m_meshes.at(i);
-
         m_gpuMaterialIndices.push_back(mesh->getMaterialIndex());
-
-        m_counts.push_back(static_cast<GLsizei>(mesh->getIndices().size()));
-
-        m_starts.push_back(start);
-        start += mesh->getIndices().size() * sizeof(uint32_t);
-
-        m_baseVertexOffsets.push_back(baseVertexOffset);
-        baseVertexOffset += mesh->getVertices().size();
 
         m_allTheIndices.insert(m_allTheIndices.end(), mesh->getIndices().begin(), mesh->getIndices().end());
         m_allTheVertices.insert(m_allTheVertices.end(), mesh->getVertices().begin(), mesh->getVertices().end());
         m_allTheNormals.insert(m_allTheNormals.end(), mesh->getNormals().begin(), mesh->getNormals().end());
         m_allTheTexCoords.insert(m_allTheTexCoords.end(), mesh->getTexCoords().begin(), mesh->getTexCoords().end());
+
+        const auto count = static_cast<unsigned>(mesh->getIndices().size());
+
+        m_indirectDrawParams.push_back({ count, 1U, start, baseVertexOffset, 0U });
+
+        start += static_cast<unsigned>(mesh->getIndices().size());
+        baseVertexOffset += static_cast<unsigned>(mesh->getVertices().size());
     }
 
-    m_gpuMaterialIndicesBuffer.setStorage(m_gpuMaterialIndices, GL_DYNAMIC_STORAGE_BIT);
-    m_gpuMaterialIndicesBuffer.bindBase(BufferBindings::Binding::materialIndices);
-
-    m_counts.shrink_to_fit();
-    m_starts.shrink_to_fit();
+    m_gpuMaterialIndices.shrink_to_fit();
     m_allTheIndices.shrink_to_fit();
     m_allTheVertices.shrink_to_fit();
     m_allTheNormals.shrink_to_fit();
     m_allTheTexCoords.shrink_to_fit();
+    m_indirectDrawParams.shrink_to_fit();
+
+
+    m_gpuMaterialIndicesBuffer.setStorage(m_gpuMaterialIndices, GL_DYNAMIC_STORAGE_BIT);
+    m_gpuMaterialIndicesBuffer.bindBase(BufferBindings::Binding::materialIndices);
+
+    m_indirectDrawBuffer.setStorage(m_indirectDrawParams, GL_DYNAMIC_STORAGE_BIT);
 
     m_multiDrawIndexBuffer.setStorage(m_allTheIndices, GL_DYNAMIC_STORAGE_BIT);
-
     m_multiDrawVertexBuffer.setStorage(m_allTheVertices, GL_DYNAMIC_STORAGE_BIT);
     m_multiDrawNormalBuffer.setStorage(m_allTheNormals, GL_DYNAMIC_STORAGE_BIT);
     m_multiDrawTexCoordBuffer.setStorage(m_allTheTexCoords, GL_DYNAMIC_STORAGE_BIT);
@@ -258,7 +258,7 @@ m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRA
 // OLD CONSTRUCTOR FOR COMPATABILITY
 ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename)
     : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER)
-    , m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER)
+    , m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER), m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER)
 {
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();
@@ -290,6 +290,7 @@ void ModelImporter::registerUniforms(ShaderProgram& sp) const
     }
     catch (std::runtime_error& e)
     {
+        std::cout << e.what() << '\n';
         std::cout << "WARNING: No Mesh Index Uniform avaiable. TODO: make this selectable for multidraw\n";
     }
     try
@@ -298,6 +299,7 @@ void ModelImporter::registerUniforms(ShaderProgram& sp) const
     }
     catch (std::runtime_error& e)
     {
+        std::cout << e.what() << '\n';
         std::cout << "WARNING: No Material Index Uniform avaiable. TODO: make this selectable for multidraw\n";
     }
 }
@@ -321,13 +323,15 @@ void ModelImporter::multiDraw(const ShaderProgram& sp) const
     //m_materialIndexUniform->setContent(m_meshes.at(0)->getMaterialID());
     sp.use();
     m_multiDrawVao.bind();
-    glMultiDrawElementsBaseVertex(GL_TRIANGLES, m_counts.data(), GL_UNSIGNED_INT, reinterpret_cast<const GLvoid* const*>(m_starts.data()), static_cast<GLsizei>(m_counts.size()), m_baseVertexOffsets.data());
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_indirectDrawBuffer.getHandle());
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, static_cast<GLsizei>(m_indirectDrawParams.size()), 0);
+    //glMultiDrawElementsBaseVertex(GL_TRIANGLES, m_counts.data(), GL_UNSIGNED_INT, reinterpret_cast<const GLvoid* const*>(m_starts.data()), static_cast<GLsizei>(m_counts.size()), m_baseVertexOffsets.data());
 }
 
-void ModelImporter::drawCulled(const ShaderProgram& sp, Camera& cam, float angle, float ratio, float near, float far) const
+void ModelImporter::drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const
 {
-    const glm::vec3 p = cam.getPosition();
-    const glm::vec3 z = -glm::normalize(cam.getCenter() - cam.getPosition());
+    const glm::vec3 p = glm::inverse(view)[3];
+    const glm::vec3 z = glm::normalize(glm::inverse(view)[2]);
 
     const float tang = glm::tan(angle * 0.5f);
     const float nh = near * tang;
