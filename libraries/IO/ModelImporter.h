@@ -12,6 +12,7 @@
 #include "Rendering/Texture.h"
 #include "Rendering/Uniform.h"
 #include "Rendering/Camera.h"
+#include "Rendering/ShaderProgram.h"
 
 class ShaderProgram;
 
@@ -46,6 +47,7 @@ public:
 
     void draw(const ShaderProgram& sp) const;
     void multiDraw(const ShaderProgram& sp) const;
+    void multiDrawCulled(const ShaderProgram & sp, const glm::mat4 & viewProjection) const;
     void drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const;
 
     void registerUniforms(ShaderProgram& sp) const;
@@ -81,4 +83,10 @@ private:
     Buffer m_multiDrawNormalBuffer;
     Buffer m_multiDrawTexCoordBuffer;
     VertexArray m_multiDrawVao;
+
+    // culling stuff
+    std::vector<glm::mat2x4> m_boundingBoxes;
+    Buffer m_boundingBoxBuffer;
+    std::shared_ptr<Uniform<glm::mat4>> m_viewProjUniform;
+    ShaderProgram m_cullingProgram;
 };

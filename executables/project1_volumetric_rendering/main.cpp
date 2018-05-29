@@ -184,7 +184,7 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		lightMngr.renderShadowMaps(modelLoader);
+		lightMngr.renderShadowMapsCulled(modelLoader);
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
@@ -208,7 +208,7 @@ int main()
         //vdbgr.draw();
 
         if (!dbgrndr)
-            modelLoader.multiDraw(modelSp);// , playerCamera.getView(), glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, 10000.0f);
+            modelLoader.multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
         timer.stop();
 

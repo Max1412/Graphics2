@@ -168,13 +168,14 @@ void Light::renderShadowMapCulled(const ModelImporter& mi)
     if (m_type == LightType::point && m_lightPosUniform->getContent() != m_gpuLight.position)
         m_lightPosUniform->setContent(m_gpuLight.position);
 
-    float angle = 180.0f; // for orthographic projection
+    //float angle = 180.0f; // for orthographic projection
 
-    if (m_type == LightType::spot)
-        angle = 2.0f*glm::acos(m_gpuLight.outerCutOff);
+    //if (m_type == LightType::spot)
+    //    angle = 2.0f*glm::acos(m_gpuLight.outerCutOff);
 
     //render scene
-    mi.drawCulled(m_genShadowMapProgram, m_lightView, angle, static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 3.0f, 3000.0f);
+    //mi.drawCulled(m_genShadowMapProgram, m_lightView, angle, static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 3.0f, 3000.0f);
+    mi.multiDrawCulled(m_genShadowMapProgram, m_gpuLight.lightSpaceMatrix);
 
     //restore previous rendering settings
     m_shadowMapFBO.unbind();

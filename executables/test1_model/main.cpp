@@ -138,8 +138,11 @@ int main()
         ImGui::Checkbox("Draw Shadow Maps with View Frustum Culling", &cullingForShadowOn);
         ImGui::Checkbox("Draw light sources as geometry", &lightDebug);
 
-        if(cullingOn)
-            modelLoader.drawCulled(sp, playerCamera.getView(), glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
+        if (cullingOn)
+        {
+            //modelLoader.drawCulled(sp, playerCamera.getView(), glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
+            modelLoader.multiDrawCulled(sp, playerProj * playerCamera.getView());
+        }
         else
         {
             //std::for_each(std::execution::par, modelLoader.getMeshes().begin(), modelLoader.getMeshes().end(), [](auto &Mesh) { Mesh->setEnabledForRendering(true); });

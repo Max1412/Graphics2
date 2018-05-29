@@ -14,7 +14,8 @@
 ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename, int test)
     : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER),
     m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER),
-    m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER)
+    m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER), m_boundingBoxBuffer(GL_SHADER_STORAGE_BUFFER),
+    m_cullingProgram({ Shader("frustumCulling.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions) })
 {
 
     m_meshIndexUniform = std::make_shared<Uniform<int>>("meshIndex", -1);
@@ -216,6 +217,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     for (const auto& mesh : m_meshes)
     {
         m_gpuMaterialIndices.push_back(mesh->getMaterialIndex());
+        m_boundingBoxes.emplace_back(mesh->getBoundingBox());
 
         m_allTheIndices.insert(m_allTheIndices.end(), mesh->getIndices().begin(), mesh->getIndices().end());
         m_allTheVertices.insert(m_allTheVertices.end(), mesh->getVertices().begin(), mesh->getVertices().end());
@@ -231,15 +233,21 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     }
 
     m_gpuMaterialIndices.shrink_to_fit();
+    m_boundingBoxes.shrink_to_fit();
     m_allTheIndices.shrink_to_fit();
     m_allTheVertices.shrink_to_fit();
     m_allTheNormals.shrink_to_fit();
     m_allTheTexCoords.shrink_to_fit();
     m_indirectDrawParams.shrink_to_fit();
 
-
     m_gpuMaterialIndicesBuffer.setStorage(m_gpuMaterialIndices, GL_DYNAMIC_STORAGE_BIT);
     m_gpuMaterialIndicesBuffer.bindBase(BufferBindings::Binding::materialIndices);
+
+    m_boundingBoxBuffer.setStorage(m_boundingBoxes, GL_DYNAMIC_STORAGE_BIT); //TODO: padding correct?
+    m_boundingBoxBuffer.bindBase(static_cast<BufferBindings::Binding>(6));
+
+    m_viewProjUniform = std::make_shared<Uniform<glm::mat4>>("viewProjMatrix", glm::mat4(1.0f));
+    m_cullingProgram.addUniform(m_viewProjUniform);
 
     m_indirectDrawBuffer.setStorage(m_indirectDrawParams, GL_DYNAMIC_STORAGE_BIT);
 
@@ -258,7 +266,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 // OLD CONSTRUCTOR FOR COMPATABILITY
 ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename)
     : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER)
-    , m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER), m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER)
+    , m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER), m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER), m_boundingBoxBuffer(GL_SHADER_STORAGE_BUFFER),
+    m_cullingProgram({})
 {
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();
@@ -326,6 +335,26 @@ void ModelImporter::multiDraw(const ShaderProgram& sp) const
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_indirectDrawBuffer.getHandle());
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, static_cast<GLsizei>(m_indirectDrawParams.size()), 0);
     //glMultiDrawElementsBaseVertex(GL_TRIANGLES, m_counts.data(), GL_UNSIGNED_INT, reinterpret_cast<const GLvoid* const*>(m_starts.data()), static_cast<GLsizei>(m_counts.size()), m_baseVertexOffsets.data());
+}
+
+void ModelImporter::multiDrawCulled(const ShaderProgram& sp, const glm::mat4& viewProjection) const
+{
+    // C U L L I N G
+    m_viewProjUniform->setContent(viewProjection);
+    m_cullingProgram.use();
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, m_indirectDrawBuffer.getHandle());
+    m_boundingBoxBuffer.bindBase(static_cast<BufferBindings::Binding>(6));
+    m_modelMatrixBuffer.bindBase(BufferBindings::Binding::modelMatrices);
+
+    glDispatchCompute(static_cast<GLuint>(glm::ceil(m_indirectDrawParams.size() / 64.0f)), 1, 1);
+    glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+
+    // D R A W
+    sp.use();
+    m_multiDrawVao.bind();
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_indirectDrawBuffer.getHandle());
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, static_cast<GLsizei>(m_indirectDrawParams.size()), 0);
 }
 
 void ModelImporter::drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const
