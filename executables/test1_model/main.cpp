@@ -107,8 +107,6 @@ int main()
     Timer timer;
 
     bool cullingOn = false;
-    bool cullingForShadowOn = false;
-
     bool lightDebug = true;
 
     // render loop
@@ -126,7 +124,7 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (cullingForShadowOn)
+        if (cullingOn)
             lightMngr.renderShadowMapsCulled(modelLoader);
         else
             lightMngr.renderShadowMaps(modelLoader);
@@ -134,8 +132,11 @@ int main()
         sp.use();
 
         // DRAW
-        ImGui::Checkbox("Draw with View Frustum Culling", &cullingOn);
-        ImGui::Checkbox("Draw Shadow Maps with View Frustum Culling", &cullingForShadowOn);
+        if(ImGui::Checkbox("Draw with View Frustum Culling", &cullingOn))
+        {
+            if (!cullingOn)
+                modelLoader.resetIndirectDrawParams();
+        }
         ImGui::Checkbox("Draw light sources as geometry", &lightDebug);
 
         if (cullingOn)

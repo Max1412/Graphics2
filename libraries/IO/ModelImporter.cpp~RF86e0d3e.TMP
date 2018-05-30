@@ -315,7 +315,7 @@ void ModelImporter::registerUniforms(ShaderProgram& sp) const
 
 void ModelImporter::resetIndirectDrawParams()
 {
-    m_indirectDrawBuffer.setContentToContainerSubData(m_indirectDrawParams, 0);
+    m_indirectDrawBuffer.setContentSubData(m_indirectDrawParams, 0);
 }
 
 void ModelImporter::draw(const ShaderProgram& sp) const
