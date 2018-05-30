@@ -321,10 +321,14 @@ bool Light::showLightGUIContent(const std::string& name)
         if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
         {
             lightChanged = true;
+			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+				m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001;
         }
         if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
         {
             lightChanged = true;
+			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+				m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001;
         }
     }
     if (m_type == LightType::spot || m_type == LightType::point)
