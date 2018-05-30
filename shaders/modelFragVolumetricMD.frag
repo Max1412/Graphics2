@@ -1,6 +1,7 @@
 #version 430
 #extension GL_ARB_bindless_texture : require
 //#extension GL_ARB_gpu_shader_int64 : require
+layout(early_fragment_tests) in;
 
 layout(binding = CAMERA_BINDING, std430) buffer cameraBuffer
 {
@@ -50,8 +51,8 @@ void main()
         col.a = currentMaterial.opacity;
 
     // SPONZA HACK
-    if (col.a <= 0.9f)
-        discard;
+    // if (col.a <= 0.9f)
+    //     discard;
 
     fragColor = col;
 }

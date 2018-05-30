@@ -209,10 +209,20 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     m_modelMatrixBuffer.setStorage(m_modelMatrices, GL_DYNAMIC_STORAGE_BIT);
     m_modelMatrixBuffer.bindBase(BufferBindings::Binding::modelMatrices);
 
+	std::vector<std::shared_ptr<Mesh>> transparentMeshes;
+	for (int i = 0; i < m_meshes.size(); i++)
+	{
+		if (PhongGPUMaterial mat = m_gpuMaterials.at(m_meshes.at(i)->getMaterialIndex()); mat.opacityTexture != -1 && mat.opacity != 1)
+		{
+			transparentMeshes.push_back(m_meshes.at(i));
+			m_meshes.erase(m_meshes.begin() + i--);
+		}
+	}
+	m_meshes.insert(m_meshes.end(), transparentMeshes.begin(), transparentMeshes.end());
+
     std::cout << "Loading complete: " << filename.string() << std::endl;
 
-    static_assert(sizeof(void*) == sizeof(size_t));
-    unsigned start = 0;
+	unsigned start = 0;
     unsigned baseVertexOffset = 0;
     for (const auto& mesh : m_meshes)
     {

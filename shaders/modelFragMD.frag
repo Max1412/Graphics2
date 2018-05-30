@@ -1,6 +1,7 @@
 #version 460
 #extension GL_ARB_bindless_texture : require
 //#extension GL_ARB_gpu_shader_int64 : require
+layout(early_fragment_tests) in;
 
 uniform vec3 cameraPos;
 uniform mat4 viewMatrix;
@@ -131,8 +132,8 @@ void main()
         col.a = currentMaterial.opacity;
 
     // SPONZA HACK
-    if(col.a <= 0.9f)
-        discard;
+    // if(col.a <= 0.9f)
+    //     discard;
 
     fragColor = col;
 }
