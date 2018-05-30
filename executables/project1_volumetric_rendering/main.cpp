@@ -103,7 +103,7 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
-    FogInfo fog = { glm::vec3(1.0f), 0.5f, 0.2f, 0.2f, 0.2f };
+    FogInfo fog = { glm::vec3(1.0f), 0.2f, 0.2f, 0.0f, 0.2f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
@@ -138,13 +138,13 @@ int main()
 	LightManager lightMngr;
 
     // directional light
-	auto directional = std::make_shared<Light>(glm::vec3(10.f), glm::vec3(0.0f, -1.0f, -0.2f));
+	auto directional = std::make_shared<Light>(glm::vec3(1.f), glm::vec3(0.0f, -1.0f, -0.2f));
 	directional->setPosition({ 0.0f, 2000.0f, 0.0f }); // position for shadow map only
 	directional->recalculateLightSpaceMatrix();
 	lightMngr.addLight(directional);
 
     // spot light
-    glm::vec3 pos = glm::vec3(80.0f, 200.0f, 100.0f);
+    glm::vec3 pos = glm::vec3(80.0f, 300.0f, 100.0f);
     glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
     float cutOff = glm::cos(glm::radians(30.0f));
     float outerCutOff = glm::cos(glm::radians(35.0f));
@@ -317,7 +317,7 @@ int main()
 
             }
             if (tab) ImGui::Separator();
-            timer.drawGuiContent(window);
+            //timer.drawGuiContent(window);
             ImGui::End();
             ImGui::Render();
             ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
