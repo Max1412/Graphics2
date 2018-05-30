@@ -35,24 +35,21 @@ void main()
         return;
 
     mat2x4 currentBBox = bbox[index];
-    vec4 bmin = vec4(currentBBox[0].xyz, 1.0f);
-    vec4 bmax = vec4(currentBBox[1].xyz, 1.0f);
+    vec3 bmin = currentBBox[0].xyz;
+    vec3 bmax = currentBBox[1].xyz;
 
     mat4 mvp = viewProjMatrix * modelMatrices[index];
 
-    bmin = mvp * bmin;
-    bmax = mvp * bmax;
-
     vec4 vertices[8] = 
     {
-        vec4(bmin.x, bmin.y, bmin.z, bmin.w),
-        vec4(bmax.x, bmin.y, bmin.z, bmin.w),
-        vec4(bmin.x, bmax.y, bmin.z, bmin.w),
-        vec4(bmax.x, bmax.y, bmin.z, bmin.w),
-        vec4(bmin.x, bmin.y, bmax.z, bmax.w),
-        vec4(bmax.x, bmin.y, bmax.z, bmax.w),
-        vec4(bmin.x, bmax.y, bmax.z, bmax.w),
-        vec4(bmax.x, bmax.y, bmax.z, bmax.w)
+        mvp * vec4(bmin.x, bmin.y, bmin.z, 1.0f),
+        mvp * vec4(bmax.x, bmin.y, bmin.z, 1.0f),
+        mvp * vec4(bmin.x, bmax.y, bmin.z, 1.0f),
+        mvp * vec4(bmax.x, bmax.y, bmin.z, 1.0f),
+        mvp * vec4(bmin.x, bmin.y, bmax.z, 1.0f),
+        mvp * vec4(bmax.x, bmin.y, bmax.z, 1.0f),
+        mvp * vec4(bmin.x, bmax.y, bmax.z, 1.0f),
+        mvp * vec4(bmax.x, bmax.y, bmax.z, 1.0f)
     };
       
     // clip bounding box vertices on frustum planes
