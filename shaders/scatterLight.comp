@@ -247,8 +247,12 @@ void main()
     for (int i = 0; i < lights.length(); ++i)
     {
         LightResult lRes = getLight(i, worldPos, viewDir, vec3(1.0f), 0.0f);
-        float shadowFactor = calculateShadow(i, worldPos);
-        lighting += shadowFactor * lRes.diffuse * getPhaseFunction(fogAnisotropy, lRes.direction, viewDir);
+		if(length(lRes.diffuse) >= 0.001f)
+		{
+			float shadowFactor = calculateShadow(i, worldPos);
+			if(shadowFactor >= 0.001f)
+				lighting += shadowFactor * lRes.diffuse * getPhaseFunction(fogAnisotropy, lRes.direction, viewDir);
+		}
     }
 
     lighting *= fogAlbedo;
