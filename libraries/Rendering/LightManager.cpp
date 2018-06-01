@@ -57,6 +57,14 @@ bool LightManager::showLightGUIsContent()
     return changed;
 }
 
+void LightManager::renderShadowMaps(const std::vector<std::shared_ptr<Mesh>>& meshes)
+{
+    std::for_each(m_lightList.begin(), m_lightList.end(), [&meshes](auto& light)
+    {
+        light->renderShadowMap(meshes);
+    });
+}
+
 void LightManager::renderShadowMaps(const ModelImporter& mi)
 {
     std::for_each(m_lightList.begin(), m_lightList.end(), [&mi](auto& light)

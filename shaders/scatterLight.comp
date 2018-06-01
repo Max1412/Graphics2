@@ -39,6 +39,7 @@ layout(binding = 3, std430) buffer noiseBuffer
 	sampler2D gradientTexture;
 	float time;
 	float heightDensityFactor;
+	float heightDensityStart;
 	float noiseScale;
 	float noiseSpeed;
 };
@@ -215,9 +216,8 @@ float getNoise(vec3 worldPos)
 
     //calculate density
 	float outNoise = 0.5 + 0.5f * snoise;
-	float density = 0.4f * exp(-worldPos.y * heightDensityFactor);
-	float outDensity = (outNoise + density) * 0.5f;
-    return clamp(outDensity, 0.0f, 1.0f);
+	float density = clamp(exp(-worldPos.y * heightDensityFactor) - (1 - heightDensityStart), 0.0f, 1.0f);
+    return clamp((outNoise + density), 0.0f, 1.0f);
 }
 
 float getPhaseFunction(float g, vec3 lightVec, vec3 viewVec) // vectors must be normalized!

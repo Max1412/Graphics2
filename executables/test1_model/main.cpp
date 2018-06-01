@@ -58,31 +58,30 @@ int main()
     sp.addUniform(viewUniform);
     sp.addUniform(cameraPosUniform);
 
-    ModelImporter modelLoader("sponza/sponza.obj", 1);
+    ModelImporter modelLoader("sponza/sponza.obj");
     modelLoader.registerUniforms(sp);
 
     // "generate" lights
     LightManager lightMngr;
-    for (int i = 0; i < 1; i++) // STANDARD VALUES FOR SPONZA
-    {
-        // spot light
-        glm::vec3 pos = glm::vec3(80.0f, 200.0f, 100.0f);
-        glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
-        float cutOff = glm::cos(glm::radians(30.0f));
-        float outerCutOff = glm::cos(glm::radians(35.0f));
-        auto spot = std::make_shared<Light>(glm::vec3(0.0f, 1.0f, 1.0f), pos, dir, 0.05f, 0.002f, 0.0f, cutOff, outerCutOff);
-        lightMngr.addLight(spot);
 
-        // directional light
-        auto directional = std::make_shared<Light>(glm::vec3(0.15f), glm::vec3(0.0f, -1.0f, 0.0f));
-        directional->setPosition({0.0f, 2000.0f, 0.0f}); // position for shadow map only
-        directional->recalculateLightSpaceMatrix();
-        lightMngr.addLight(directional);
+    // spot light
+    glm::vec3 pos = glm::vec3(80.0f, 200.0f, 100.0f);
+    glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
+    float cutOff = glm::cos(glm::radians(30.0f));
+    float outerCutOff = glm::cos(glm::radians(35.0f));
+    auto spot = std::make_shared<Light>(glm::vec3(0.0f, 1.0f, 1.0f), pos, dir, 0.05f, 0.002f, 0.0f, cutOff, outerCutOff);
+    lightMngr.addLight(spot);
 
-        // point light
-        //auto point = std::make_shared<Light>(glm::vec3(1.0f, 0.3f, 1.0f), glm::vec3(-100.0f, 170.0f, -230.0f) , 0.05f, 0.006f, 0.0f);
-        //lightMngr.addLight(point);
-    }
+    // directional light
+    auto directional = std::make_shared<Light>(glm::vec3(0.15f), glm::vec3(0.0f, -1.0f, 0.0f));
+    directional->setPosition({0.0f, 2000.0f, 0.0f}); // position for shadow map only
+    directional->recalculateLightSpaceMatrix();
+    lightMngr.addLight(directional);
+
+    // point light
+    //auto point = std::make_shared<Light>(glm::vec3(1.0f, 0.3f, 1.0f), glm::vec3(-100.0f, 170.0f, -230.0f) , 0.05f, 0.006f, 0.0f);
+    //lightMngr.addLight(point);
+
     lightMngr.uploadLightsToGPU();
 
     Shader lightDebugVS("lightDebug.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
@@ -141,14 +140,11 @@ int main()
 
         if (cullingOn)
         {
-            //modelLoader.drawCulled(sp, playerCamera.getView(), glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 10000.0f);
             modelLoader.multiDrawCulled(sp, playerProj * playerCamera.getView());
         }
         else
         {
-            //std::for_each(std::execution::par, modelLoader.getMeshes().begin(), modelLoader.getMeshes().end(), [](auto &Mesh) { Mesh->setEnabledForRendering(true); });
-            modelLoader.multiDraw(sp);
-            
+            modelLoader.multiDraw(sp);            
         }
 
         lightMngr.showLightGUIs();

@@ -76,10 +76,15 @@ bool SimplexNoise::showNoiseGUIContent()
         getNoiseBuffer().setContentSubData(m_noiseSpeed, offsetof(GpuNoiseInfo, noiseSpeed)); 
         res = true;
     }
-    if (ImGui::SliderFloat("Density Factor", &m_densityFactor, 0.0f, 1.0f))
+    if (ImGui::SliderFloat("Density Factor", &m_densityFactor, 0.0f, 0.2f))
     {
         getNoiseBuffer().setContentSubData(m_densityFactor, offsetof(GpuNoiseInfo, heightDensityFactor)); 
         res = true;
-    }
+	}
+	if (ImGui::SliderFloat("Density Height", &m_densityHeight, 0.0f, 1.0f))
+	{
+		getNoiseBuffer().setContentSubData(m_densityHeight, offsetof(GpuNoiseInfo, heightDensityStart));
+		res = true;
+	}
     return res;
 }

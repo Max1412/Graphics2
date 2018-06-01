@@ -8,10 +8,10 @@
 
 using namespace gl;
 
-Light::Light(glm::vec3 color, glm::vec3 direction, glm::ivec2 shadowMapRes) // DIRECTIONAL
-: m_type(LightType::directional), m_shadowMapRes(shadowMapRes),
+Light::Light(glm::vec3 color, glm::vec3 direction, float smFar ,glm::ivec2 shadowMapRes) // DIRECTIONAL
+: m_type(LightType::directional), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
 m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
-m_genShadowMapProgram("lightTransformMD.vert", "nothing.frag", BufferBindings::g_definitions)
+m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     // TODO USE POSITION TOO, FOR SHADOW MAPS
     checkParameters();
@@ -25,7 +25,7 @@ m_genShadowMapProgram("lightTransformMD.vert", "nothing.frag", BufferBindings::g
     m_modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", glm::mat4(1.0f));
     m_lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", glm::mat4(1.0f));
 
-    //m_genShadowMapProgram.addUniform(m_modelUniform);
+    m_genShadowMapProgram.addUniform(m_modelUniform);
     m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
 
     // init gpu struct
@@ -37,8 +37,8 @@ m_genShadowMapProgram("lightTransformMD.vert", "nothing.frag", BufferBindings::g
     recalculateLightSpaceMatrix();
 }
 
-Light::Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::ivec2 shadowMapRes) // POINT
-: m_type(LightType::point), m_shadowMapRes(shadowMapRes),
+Light::Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, float smFar, glm::ivec2 shadowMapRes) // POINT
+: m_type(LightType::point), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
 m_shadowTexture(std::make_shared<Cubemap>(GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
 m_genShadowMapProgram({
     Shader("transform.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions),
@@ -75,10 +75,10 @@ m_genShadowMapProgram({
     //throw std::runtime_error("POINT LIGHTS NOT SUPPORTED YET");
 }
 
-Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, glm::ivec2 shadowMapRes) // SPOT
-    : m_type(LightType::spot), m_shadowMapRes(shadowMapRes),
+Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, float smFar, glm::ivec2 shadowMapRes) // SPOT
+    : m_type(LightType::spot), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
     m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
-   m_genShadowMapProgram("lightTransformMD.vert", "nothing.frag", BufferBindings::g_definitions)
+   m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     checkParameters();
 
@@ -91,7 +91,7 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
     m_modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", glm::mat4(1.0f));
     m_lightSpaceUniform = std::make_shared<Uniform<glm::mat4>>("lightSpaceMatrix", glm::mat4(1.0f));
 
-    //m_genShadowMapProgram.addUniform(m_modelUniform);
+    m_genShadowMapProgram.addUniform(m_modelUniform);
     m_genShadowMapProgram.addUniform(m_lightSpaceUniform);
 
     // init gpu struct
@@ -109,6 +109,43 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
     recalculateLightSpaceMatrix();
 }
 
+void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& meshes)
+{
+    if (!m_hasShadowMap)
+        return;
+
+    recalculateLightSpaceMatrix();
+
+    //store old viewport
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    //set sm settings
+    m_genShadowMapProgram.use();
+    glViewport(0, 0, m_shadowMapRes.x, m_shadowMapRes.y);
+    m_shadowMapFBO.bind();
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+
+    if (m_type == LightType::point && m_lightPosUniform->getContent() != m_gpuLight.position)
+        m_lightPosUniform->setContent(m_gpuLight.position);
+
+    GLuint srIndex[] = { 1 };
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, srIndex);
+
+    //render scene
+    std::for_each(meshes.begin(), meshes.end(), [this](auto& mesh)
+    {
+        m_modelUniform->setContent(mesh->getModelMatrix());
+        m_genShadowMapProgram.updateUniforms();
+        mesh->draw();
+    });
+
+    //restore previous rendering settings
+    m_shadowMapFBO.unbind();
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glCullFace(GL_BACK);
+}
 
 void Light::renderShadowMap(const ModelImporter& mi)
 {
@@ -148,7 +185,6 @@ void Light::renderShadowMapCulled(const ModelImporter& mi)
     // no culling for point lights
     if (m_type == LightType::point)
     {
-        //renderShadowMap(mi);
         std::cout << "Shadow maps for point lights not supported\n";
     }
 
@@ -168,13 +204,7 @@ void Light::renderShadowMapCulled(const ModelImporter& mi)
     if (m_type == LightType::point && m_lightPosUniform->getContent() != m_gpuLight.position)
         m_lightPosUniform->setContent(m_gpuLight.position);
 
-    //float angle = 180.0f; // for orthographic projection
-
-    //if (m_type == LightType::spot)
-    //    angle = 2.0f*glm::acos(m_gpuLight.outerCutOff);
-
     //render scene
-    //mi.drawCulled(m_genShadowMapProgram, m_lightView, angle, static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 3.0f, 3000.0f);
     mi.multiDrawCulled(m_genShadowMapProgram, m_gpuLight.lightSpaceMatrix);
 
     //restore previous rendering settings
@@ -187,8 +217,7 @@ void Light::recalculateLightSpaceMatrix()
 {
     if (m_type == LightType::directional)
     {
-        const float nearPlane = 3.0f, farPlane = 3000.0f;
-        m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, nearPlane, farPlane);
+        m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
 
         glm::vec3 up(0.0f, 1.0f, 0.0f);
 
@@ -203,9 +232,8 @@ void Light::recalculateLightSpaceMatrix()
     }
     else if (m_type == LightType::spot) 
     {
-        const float nearPlane = 3.0f, farPlane = 1000.0f;
         // NOTE: ACOS BECAUSE CUTOFF HAS COS BAKED IN
-        m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
+        m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 0.1f, m_smFar);
 
         m_lightView = glm::lookAt(m_gpuLight.position,
             m_gpuLight.position + m_gpuLight.direction, // aimed at the center
@@ -213,9 +241,8 @@ void Light::recalculateLightSpaceMatrix()
     }
     else if (m_type == LightType::point)
     {
-        const float nearPlane = 3.0f, farPlane = 1000.0f;
         // TODO is cutoff supposed to be used here? or 90 degrees (cube)?
-        m_lightProjection = glm::perspective(glm::radians(90.0f), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
+        m_lightProjection = glm::perspective(glm::radians(90.0f), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 0.1f, m_smFar);
         m_lightView = glm::mat4(1.0f); // calculate finished matrix in shader
     }
 
@@ -360,10 +387,14 @@ bool Light::showLightGUIContent(const std::string& name)
         if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
         {
             lightChanged = true;
+			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+				m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001;
         }
         if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
         {
             lightChanged = true;
+			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+				m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001;
         }
     }
     if (m_type == LightType::spot || m_type == LightType::point)

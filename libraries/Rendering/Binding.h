@@ -13,12 +13,17 @@ namespace BufferBindings
         materialIndices = 11
     };
 
-
     enum class VertexAttributeLocation : int
     {
         vertices = 0,
         normals = 1,
         texCoords = 2
+    };
+
+    enum class Subroutine : int
+    {
+        multiDraw = 0,
+        normalDraw = 1
     };
 
     inline std::vector<glsp::definition> g_definitions = {

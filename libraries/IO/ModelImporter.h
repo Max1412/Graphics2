@@ -40,15 +40,17 @@ struct Indirect
 class ModelImporter
 {
 public:
+    static std::vector<std::shared_ptr<Mesh>> loadAllMeshesFromFile(const std::experimental::filesystem::path& filename);
+
     explicit ModelImporter(const std::experimental::filesystem::path& filename);
-    ModelImporter(const std::experimental::filesystem::path& filename, int test);
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 
     void draw(const ShaderProgram& sp) const;
+    void drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const;
+
     void multiDraw(const ShaderProgram& sp) const;
     void multiDrawCulled(const ShaderProgram & sp, const glm::mat4 & viewProjection) const;
-    void drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const;
 
     void registerUniforms(ShaderProgram& sp) const;
     void resetIndirectDrawParams();
