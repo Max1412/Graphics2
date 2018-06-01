@@ -78,7 +78,7 @@ int main()
     Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
     Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER);
     ShaderProgram fboHDRtoLDRSP(fboVS, fboHDRtoLDRFS);
-    float exposure = 1.0f, gamma = 2.2f;
+    float exposure = 0.1f, gamma = 2.2f;
     auto u_exposure = std::make_shared<Uniform<float>>("exposure", 0.3f);
     auto u_gamma = std::make_shared<Uniform<float>>("gamma", 2.2f);
     fboHDRtoLDRSP.addUniform(u_exposure);
@@ -124,7 +124,7 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
-    FogInfo fog = { glm::vec3(1.0f), 0.2f, 0.2f, 0.0f, 0.2f };
+    FogInfo fog = { glm::vec3(1.0f), 0.2f, 0.6f, 0.25f, 0.125f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
@@ -159,7 +159,7 @@ int main()
 	LightManager lightMngr;
 
     // directional light
-	auto directional = std::make_shared<Light>(glm::vec3(1.f), glm::vec3(0.0f, -1.0f, -0.2f));
+	auto directional = std::make_shared<Light>(glm::vec3(100.f), glm::vec3(0.0f, -1.0f, -0.2f));
 	directional->setPosition({ 0.0f, 2000.0f, 0.0f }); // position for shadow map only
 	directional->recalculateLightSpaceMatrix();
 	lightMngr.addLight(directional);
@@ -169,7 +169,7 @@ int main()
     glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
     float cutOff = glm::cos(glm::radians(30.0f));
     float outerCutOff = glm::cos(glm::radians(35.0f));
-    auto spot = std::make_shared<Light>(glm::vec3(0.0f, 1.0f, 1.0f), pos, dir, 0.05f, 0.002f, 0.0f, cutOff, outerCutOff);
+    auto spot = std::make_shared<Light>(glm::vec3(0.0f, 100.0f, 100.0f), pos, dir, 0.05f, 0.002f, 0.0f, cutOff, outerCutOff);
     lightMngr.addLight(spot);
 
 	lightMngr.uploadLightsToGPU();

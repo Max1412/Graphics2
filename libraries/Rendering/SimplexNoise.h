@@ -22,11 +22,11 @@ class SimplexNoise
 public:
     SimplexNoise();
 
-    float m_time;
+    float m_time = 0.0f;
     float m_densityFactor = 0.015f;
 	float m_densityHeight = 0.85f;
-    float m_noiseScale = 0.01f;
-    float m_noiseSpeed = 0.1f;
+    float m_noiseScale = 0.003f;
+    float m_noiseSpeed = 0.15f;
 
     void bindNoiseBuffer(BufferBindings::Binding binding) const;
     Buffer& getNoiseBuffer();

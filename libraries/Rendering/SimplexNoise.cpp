@@ -39,7 +39,7 @@ SimplexNoise::SimplexNoise()
         m_gradientTexture.initWithData2D(pixels, 256, 256);
     }
 
-    m_noiseSSBO.setStorage(std::array<GpuNoiseInfo, 1>{ {m_permTexture.generateHandle(), m_simplexTexture.generateHandle(), m_gradientTexture.generateHandle(), m_time, m_densityFactor, m_noiseScale, m_noiseSpeed}}, GL_DYNAMIC_STORAGE_BIT);
+    m_noiseSSBO.setStorage(std::array<GpuNoiseInfo, 1>{ {m_permTexture.generateHandle(), m_simplexTexture.generateHandle(), m_gradientTexture.generateHandle(), m_time, m_densityFactor, m_densityHeight, m_noiseScale, m_noiseSpeed}}, GL_DYNAMIC_STORAGE_BIT);
 }
 
 void SimplexNoise::bindNoiseBuffer(BufferBindings::Binding binding) const
