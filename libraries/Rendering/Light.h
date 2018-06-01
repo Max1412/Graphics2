@@ -20,12 +20,13 @@ struct GPULight
     glm::vec3 position;             // spot, point
     float constant = -1.0f;         // spot, point
     glm::vec3 direction;            // dir, spot
-    float linear = -1.0f;         // spot, point
+    float linear = -1.0f;           // spot, point
     uint64_t shadowMap;
-    float quadratic = -1.0f;      // spot, point
-    float cutOff = -1.0f;         // spot
-    float outerCutOff = -1.0f;    // spot
-    int32_t pad, pad2, pad3; // TODO PAD
+    float quadratic = -1.0f;        // spot, point
+    float cutOff = -1.0f;           // spot
+    float outerCutOff = -1.0f;      // spot
+    int pcfKernelSize = 1;
+    int32_t pad1, pad2;
 };
 
 enum class LightType : int
@@ -78,6 +79,9 @@ public:
 
     void setOuterCutoff(float cutOff);
     float getOuterCutoff() const;
+
+    void setPCFKernelSize(int size);
+    int getPCFKernelSize() const;
 
     LightType getType() const;
 

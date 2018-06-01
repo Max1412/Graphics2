@@ -339,6 +339,16 @@ float Light::getOuterCutoff() const
     return m_gpuLight.outerCutOff;
 }
 
+void Light::setPCFKernelSize(int size)
+{
+    m_gpuLight.pcfKernelSize = size;
+}
+
+int Light::getPCFKernelSize() const
+{
+    return m_gpuLight.pcfKernelSize;
+}
+
 LightType Light::getType() const
 {
     return m_type;
@@ -372,6 +382,10 @@ bool Light::showLightGUIContent(const std::string& name)
     bool lightChanged = false;
     ImGui::Text(fullName.str().c_str());
     if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
+    {
+        lightChanged = true;
+    }
+    if (ImGui::SliderInt((std::string("PCF Kernel Size ") + name).c_str(), &m_gpuLight.pcfKernelSize, 0, 10))
     {
         lightChanged = true;
     }

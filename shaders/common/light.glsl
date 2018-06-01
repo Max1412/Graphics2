@@ -9,10 +9,11 @@ struct Light
     float constant;         // spot, point
     vec3 direction;         // dir, spot
     float linear;           // spot, point
-    uvec2 shadowMap;      // can be sampler2D or samplerCube
+    uvec2 shadowMap;        // can be sampler2D or samplerCube
     float quadratic;        // spot, point
     float cutOff;           // spot
     float outerCutOff;      // spot
+    int pcfKernelSize;
 };
 
 layout(std430, binding = LIGHTS_BINDING) readonly buffer LightBuffer
