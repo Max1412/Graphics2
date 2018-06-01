@@ -137,8 +137,7 @@ int main()
     const Shader fs("demo1.frag", GL_FRAGMENT_SHADER);
     ShaderProgram sp(vs, fs);
 
-    ModelImporter mi("bunny.obj");
-    auto meshes = mi.getMeshes();
+    auto meshes = ModelImporter::loadAllMeshesFromFile("bunny.obj");
     auto bunny = meshes.at(0);
 
     // create a plane

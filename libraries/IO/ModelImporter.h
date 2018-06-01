@@ -12,6 +12,7 @@
 #include "Rendering/Texture.h"
 #include "Rendering/Uniform.h"
 #include "Rendering/Camera.h"
+#include "Rendering/ShaderProgram.h"
 
 class ShaderProgram;
 
@@ -27,19 +28,32 @@ struct PhongGPUMaterial
     glm::vec4 emissiveColor;
 };
 
+struct Indirect
+{
+    unsigned count;
+    unsigned instanceCount;
+    unsigned firstIndex;
+    unsigned baseVertex;
+    unsigned baseInstance;
+};
 
 class ModelImporter
 {
 public:
+    static std::vector<std::shared_ptr<Mesh>> loadAllMeshesFromFile(const std::experimental::filesystem::path& filename);
+
     explicit ModelImporter(const std::experimental::filesystem::path& filename);
-    ModelImporter(const std::experimental::filesystem::path& filename, int test);
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 
     void draw(const ShaderProgram& sp) const;
-    void drawCulled(const ShaderProgram& sp, Camera& cam, float angle, float ratio, float near, float far) const;
+    void drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const;
+
+    void multiDraw(const ShaderProgram& sp) const;
+    void multiDrawCulled(const ShaderProgram & sp, const glm::mat4 & viewProjection) const;
 
     void registerUniforms(ShaderProgram& sp) const;
+    void resetIndirectDrawParams();
 
 private:
     Assimp::Importer m_importer;
@@ -49,10 +63,33 @@ private:
     std::vector<PhongGPUMaterial> m_gpuMaterials;
     Buffer m_gpuMaterialBuffer;
 
+    std::vector<unsigned> m_gpuMaterialIndices;
+    Buffer m_gpuMaterialIndicesBuffer;
+
     std::vector<glm::mat4> m_modelMatrices;
     Buffer m_modelMatrixBuffer;
 
     std::shared_ptr<Uniform<int>> m_meshIndexUniform;
     std::shared_ptr<Uniform<int>> m_materialIndexUniform;
 
+    // multi-draw buffers
+    std::vector<unsigned> m_allTheIndices;
+    std::vector<glm::vec3> m_allTheVertices;
+    std::vector<glm::vec3> m_allTheNormals;
+    std::vector<glm::vec3> m_allTheTexCoords;
+
+    std::vector<Indirect> m_indirectDrawParams;
+    Buffer m_indirectDrawBuffer;
+
+    Buffer m_multiDrawIndexBuffer;
+    Buffer m_multiDrawVertexBuffer;
+    Buffer m_multiDrawNormalBuffer;
+    Buffer m_multiDrawTexCoordBuffer;
+    VertexArray m_multiDrawVao;
+
+    // culling stuff
+    std::vector<glm::mat2x4> m_boundingBoxes;
+    Buffer m_boundingBoxBuffer;
+    std::shared_ptr<Uniform<glm::mat4>> m_viewProjUniform;
+    ShaderProgram m_cullingProgram;
 };

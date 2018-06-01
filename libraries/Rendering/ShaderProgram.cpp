@@ -61,7 +61,7 @@ void ShaderProgram::changeShader(const Shader& shader)
         linkProgram();
     }
     // insert new shader into map when everything worked
-    m_shaderMap.insert(std::make_pair(shader.getShaderType(), shader));
+    m_shaderMap.insert_or_assign(shader.getShaderType(), shader);
 }
 
 ShaderProgram::~ShaderProgram()

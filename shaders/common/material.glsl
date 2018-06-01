@@ -17,6 +17,11 @@ layout(std430, binding = MATERIAL_BINDING) readonly buffer MaterialBuffer
     Material materials[];
 };
 
+layout(std430, binding = MATERIAL_INDICES_BINDING) readonly buffer MaterialIndexBuffer
+{
+    uint materialIndices[];
+};
+
 vec3 getDiffColor(int materialIndex)
 {
     Material currentMaterial = materials[materialIndex];

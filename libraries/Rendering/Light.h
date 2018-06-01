@@ -9,6 +9,7 @@
 #include "FrameBuffer.h"
 
 
+class ModelImporter;
 using namespace gl;
 
 struct GPULight
@@ -20,7 +21,7 @@ struct GPULight
     float constant = -1.0f;         // spot, point
     glm::vec3 direction;            // dir, spot
     float linear = -1.0f;         // spot, point
-    int64_t shadowMap;
+    uint64_t shadowMap;
     float quadratic = -1.0f;      // spot, point
     float cutOff = -1.0f;         // spot
     float outerCutOff = -1.0f;    // spot
@@ -38,12 +39,13 @@ class Light
 {
 public:
 
-    // explicit Light(LightType type, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024));
-    Light(glm::vec3 color, glm::vec3 direction, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // DIRECTIONAL
-    Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // POINT
-    Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // SPOT
+    Light(glm::vec3 color, glm::vec3 direction, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // DIRECTIONAL
+    Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // POINT
+    Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // SPOT
 
-    void renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene);
+    void renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& meshes);
+    void renderShadowMap(const ModelImporter& mi);
+    void renderShadowMapCulled(const ModelImporter& mi);
 
     const GPULight& getGpuLight() const;
 
@@ -86,6 +88,7 @@ private:
 
     bool m_hasShadowMap = true;
     glm::ivec2 m_shadowMapRes;
+    float m_smFar;
 
     glm::mat4 m_lightProjection;
     glm::mat4 m_lightView;
@@ -97,7 +100,6 @@ private:
     std::shared_ptr<Uniform<glm::mat4>> m_modelUniform;
     std::shared_ptr<Uniform<glm::mat4>> m_lightSpaceUniform;
     std::shared_ptr<Uniform<glm::vec3>> m_lightPosUniform;
-
 
     GPULight m_gpuLight;
 };

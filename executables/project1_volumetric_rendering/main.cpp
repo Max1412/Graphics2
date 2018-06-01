@@ -103,7 +103,7 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
-    FogInfo fog = { glm::vec3(1.0f), 0.5f, 0.2f, 0.2f, 0.2f };
+    FogInfo fog = { glm::vec3(1.0f), 0.2f, 0.2f, 0.0f, 0.2f };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
@@ -120,8 +120,8 @@ int main()
 
 	// R E N D E R I N G
 
-	Shader modelVertexShader("modelVertVolumetric.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
-	Shader modelFragmentShader("modelFragVolumetric.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+	Shader modelVertexShader("modelVertVolumetricMD.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
+	Shader modelFragmentShader("modelFragVolumetricMD.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
 	ShaderProgram modelSp(modelVertexShader, modelFragmentShader);
 
     auto u_voxelGridTex = std::make_shared<Uniform<GLuint64>>("voxelGrid", voxelGrid.generateHandle());
@@ -131,20 +131,20 @@ int main()
     modelSp.addUniform(u_voxelGridTex);
     modelSp.addUniform(u_screenRes);
 
-	ModelImporter modelLoader("sponza/sponza.obj", 1);
+	ModelImporter modelLoader("sponza/sponza.obj");
 	modelLoader.registerUniforms(modelSp);
 
 	// lights (parameters intended for sponza)
 	LightManager lightMngr;
 
     // directional light
-	auto directional = std::make_shared<Light>(glm::vec3(10.f), glm::vec3(0.0f, -1.0f, -0.2f));
+	auto directional = std::make_shared<Light>(glm::vec3(1.f), glm::vec3(0.0f, -1.0f, -0.2f));
 	directional->setPosition({ 0.0f, 2000.0f, 0.0f }); // position for shadow map only
 	directional->recalculateLightSpaceMatrix();
 	lightMngr.addLight(directional);
 
     // spot light
-    glm::vec3 pos = glm::vec3(80.0f, 200.0f, 100.0f);
+    glm::vec3 pos = glm::vec3(80.0f, 300.0f, 100.0f);
     glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
     float cutOff = glm::cos(glm::radians(30.0f));
     float outerCutOff = glm::cos(glm::radians(35.0f));
@@ -184,7 +184,7 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		lightMngr.renderShadowMaps(modelLoader.getMeshes());
+		lightMngr.renderShadowMapsCulled(modelLoader);
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
@@ -207,8 +207,8 @@ int main()
 
         //vdbgr.draw();
 
-		if(!dbgrndr)
-			modelLoader.drawCulled(modelSp, playerCamera, glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), 0.1f, 10000.0f);
+        if (!dbgrndr)
+            modelLoader.multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
         timer.stop();
 

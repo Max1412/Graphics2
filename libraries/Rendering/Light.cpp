@@ -4,11 +4,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 #include "Cubemap.h"
+#include "IO/ModelImporter.h"
 
 using namespace gl;
 
-Light::Light(glm::vec3 color, glm::vec3 direction, glm::ivec2 shadowMapRes) // DIRECTIONAL
-: m_type(LightType::directional), m_shadowMapRes(shadowMapRes),
+Light::Light(glm::vec3 color, glm::vec3 direction, float smFar ,glm::ivec2 shadowMapRes) // DIRECTIONAL
+: m_type(LightType::directional), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
 m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
 m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
@@ -36,8 +37,8 @@ m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_d
     recalculateLightSpaceMatrix();
 }
 
-Light::Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, glm::ivec2 shadowMapRes) // POINT
-: m_type(LightType::point), m_shadowMapRes(shadowMapRes),
+Light::Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, float smFar, glm::ivec2 shadowMapRes) // POINT
+: m_type(LightType::point), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
 m_shadowTexture(std::make_shared<Cubemap>(GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
 m_genShadowMapProgram({
     Shader("transform.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions),
@@ -74,8 +75,8 @@ m_genShadowMapProgram({
     //throw std::runtime_error("POINT LIGHTS NOT SUPPORTED YET");
 }
 
-Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, glm::ivec2 shadowMapRes) // SPOT
-    : m_type(LightType::spot), m_shadowMapRes(shadowMapRes),
+Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, float smFar, glm::ivec2 shadowMapRes) // SPOT
+    : m_type(LightType::spot), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
     m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
    m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
@@ -108,8 +109,45 @@ Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float con
     recalculateLightSpaceMatrix();
 }
 
+void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& meshes)
+{
+    if (!m_hasShadowMap)
+        return;
 
-void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
+    recalculateLightSpaceMatrix();
+
+    //store old viewport
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    //set sm settings
+    m_genShadowMapProgram.use();
+    glViewport(0, 0, m_shadowMapRes.x, m_shadowMapRes.y);
+    m_shadowMapFBO.bind();
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+
+    if (m_type == LightType::point && m_lightPosUniform->getContent() != m_gpuLight.position)
+        m_lightPosUniform->setContent(m_gpuLight.position);
+
+    GLuint srIndex[] = { 1 };
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, srIndex);
+
+    //render scene
+    std::for_each(meshes.begin(), meshes.end(), [this](auto& mesh)
+    {
+        m_modelUniform->setContent(mesh->getModelMatrix());
+        m_genShadowMapProgram.updateUniforms();
+        mesh->draw();
+    });
+
+    //restore previous rendering settings
+    m_shadowMapFBO.unbind();
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glCullFace(GL_BACK);
+}
+
+void Light::renderShadowMap(const ModelImporter& mi)
 {
     if (!m_hasShadowMap)
         return;
@@ -131,12 +169,43 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& scene)
         m_lightPosUniform->setContent(m_gpuLight.position);
 
     //render scene
-    std::for_each(scene.begin(), scene.end(), [&](auto& mesh)
+    mi.multiDraw(m_genShadowMapProgram);
+
+    //restore previous rendering settings
+    m_shadowMapFBO.unbind();
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glCullFace(GL_BACK);
+}
+
+void Light::renderShadowMapCulled(const ModelImporter& mi)
+{
+    if (!m_hasShadowMap)
+        return;
+
+    // no culling for point lights
+    if (m_type == LightType::point)
     {
-        m_modelUniform->setContent(mesh->getModelMatrix()); // TODO change shaders to use model matrix buffer instead
-        m_genShadowMapProgram.updateUniforms();
-        mesh->forceDraw(); // TODO CULL
-    });
+        std::cout << "Shadow maps for point lights not supported\n";
+    }
+
+    recalculateLightSpaceMatrix();
+
+    //store old viewport
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    //set sm settings
+    m_genShadowMapProgram.use();
+    glViewport(0, 0, m_shadowMapRes.x, m_shadowMapRes.y);
+    m_shadowMapFBO.bind();
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+
+    if (m_type == LightType::point && m_lightPosUniform->getContent() != m_gpuLight.position)
+        m_lightPosUniform->setContent(m_gpuLight.position);
+
+    //render scene
+    mi.multiDrawCulled(m_genShadowMapProgram, m_gpuLight.lightSpaceMatrix);
 
     //restore previous rendering settings
     m_shadowMapFBO.unbind();
@@ -148,8 +217,7 @@ void Light::recalculateLightSpaceMatrix()
 {
     if (m_type == LightType::directional)
     {
-        const float nearPlane = 3.0f, farPlane = 3000.0f;
-        m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, nearPlane, farPlane);
+        m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
 
         glm::vec3 up(0.0f, 1.0f, 0.0f);
 
@@ -164,9 +232,8 @@ void Light::recalculateLightSpaceMatrix()
     }
     else if (m_type == LightType::spot) 
     {
-        const float nearPlane = 3.0f, farPlane = 1000.0f;
         // NOTE: ACOS BECAUSE CUTOFF HAS COS BAKED IN
-        m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
+        m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 0.1f, m_smFar);
 
         m_lightView = glm::lookAt(m_gpuLight.position,
             m_gpuLight.position + m_gpuLight.direction, // aimed at the center
@@ -174,9 +241,8 @@ void Light::recalculateLightSpaceMatrix()
     }
     else if (m_type == LightType::point)
     {
-        const float nearPlane = 3.0f, farPlane = 1000.0f;
         // TODO is cutoff supposed to be used here? or 90 degrees (cube)?
-        m_lightProjection = glm::perspective(glm::radians(90.0f), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), nearPlane, farPlane);
+        m_lightProjection = glm::perspective(glm::radians(90.0f), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 0.1f, m_smFar);
         m_lightView = glm::mat4(1.0f); // calculate finished matrix in shader
     }
 

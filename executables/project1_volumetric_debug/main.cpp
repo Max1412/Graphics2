@@ -144,7 +144,7 @@ int main()
          
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        lm.renderShadowMaps({}); //TODO: put scene in here
+        //lm.renderShadowMaps({}); //TODO: put scene in here
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 

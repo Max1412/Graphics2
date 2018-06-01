@@ -32,7 +32,7 @@ float calculateShadowPCF(in int lightIndex, in vec3 worldPos, in vec3 worldNorma
 
     sampler2DShadow sm = sampler2DShadow(lights[lightIndex].shadowMap);
     vec2 texelSize = 1.0f / textureSize(sm, 0);
-    int kernelSize = 13; // TODO make this selectable
+    int kernelSize = 5; // TODO make this selectable
     int go = kernelSize / 2;
     for (int x = -go; x <= go; ++x)
     {

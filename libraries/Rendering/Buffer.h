@@ -88,6 +88,9 @@ public:
     template <typename S>
     void setContentSubData(const S& data, size_t startOffset);
 
+    template<typename T, typename = std::void_t<decltype(std::data(std::declval<T>())), typename T::value_type>>
+    void setContentToContainerSubData(const T& container, size_t startOffset);
+
 private:
     GLuint m_bufferHandle;
     GLenum m_target;
@@ -138,6 +141,21 @@ void Buffer::setContentSubData(const S& data, size_t startOffset)
     }
     glNamedBufferSubData(m_bufferHandle, startOffset, sizeof(data), &data);
 }
+
+template<typename T, typename>
+void Buffer::setContentToContainerSubData(const T& container, size_t startOffset)
+{
+    // TODO turn thse into asserts, only check them in debug mode
+    if constexpr(util::debugmode)
+    {
+        if ((m_bufferFlags & BufferStorageMask::GL_DYNAMIC_STORAGE_BIT) == BufferStorageMask::GL_NONE_BIT)
+        {
+            throw std::runtime_error("Buffer lacks GL_DYNAMIC_STORAGE_BIT flag for using SubData");
+        }
+    }
+    glNamedBufferSubData(m_bufferHandle, startOffset, sizeof(T::value_type), container.data());
+}
+
 
 // return a mapped pointer in order to set data in the buffer
 template <typename S>
