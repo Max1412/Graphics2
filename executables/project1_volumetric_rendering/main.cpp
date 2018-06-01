@@ -1,6 +1,7 @@
 #include <glbinding/gl/gl.h>
 #include "Rendering/Light.h"
 #include "Rendering/SimplexNoise.h"
+#include "Rendering/Quad.h"
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -68,6 +69,26 @@ int main()
     // set up imgui
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
+
+    // F B O : H D R -> L D R
+    std::vector<Texture> hdrTex(1); 
+    hdrTex.at(0).initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    FrameBuffer hdrFBO(hdrTex);
+
+    Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
+    Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER);
+    ShaderProgram fboHDRtoLDRSP(fboVS, fboHDRtoLDRFS);
+    float exposure = 1.0f, gamma = 2.2f;
+    auto u_exposure = std::make_shared<Uniform<float>>("exposure", 0.3f);
+    auto u_gamma = std::make_shared<Uniform<float>>("gamma", 2.2f);
+    fboHDRtoLDRSP.addUniform(u_exposure);
+    fboHDRtoLDRSP.addUniform(u_gamma);
+
+    Quad fboQuad;
+
+    Buffer fboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
+    fboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{hdrTex.at(0).generateHandle()}, GL_DYNAMIC_STORAGE_BIT);
+    fboTexHandleBuffer.bindBase(static_cast<BufferBindings::Binding>(4));
 
 	// V O L U M E T R I C
 
@@ -181,10 +202,11 @@ int main()
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
 		}
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		lightMngr.renderShadowMapsCulled(modelLoader);
+
+        // render to fbo
+        hdrFBO.bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
@@ -210,6 +232,16 @@ int main()
         if (!dbgrndr)
             modelLoader.multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
+        // render to screen now
+        hdrFBO.unbind(); 
+        glDisable(GL_DEPTH_TEST);
+        glClearColor(0.4f, 0.1f, 0.1f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        fboHDRtoLDRSP.use();
+        fboHDRtoLDRSP.updateUniforms();
+        fboQuad.draw();
+        glEnable(GL_DEPTH_TEST);
+        
         timer.stop();
 
         if constexpr (renderimgui)
@@ -232,6 +264,8 @@ int main()
                     tab = 5;
                 if (ImGui::MenuItem("Image"))
                     tab = 6;
+                if (ImGui::MenuItem("FBO"))
+                    tab = 7;
                 ImGui::MenuItem("     ");
                 //ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20);
                 if (ImGui::MenuItem("x"))
@@ -311,7 +345,17 @@ int main()
                 ImGui::RadioButton("lighting, density", &u_debugMode->getContentRef(), 3);
                 break;
             }
-
+            
+            case 7:
+            {
+                ImGui::Text("FBO settings");
+                fboHDRtoLDRSP.showReloadShaderGUIContent({fboVS, fboHDRtoLDRFS});
+                if (ImGui::SliderFloat("Gamma", &gamma, 0.0f, 5.0f))
+                    u_gamma->setContent(gamma);
+                if (ImGui::SliderFloat("Exposure", &exposure, 0.0f, 10.0f))
+                    u_exposure->setContent(exposure);
+                break;
+            }
             default:
                 break;
 
