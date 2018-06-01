@@ -1,4 +1,5 @@
 #include <glbinding/gl/gl.h>
+#include "Rendering/LightManager.h"
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -6,11 +7,8 @@ using namespace gl;
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
 
-#include <iostream>
 #include <string>
-#include <sstream>
 #include <memory>
 
 #include "Utils/UtilCollection.h"
@@ -27,7 +25,6 @@ using namespace gl;
 #include "imgui/imgui_impl_glfw_gl3.h"
 #include "Rendering/Quad.h"
 #include "Rendering/FrameBuffer.h"
-#include "Rendering/Light.h"
 
 const unsigned int width = 1600;
 const unsigned int height = 900;
@@ -89,8 +86,7 @@ int main()
     const Shader fs("shadowmapping.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
     ShaderProgram sp(vs, fs);
 
-    ModelImporter mi("bunny.obj");
-    auto meshes = mi.getMeshes();
+    auto meshes = ModelImporter::loadAllMeshesFromFile("bunny.obj");
     auto bunny = meshes.at(0);
 
     // create a plane
@@ -133,34 +129,26 @@ int main()
     const auto projUniform = std::make_shared<Uniform<glm::mat4>>("ProjectionMatrix", proj);
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("ViewMatrix", view);
     auto modelUniform = std::make_shared<Uniform<glm::mat4>>("ModelMatrix", model);
+    auto camPosUniform = std::make_shared<Uniform<glm::vec3>>("camPos", camera.getPosition());
 
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
     sp.addUniform(modelUniform);
+    sp.addUniform(camPosUniform);
 
     glm::vec3 ambient(0.5f);
     const auto ambientLightUniform = std::make_shared<Uniform<glm::vec3>>("lightAmbient", ambient);
     sp.addUniform(ambientLightUniform);
 
-    //// "generate" lights
-    //LightManager lightMngr;
-    //for (int i = 0; i < 1; i++)
-    //{
-    //    auto li = std::make_shared<Light>(LightType::spot, glm::ivec2(1600, 900));
-    //    const glm::mat4 rotMat = rotate(glm::mat4(1.0f), glm::radians(i * (360.0f / 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-    //    li->setPosition(rotMat * (glm::vec4(i * 3.0f, i * 3.0f, i * 3.0f, 1.0f) + glm::vec4(5.0f, 5.0f, 5.0f, 0.0f)));
-    //    li->setColor(normalize(glm::vec3((i) % 5, (i + 1) % 5, (i + 2) % 5)));
-    //    if (i % 2)
-    //    {
-    //        li->setColor(glm::normalize(glm::vec3(1.0f) - normalize(glm::vec3((i - 1) % 5, (i) % 5, (i + 1) % 5))));
-    //    }
-    //    li->setSpotCutoff(glm::radians(60.0f));
-    //    li->setSpotDirection(normalize(glm::vec3(0.0f) - glm::vec3(li->getGpuLight().position)));
-    //    li->setSpotExponent(1.0f);
+    // "generate" lights
+    LightManager lightMngr;
 
-    //    lightMngr.addLight(li);
-    //}
-    //lightMngr.uploadLightsToGPU();
+    float cutOff = glm::cos(glm::radians(30.0f));
+    float outerCutOff = glm::cos(glm::radians(35.0f));
+    auto li = std::make_shared<Light>(glm::vec3(1.0f), glm::vec3(5.0f), glm::vec3(-1.0f), 0.05f, 0.002f, 0.0f, cutOff, outerCutOff, 30.0f);
+
+    lightMngr.addLight(li);
+    lightMngr.uploadLightsToGPU();
 
     // set up materials
     std::vector<MaterialInfo> mvec;
@@ -205,11 +193,11 @@ int main()
     smfboSP.use();
 
     // put the sm texture handle into a SSBO
-    //const auto smfboTexHandle = lightMngr.getLights()[0]->getGpuLight().shadowMap;
-    //Buffer smfboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
-    //smfboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{smfboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
-    //smfboTexHandleBuffer.bindBase(7);
-    //bool displayShadowMap = false;
+    const auto smfboTexHandle = lightMngr.getLights()[0]->getGpuLight().shadowMap;
+    Buffer smfboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
+    smfboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{smfboTexHandle}, GL_DYNAMIC_STORAGE_BIT);
+    smfboTexHandleBuffer.bindBase(static_cast<BufferBindings::Binding>(7));
+    bool displayShadowMap = false;
 
     // regular stuff
     Timer timer;
@@ -242,16 +230,16 @@ int main()
             ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("FBO settings");
             ImGui::Checkbox("Render to FBO", &useFBO);
-            //ImGui::Checkbox("Display Shadow Map", &displayShadowMap);
+            ImGui::Checkbox("Display Shadow Map", &displayShadowMap);
             ImGui::Checkbox("Rotate Model", &rotate);
             ImGui::End();
         }
 
-        //lightMngr.showLightGUIs();
+        lightMngr.showLightGUIs();
 
         // shadow mapping pass ///////
         {
-            //lightMngr.renderShadowMaps({bunny, plane});
+            lightMngr.renderShadowMaps({bunny, plane});
         }
         // end shadow mapping pass /////////////
 
@@ -266,6 +254,7 @@ int main()
         camera.update(window);
 
         viewUniform->setContent(camera.getView());
+        camPosUniform->setContent(camera.getPosition());
         sp.use();
 
         // prepare first mesh (bunny)
@@ -293,16 +282,16 @@ int main()
             glEnable(GL_DEPTH_TEST);
         }
 
-        //if (displayShadowMap)
-        //{
-        //    fbo.unbind(); // render to screen now
-        //    glDisable(GL_DEPTH_TEST);
-        //    glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-        //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //    smfboSP.use();
-        //    fboQuad.draw();
-        //    glEnable(GL_DEPTH_TEST);
-        //}
+        if (displayShadowMap)
+        {
+            fbo.unbind(); // render to screen now
+            glDisable(GL_DEPTH_TEST);
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            smfboSP.use();
+            fboQuad.draw();
+            glEnable(GL_DEPTH_TEST);
+        }
 
         timer.stop();
         timer.drawGuiWindow(window);

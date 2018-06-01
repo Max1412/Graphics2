@@ -11,10 +11,10 @@
 #include <algorithm>
 #include <unordered_set>
 
-ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename, int test)
-    : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER),
-    m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER),
-    m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER), m_boundingBoxBuffer(GL_SHADER_STORAGE_BUFFER),
+ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename)
+    : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER),
+    m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER), m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), 
+    m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER), m_boundingBoxBuffer(GL_SHADER_STORAGE_BUFFER),
     m_cullingProgram({ Shader("frustumCulling.comp", GL_COMPUTE_SHADER, BufferBindings::g_definitions) })
 {
 
@@ -273,32 +273,34 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     m_multiDrawVao.connectIndexBuffer(m_multiDrawIndexBuffer);
 }
 
-// OLD CONSTRUCTOR FOR COMPATABILITY
-ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename)
-    : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER), m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER)
-    , m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER), m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER), m_boundingBoxBuffer(GL_SHADER_STORAGE_BUFFER),
-    m_cullingProgram({})
+std::vector<std::shared_ptr<Mesh>> ModelImporter::loadAllMeshesFromFile(const std::experimental::filesystem::path& filename)
 {
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();
-    m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices);
+    
+    Assimp::Importer importer;
+    std::vector<std::shared_ptr<Mesh>> meshes;
 
-    if (!m_scene || m_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
+    const aiScene * scene = importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices);
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
     {
-        const std::string err = m_importer.GetErrorString();
+        const std::string err = importer.GetErrorString();
         throw std::runtime_error("Assimp import failed: " + err);
     }
     std::cout << "Model succesfully loaded from " << filename.string() << std::endl;
 
-    if (m_scene->HasMeshes())
+    if (scene->HasMeshes())
     {
-        const auto numMeshes = m_scene->mNumMeshes;
-        m_meshes.reserve(numMeshes);
+        const auto numMeshes = scene->mNumMeshes;
+        meshes.reserve(numMeshes);
         for (unsigned i = 0; i < numMeshes; i++)
         {
-            m_meshes.emplace_back(std::make_shared<Mesh>(m_scene->mMeshes[i]));
+            meshes.emplace_back(std::make_shared<Mesh>(scene->mMeshes[i]));
         }
     }
+
+    return meshes;
 }
 
 void ModelImporter::registerUniforms(ShaderProgram& sp) const

@@ -68,8 +68,7 @@ int main()
     Shader fs("pbr3.frag", GL_FRAGMENT_SHADER);
     ShaderProgram sp(vs, fs);
 
-    ModelImporter mi("sphere.obj");
-    auto meshes = mi.getMeshes();
+    auto meshes = ModelImporter::loadAllMeshesFromFile("sphere.obj");
     auto sphere = meshes.at(0);
 
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / static_cast<float>(height), 0.1f, 1000.0f);

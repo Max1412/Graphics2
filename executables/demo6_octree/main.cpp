@@ -38,7 +38,7 @@ int main()
     // print OpenGL info
     util::printOpenGLInfo();
 
-    util::enableDebugCallback();
+    //util::enableDebugCallback();
 
     // set up imgui
     ImGui::CreateContext();
@@ -49,9 +49,8 @@ int main()
 
     glViewportIndexedf(0, 0.f, 0.f, static_cast<float>(width), static_cast<float>(height));
 
-    ModelImporter mi("bunny.obj");
-    auto meshes = mi.getMeshes();
-    auto bunny = meshes.at(0);
+    auto meshes = ModelImporter::loadAllMeshesFromFile("bunny.obj");
+    const auto bunny = meshes.at(0);
     std::vector<std::shared_ptr<Mesh>> scene;
     scene.push_back(bunny);
 

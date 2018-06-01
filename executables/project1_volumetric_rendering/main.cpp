@@ -131,7 +131,7 @@ int main()
     modelSp.addUniform(u_voxelGridTex);
     modelSp.addUniform(u_screenRes);
 
-	ModelImporter modelLoader("sponza/sponza.obj", 1);
+	ModelImporter modelLoader("sponza/sponza.obj");
 	modelLoader.registerUniforms(modelSp);
 
 	// lights (parameters intended for sponza)
