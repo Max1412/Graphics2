@@ -317,7 +317,7 @@ int main()
 
             }
             if (tab) ImGui::Separator();
-            //timer.drawGuiContent(window);
+            timer.drawGuiContent(window);
             ImGui::End();
             ImGui::Render();
             ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
