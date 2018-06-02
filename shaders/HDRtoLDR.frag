@@ -8,10 +8,7 @@ out vec4 fragColor;
 uniform float exposure;
 uniform float gamma;
 
-layout(binding = 4, std430) buffer textureBuffer
-{
-    sampler2D inputTexture;
-};
+layout(bindless_sampler) uniform sampler2D inputTexture;
 
 float A = 0.15;
 float B = 0.50;

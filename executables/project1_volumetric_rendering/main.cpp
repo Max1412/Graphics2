@@ -71,24 +71,38 @@ int main()
     ImGui_ImplGlfwGL3_Init(window, true);
 
     // F B O : H D R -> L D R
-    std::vector<Texture> hdrTex(1); 
-    hdrTex.at(0).initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    std::vector<Texture> hdrTex(1);
+    hdrTex[0].initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
     FrameBuffer hdrFBO(hdrTex);
 
     Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
     Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER);
     ShaderProgram fboHDRtoLDRSP(fboVS, fboHDRtoLDRFS);
     float exposure = 0.1f, gamma = 2.2f;
-    auto u_exposure = std::make_shared<Uniform<float>>("exposure", 0.3f);
-    auto u_gamma = std::make_shared<Uniform<float>>("gamma", 2.2f);
+    auto u_exposure = std::make_shared<Uniform<float>>("exposure", exposure);
+    auto u_gamma = std::make_shared<Uniform<float>>("gamma", gamma);
+    auto u_hdrTexHandle = std::make_shared<Uniform<GLuint64>>("inputTexture", hdrTex[0].generateHandle());
     fboHDRtoLDRSP.addUniform(u_exposure);
     fboHDRtoLDRSP.addUniform(u_gamma);
+    fboHDRtoLDRSP.addUniform(u_hdrTexHandle);
 
+    // F B O : F X A A
+    std::vector<Texture> fxaaTex(1);
+    fxaaTex[0].setMinMagFilter(GL_LINEAR, GL_LINEAR);
+    fxaaTex[0].setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    fxaaTex[0].initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    FrameBuffer fxaaFBO(fxaaTex);
+
+    Shader fxaaShader("fxaa.frag", GL_FRAGMENT_SHADER);
+    ShaderProgram fxaaSP(fboVS, fxaaShader);
+    int fxaaIterations = 2;
+    auto u_fxaaIterations = std::make_shared<Uniform<int>>("iterations", fxaaIterations);
+    auto u_fxaaTexHandle = std::make_shared<Uniform<GLuint64>>("screenTexture", fxaaTex[0].generateHandle());
+    fxaaSP.addUniform(u_fxaaIterations);
+    fxaaSP.addUniform(u_fxaaTexHandle);
+
+    // S F Q
     Quad fboQuad;
-
-    Buffer fboTexHandleBuffer(GL_SHADER_STORAGE_BUFFER);
-    fboTexHandleBuffer.setStorage(std::array<GLuint64, 1>{hdrTex.at(0).generateHandle()}, GL_DYNAMIC_STORAGE_BIT);
-    fboTexHandleBuffer.bindBase(static_cast<BufferBindings::Binding>(4));
 
 	// V O L U M E T R I C
 
@@ -232,13 +246,22 @@ int main()
         if (!dbgrndr)
             modelLoader.multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
-        // render to screen now
-        hdrFBO.unbind(); 
+        // render to fxaa fbo now
+        hdrFBO.unbind();
+        fxaaFBO.bind();
         glDisable(GL_DEPTH_TEST);
         glClearColor(0.4f, 0.1f, 0.1f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         fboHDRtoLDRSP.use();
-        fboHDRtoLDRSP.updateUniforms();
+        fboQuad.draw();
+        glEnable(GL_DEPTH_TEST);
+
+        // render to screen now
+        fxaaFBO.unbind();
+        glDisable(GL_DEPTH_TEST);
+        glClearColor(0.4f, 0.1f, 0.1f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        fxaaSP.use();
         fboQuad.draw();
         glEnable(GL_DEPTH_TEST);
         
@@ -352,8 +375,10 @@ int main()
                 fboHDRtoLDRSP.showReloadShaderGUIContent({fboVS, fboHDRtoLDRFS});
                 if (ImGui::SliderFloat("Gamma", &gamma, 0.0f, 5.0f))
                     u_gamma->setContent(gamma);
-                if (ImGui::SliderFloat("Exposure", &exposure, 0.0f, 10.0f))
+                if (ImGui::SliderFloat("Exposure", &exposure, 0.0f, 1.0f))
                     u_exposure->setContent(exposure);
+                if (ImGui::SliderInt("FXAA iterations", &fxaaIterations, 0, 8))
+                    u_fxaaIterations->setContent(fxaaIterations);
                 break;
             }
             default:
