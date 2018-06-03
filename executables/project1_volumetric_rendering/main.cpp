@@ -21,6 +21,7 @@ using namespace gl;
 #include "Rendering/VoxelDebugRenderer.h"
 #include "Rendering/Pilotview.h"
 #include "Rendering/LightManager.h"
+#include "Rendering/Parameters.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
@@ -128,7 +129,7 @@ int main()
     auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 0);
     sp.addUniform(u_debugMode);
 
-    auto u_maxRange = std::make_shared<Uniform<float>>("maxRange", 3000.0f);
+    auto u_maxRange = std::make_shared<Uniform<float>>("maxRange", sponza.maxRange);
     sp.addUniform(u_maxRange);
 
     Pilotview playerCamera(screenWidth, screenHeight);
@@ -138,12 +139,12 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
-    FogInfo fog = { glm::vec3(1.0f), 0.2f, 0.6f, 0.25f, 0.125f };
+	FogInfo fog = { sponza.fog.albedo, sponza.fog.anisotropy, sponza.fog.scattering, sponza.fog.absorption, sponza.fog.density };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
 
-    SimplexNoise noise;
+    SimplexNoise noise(sponza.noise.scale, sponza.noise.speed, sponza.noise.densityFactor, sponza.noise.densityHeight);
     noise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
@@ -172,19 +173,17 @@ int main()
 	// lights (parameters intended for sponza)
 	LightManager lightMngr;
 
-    // directional light
-	auto directional = std::make_shared<Light>(glm::vec3(100.f), glm::vec3(0.0f, -1.0f, -0.2f));
-	directional->setPosition({ 0.0f, 2000.0f, 0.0f }); // position for shadow map only
+	// directional light
+	auto directional = std::make_shared<Light>(sponza.lights[0].color, sponza.lights[0].direction);
+	directional->setPosition(sponza.lights[0].position); // position for shadow map only
 	directional->recalculateLightSpaceMatrix();
 	lightMngr.addLight(directional);
 
-    // spot light
-    glm::vec3 pos = glm::vec3(80.0f, 300.0f, 100.0f);
-    glm::vec3 dir = glm::normalize(glm::vec3(0.0f) - glm::vec3(pos));
-    float cutOff = glm::cos(glm::radians(30.0f));
-    float outerCutOff = glm::cos(glm::radians(35.0f));
-    auto spot = std::make_shared<Light>(glm::vec3(0.0f, 100.0f, 100.0f), pos, dir, 0.05f, 0.002f, 0.0f, cutOff, outerCutOff);
-    lightMngr.addLight(spot);
+	// spot light
+	auto spot = std::make_shared<Light>(sponza.lights[1].color, sponza.lights[1].position, sponza.lights[1].direction, 
+		sponza.lights[1].constant, sponza.lights[1].linear, sponza.lights[1].quadratic, sponza.lights[1].cutOff, sponza.lights[1].outerCutOff);
+	spot->setPCFKernelSize(sponza.lights[1].pcfKernelSize);
+	lightMngr.addLight(spot);
 
 	lightMngr.uploadLightsToGPU();
 
@@ -308,6 +307,7 @@ int main()
             {
                 ImGui::Text("Camera Settings");
                 ImGui::Separator();
+				ImGui::Text("Camera Position: (%.1f,%.1f,%.1f)", playerCamera.getPosition().x, playerCamera.getPosition().y, playerCamera.getPosition().z);
                 ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
                 ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
                 ImGui::SliderFloat("Camera max voxel range", &u_maxRange->getContentRef(), 10.0f, screenFar);

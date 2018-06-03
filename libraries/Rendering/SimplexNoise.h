@@ -20,13 +20,13 @@ struct GpuNoiseInfo
 class SimplexNoise
 {
 public:
-    SimplexNoise();
+	SimplexNoise(float scale = 0.003f, float speed = 0.15f, float densityFactor = 0.015f, float densityHeight = 0.85f);
 
     float m_time = 0.0f;
-    float m_densityFactor = 0.015f;
-	float m_densityHeight = 0.85f;
-    float m_noiseScale = 0.003f;
-    float m_noiseSpeed = 0.15f;
+    float m_densityFactor;
+	float m_densityHeight;
+    float m_noiseScale;
+    float m_noiseSpeed;
 
     void bindNoiseBuffer(BufferBindings::Binding binding) const;
     Buffer& getNoiseBuffer();

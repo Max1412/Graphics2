@@ -1,7 +1,8 @@
 #include "SimplexNoise.h"
 #include "imgui/imgui.h"
 
-SimplexNoise::SimplexNoise()
+SimplexNoise::SimplexNoise(float scale, float speed, float densityFactor, float densityHeight) :
+	m_noiseScale(scale), m_noiseSpeed(speed), m_densityFactor(densityFactor), m_densityHeight(densityHeight)
 {
     m_time = static_cast<float>(glfwGetTime());
 
