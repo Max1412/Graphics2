@@ -173,17 +173,32 @@ int main()
 	// lights (parameters intended for sponza)
 	LightManager lightMngr;
 
-	// directional light
-	auto directional = std::make_shared<Light>(sponza.lights[0].color, sponza.lights[0].direction);
-	directional->setPosition(sponza.lights[0].position); // position for shadow map only
-	directional->recalculateLightSpaceMatrix();
-	lightMngr.addLight(directional);
-
-	// spot light
-	auto spot = std::make_shared<Light>(sponza.lights[1].color, sponza.lights[1].position, sponza.lights[1].direction, 
-		sponza.lights[1].constant, sponza.lights[1].linear, sponza.lights[1].quadratic, sponza.lights[1].cutOff, sponza.lights[1].outerCutOff);
-	spot->setPCFKernelSize(sponza.lights[1].pcfKernelSize);
-	lightMngr.addLight(spot);
+	// add all lights from paramters
+	for (unsigned int i = 0; i < sponza.lights.size(); i++)
+	{
+		// spot light
+		if (sponza.lights[i].constant && sponza.lights[i].cutOff)
+		{
+			auto spot = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].position, sponza.lights[i].direction, sponza.lights[i].constant, sponza.lights[i].linear, sponza.lights[i].quadratic, sponza.lights[i].cutOff, sponza.lights[i].outerCutOff);
+			spot->setPCFKernelSize(sponza.lights[i].pcfKernelSize);
+			lightMngr.addLight(spot);
+		}
+		// point light
+		else if (sponza.lights[i].constant)
+		{
+			auto point = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].position, sponza.lights[i].constant, sponza.lights[i].linear, sponza.lights[i].quadratic);
+			point->setPCFKernelSize(sponza.lights[i].pcfKernelSize);
+			lightMngr.addLight(point);
+		}
+		// directional light
+		else
+		{
+			auto directional = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].direction);
+			directional->setPosition(sponza.lights[i].position); // position for shadow map only
+			directional->recalculateLightSpaceMatrix();
+			lightMngr.addLight(directional);
+		}
+	}
 
 	lightMngr.uploadLightsToGPU();
 
