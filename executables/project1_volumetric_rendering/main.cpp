@@ -2,6 +2,8 @@
 #include "Rendering/Light.h"
 #include "Rendering/SimplexNoise.h"
 #include "Rendering/Quad.h"
+#include "Rendering/Cubemap.h"
+#include "Rendering/SkyBoxCube.h"
 using namespace gl;
 
 #include <GLFW/glfw3.h>
@@ -150,6 +152,20 @@ int main()
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
     glBindImageTexture(0, voxelGrid.getName(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
 
+    // skybox stuff
+    const Shader skyboxVS("cubemap2.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
+    const Shader skyboxFS("cubemap2.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+    ShaderProgram skyboxSP(skyboxVS, skyboxFS);
+
+    SkyBoxCube cube;
+
+    Cubemap cubemapSkybox;
+    cubemapSkybox.loadFromFile(util::gs_resourcesPath / "/skybox/skybox.jpg");
+    cubemapSkybox.generateHandle();
+
+    auto u_skyboxTexHandle = std::make_shared<Uniform<GLuint64>>("skybox", cubemapSkybox.getHandle());
+    skyboxSP.addUniform(u_skyboxTexHandle);
+
     Timer timer;
     int dbgcActive = 0;
 	bool dbgrndr = false;
@@ -166,6 +182,9 @@ int main()
 	modelSp.addUniform(u_maxRange);
     modelSp.addUniform(u_voxelGridTex);
     modelSp.addUniform(u_screenRes);
+    skyboxSP.addUniform(u_maxRange);
+    skyboxSP.addUniform(u_voxelGridTex);
+    skyboxSP.addUniform(u_screenRes);
 
 	ModelImporter modelLoader("sponza/sponza.obj");
 	modelLoader.registerUniforms(modelSp);
@@ -258,7 +277,17 @@ int main()
         //vdbgr.draw();
 
         if (!dbgrndr)
+        {
             modelLoader.multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
+
+            // render skybox last
+            glDepthFunc(GL_LEQUAL);
+            glDisable(GL_CULL_FACE);
+            skyboxSP.use();
+            cube.draw();
+            glEnable(GL_CULL_FACE);
+            glDepthFunc(GL_LEQUAL);
+        }
 
         // render to fxaa fbo now
         hdrFBO.unbind();

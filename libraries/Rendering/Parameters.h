@@ -62,17 +62,17 @@ Parameters Scene{
 Parameters sponza{
 	{
 		//global directional light
-		{glm::vec3(100.0f), glm::vec3(0.0f, 2000.0f, 0.0f), glm::vec3(0.0f, -1.0f, -0.2f)},
+		{glm::vec3(10.0f), glm::vec3(0.0f, 2000.0f, 0.0f), glm::vec3(0.0f, -1.0f, -0.2f)},
 		//spotlight 1
-		{glm::vec3(0.0f, 100.0f, 100.0f), glm::vec3(80.0f, 300.0f, 100.0f), glm::normalize(glm::vec3(0.0f) - glm::vec3(80.0f, 300.0f, 100.0f)), 1,
+		{glm::vec3(0.0f, 10.0f, 10.0f), glm::vec3(80.0f, 300.0f, 100.0f), glm::normalize(glm::vec3(0.0f) - glm::vec3(80.0f, 300.0f, 100.0f)), 1,
 			0.05f, 0.002f, 0.0f, glm::cos(glm::radians(30.0f)), glm::cos(glm::radians(35.0f))}
 	},
 	//noise
-	{0.015f, 0.85f, 0.003f, 0.15f},
+	{0.015f, 1.03f, 0.003f, 0.15f},
 	//fog
 	{glm::vec3(1.0f), 0.2f, 0.6f, 0.25f, 0.125f },
 	//hdr
-	2.2f, 0.1f,
+	2.2f, 0.25f,
 	3000.0f
 };
 

@@ -215,29 +215,23 @@ void Light::renderShadowMapCulled(const ModelImporter& mi)
 
 void Light::recalculateLightSpaceMatrix()
 {
+    glm::vec3 up(0.0f, 1.0f, 0.0f);
+    if (glm::length(glm::cross(m_gpuLight.direction, up)) < 0.01f)
+    {
+        up = glm::vec3(1.0f, 0.0f, 0.0f);
+    }
+    m_lightView = glm::lookAt(m_gpuLight.position,
+        m_gpuLight.position + m_gpuLight.direction, // aimed at the center
+        up);
+
     if (m_type == LightType::directional)
     {
         m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
-
-        glm::vec3 up(0.0f, 1.0f, 0.0f);
-
-        if (glm::length(glm::cross(m_gpuLight.position + m_gpuLight.direction, up)) < 0.01f)
-        {
-            up = glm::vec3(1.0f, 0.0f, 0.0f);
-        }
-
-        m_lightView = glm::lookAt(m_gpuLight.position,
-            m_gpuLight.position + m_gpuLight.direction,
-            up);
     }
     else if (m_type == LightType::spot) 
     {
         // NOTE: ACOS BECAUSE CUTOFF HAS COS BAKED IN
         m_lightProjection = glm::perspective(2.0f*glm::acos(m_gpuLight.outerCutOff), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 0.1f, m_smFar);
-
-        m_lightView = glm::lookAt(m_gpuLight.position,
-            m_gpuLight.position + m_gpuLight.direction, // aimed at the center
-            glm::vec3(0.0f, 1.0f, 0.0f));
     }
     else if (m_type == LightType::point)
     {

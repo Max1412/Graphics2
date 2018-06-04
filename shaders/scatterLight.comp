@@ -217,7 +217,7 @@ float getNoise(vec3 worldPos)
     //calculate density
 	float outNoise = 0.5 + 0.5f * snoise;
 	float density = clamp(exp(-worldPos.y * heightDensityFactor) - (1 - heightDensityStart), 0.0f, 1.0f);
-    return clamp((outNoise + density), 0.0f, 1.0f);
+    return clamp((outNoise * density), 0.0f, 1.0f);
 }
 
 float getPhaseFunction(float g, vec3 lightVec, vec3 viewVec) // vectors must be normalized!

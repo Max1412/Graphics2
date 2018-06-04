@@ -1,5 +1,6 @@
 #include "SimplexNoise.h"
 #include "imgui/imgui.h"
+#include <glm/detail/func_exponential.inl>
 
 SimplexNoise::SimplexNoise(float scale, float speed, float densityFactor, float densityHeight) :
 	m_noiseScale(scale), m_noiseSpeed(speed), m_densityFactor(densityFactor), m_densityHeight(densityHeight)
@@ -82,9 +83,9 @@ bool SimplexNoise::showNoiseGUIContent()
         getNoiseBuffer().setContentSubData(m_densityFactor, offsetof(GpuNoiseInfo, heightDensityFactor)); 
         res = true;
 	}
-	if (ImGui::SliderFloat("Density Height", &m_densityHeight, 0.0f, 1.0f))
+	if (ImGui::SliderFloat("Density Height", &m_densityHeight, 0.0f, 4.0f))
 	{
-		getNoiseBuffer().setContentSubData(m_densityHeight, offsetof(GpuNoiseInfo, heightDensityStart));
+		getNoiseBuffer().setContentSubData(glm::log(m_densityHeight), offsetof(GpuNoiseInfo, heightDensityStart));
 		res = true;
 	}
     return res;
