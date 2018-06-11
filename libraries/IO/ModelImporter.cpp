@@ -273,6 +273,15 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     m_multiDrawVao.connectIndexBuffer(m_multiDrawIndexBuffer);
 }
 
+void ModelImporter::bindGPUbuffers() const
+{
+    m_gpuMaterialBuffer.bindBase(BufferBindings::Binding::materials);
+    m_gpuMaterialIndicesBuffer.bindBase(BufferBindings::Binding::materialIndices);
+    m_boundingBoxBuffer.bindBase(static_cast<BufferBindings::Binding>(6));
+    m_modelMatrixBuffer.bindBase(BufferBindings::Binding::modelMatrices);
+
+}
+
 std::vector<std::shared_ptr<Mesh>> ModelImporter::loadAllMeshesFromFile(const std::experimental::filesystem::path& filename)
 {
     const auto path = util::gs_resourcesPath / filename;

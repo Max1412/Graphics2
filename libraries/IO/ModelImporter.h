@@ -46,6 +46,8 @@ public:
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 
+    void bindGPUbuffers() const;
+
     void draw(const ShaderProgram& sp) const;
     void drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const;
 

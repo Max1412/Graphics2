@@ -24,6 +24,11 @@ void LightManager::uploadLightsToGPU()
     m_lightsBuffer.bindBase(BufferBindings::Binding::lights);
 }
 
+void LightManager::bindLightBuffer() const
+{
+    m_lightsBuffer.bindBase(BufferBindings::Binding::lights);
+}
+
 bool LightManager::showLightGUIs()
 {
     bool changed = false;

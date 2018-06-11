@@ -16,6 +16,7 @@ public:
     explicit LightManager(std::vector<std::shared_ptr<Light>> lights);
 
     void uploadLightsToGPU();
+    void bindLightBuffer() const;
 
     bool showLightGUIs();
 

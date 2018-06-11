@@ -32,9 +32,9 @@ constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
 constexpr float screenNear = 0.1f;
 constexpr float screenFar = 10000.f;
-constexpr int gridWidth = 320;
-constexpr int gridHeight = 180;
-constexpr int gridDepth = 256;
+constexpr int gridWidth = 190;
+constexpr int gridHeight = 90;
+constexpr int gridDepth = 64;
 constexpr int groupSize = 4;
 
 constexpr bool renderimgui = true;
@@ -186,13 +186,20 @@ int main()
     skyboxSP.addUniform(u_voxelGridTex);
     skyboxSP.addUniform(u_screenRes);
 
-	ModelImporter modelLoader("sponza/sponza.obj");
-	modelLoader.registerUniforms(modelSp);
+    int activeScene = 0;
+    std::array<const char*, 2> scenes = { "Sponza", "Breakfast Room" };
+
+    std::vector<ModelImporter> sceneVec;
+    sceneVec.emplace_back("sponza/sponza.obj");
+    sceneVec.emplace_back("breakfast_room/breakfast_room.obj");
+	//ModelImporter modelLoader("sponza/sponza.obj");
+	sceneVec.at(0).registerUniforms(modelSp);
+    sceneVec.at(1).registerUniforms(modelSp);
 
 	// lights (parameters intended for sponza)
-	LightManager lightMngr;
+	std::vector<LightManager> lightMngrVec(2);
 
-	// add all lights from paramters
+	// SPONZA LIGHTS
 	for (unsigned int i = 0; i < sponza.lights.size(); i++)
 	{
 		// spot light
@@ -200,14 +207,14 @@ int main()
 		{
 			auto spot = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].position, sponza.lights[i].direction, sponza.lights[i].constant, sponza.lights[i].linear, sponza.lights[i].quadratic, sponza.lights[i].cutOff, sponza.lights[i].outerCutOff);
 			spot->setPCFKernelSize(sponza.lights[i].pcfKernelSize);
-			lightMngr.addLight(spot);
+            lightMngrVec.at(0).addLight(spot);
 		}
 		// point light
 		else if (sponza.lights[i].constant)
 		{
 			auto point = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].position, sponza.lights[i].constant, sponza.lights[i].linear, sponza.lights[i].quadratic);
 			point->setPCFKernelSize(sponza.lights[i].pcfKernelSize);
-			lightMngr.addLight(point);
+            lightMngrVec.at(0).addLight(point);
 		}
 		// directional light
 		else
@@ -215,11 +222,41 @@ int main()
 			auto directional = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].direction);
 			directional->setPosition(sponza.lights[i].position); // position for shadow map only
 			directional->recalculateLightSpaceMatrix();
-			lightMngr.addLight(directional);
+            lightMngrVec.at(0).addLight(directional);
 		}
 	}
 
-	lightMngr.uploadLightsToGPU();
+    lightMngrVec.at(0).uploadLightsToGPU();
+
+    // BREAKFAST ROOM LIGHTS
+    for (unsigned int i = 0; i < breakfast.lights.size(); i++)
+    {
+        // spot light
+        if (breakfast.lights[i].constant && breakfast.lights[i].cutOff)
+        {
+            auto spot = std::make_shared<Light>(breakfast.lights[i].color, breakfast.lights[i].position, breakfast.lights[i].direction, breakfast.lights[i].constant, breakfast.lights[i].linear, breakfast.lights[i].quadratic, breakfast.lights[i].cutOff, breakfast.lights[i].outerCutOff);
+            spot->setPCFKernelSize(breakfast.lights[i].pcfKernelSize);
+            lightMngrVec.at(1).addLight(spot);
+        }
+        // point light
+        else if (breakfast.lights[i].constant)
+        {
+            auto point = std::make_shared<Light>(breakfast.lights[i].color, breakfast.lights[i].position, breakfast.lights[i].constant, breakfast.lights[i].linear, breakfast.lights[i].quadratic);
+            point->setPCFKernelSize(breakfast.lights[i].pcfKernelSize);
+            lightMngrVec.at(1).addLight(point);
+        }
+        // directional light
+        else
+        {
+            auto directional = std::make_shared<Light>(breakfast.lights[i].color, breakfast.lights[i].direction);
+            directional->setPosition(breakfast.lights[i].position); // position for shadow map only
+            directional->recalculateLightSpaceMatrix();
+            lightMngrVec.at(1).addLight(directional);
+        }
+    }
+    
+    lightMngrVec.at(1).uploadLightsToGPU();
+    lightMngrVec.at(activeScene).bindLightBuffer();
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 
@@ -249,7 +286,7 @@ int main()
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
 		}
-		lightMngr.renderShadowMapsCulled(modelLoader);
+        lightMngrVec.at(activeScene).renderShadowMapsCulled(sceneVec.at(activeScene));
 
         // render to fbo
         hdrFBO.bind();
@@ -278,7 +315,7 @@ int main()
 
         if (!dbgrndr)
         {
-            modelLoader.multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
+            sceneVec.at(activeScene).multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
             // render skybox last
             glDepthFunc(GL_LEQUAL);
@@ -332,6 +369,8 @@ int main()
                     tab = 6;
                 if (ImGui::MenuItem("FBO"))
                     tab = 7;
+                if (ImGui::MenuItem("Scene"))
+                    tab = 8;
                 ImGui::MenuItem("     ");
                 //ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20);
                 if (ImGui::MenuItem("x"))
@@ -383,7 +422,7 @@ int main()
             case 4:
             {
                 ImGui::Text("Light Settings");
-				lightMngr.showLightGUIsContent();
+				lightMngrVec.at(activeScene).showLightGUIsContent();
                 break;
             }
             //Fog
@@ -423,6 +462,23 @@ int main()
                     u_exposure->setContent(exposure);
                 if (ImGui::SliderInt("FXAA iterations", &fxaaIterations, 0, 8))
                     u_fxaaIterations->setContent(fxaaIterations);
+                break;
+            }
+
+            case 8:
+            {
+                ImGui::Text("Scene selection");
+                if(ImGui::Combo("Scenes", &activeScene, scenes.data(), scenes.size()))
+                {
+                    // bind active GPU light buffer
+                    lightMngrVec.at(activeScene).bindLightBuffer();
+
+                    // bind active buffers from the scene
+                    sceneVec.at(activeScene).bindGPUbuffers();
+
+                    // TODO reset camera and upload it to gpu
+
+                }
                 break;
             }
             default:
