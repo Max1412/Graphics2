@@ -189,12 +189,10 @@ int main()
     int activeScene = 0;
     std::array<const char*, 2> scenes = { "Sponza", "Breakfast Room" };
 
-    std::vector<ModelImporter> sceneVec;
-    sceneVec.emplace_back("sponza/sponza.obj");
-    sceneVec.emplace_back("breakfast_room/breakfast_room.obj");
+	std::vector<std::shared_ptr<ModelImporter>> sceneVec = { std::make_shared<ModelImporter>("sponza/sponza.obj"), std::make_shared<ModelImporter>("breakfast_room/breakfast_room.obj") };
 	//ModelImporter modelLoader("sponza/sponza.obj");
-	sceneVec.at(0).registerUniforms(modelSp);
-    sceneVec.at(1).registerUniforms(modelSp);
+	sceneVec.at(0)->registerUniforms(modelSp);
+    sceneVec.at(1)->registerUniforms(modelSp);
 
 	// lights (parameters intended for sponza)
 	std::vector<LightManager> lightMngrVec(2);
@@ -256,7 +254,10 @@ int main()
     }
     
     lightMngrVec.at(1).uploadLightsToGPU();
+
+	// set the active scene
     lightMngrVec.at(activeScene).bindLightBuffer();
+	sceneVec.at(activeScene)->bindGPUbuffers();
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 
@@ -286,7 +287,7 @@ int main()
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
 		}
-        lightMngrVec.at(activeScene).renderShadowMapsCulled(sceneVec.at(activeScene));
+        lightMngrVec.at(activeScene).renderShadowMapsCulled(*sceneVec.at(activeScene));
 
         // render to fbo
         hdrFBO.bind();
@@ -315,7 +316,7 @@ int main()
 
         if (!dbgrndr)
         {
-            sceneVec.at(activeScene).multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
+            sceneVec.at(activeScene)->multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
             // render skybox last
             glDepthFunc(GL_LEQUAL);
@@ -474,10 +475,12 @@ int main()
                     lightMngrVec.at(activeScene).bindLightBuffer();
 
                     // bind active buffers from the scene
-                    sceneVec.at(activeScene).bindGPUbuffers();
+                    sceneVec.at(activeScene)->bindGPUbuffers();
 
-                    // TODO reset camera and upload it to gpu
-
+                    // reset camera and upload it to gpu
+					playerCamera.reset();
+					matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
+					matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
                 }
                 break;
             }
