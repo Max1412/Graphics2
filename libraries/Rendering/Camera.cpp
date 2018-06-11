@@ -90,3 +90,13 @@ void Camera::setPosition(glm::vec3 pos)
 {
     m_pos = pos;
 }
+
+void Camera::setTheta(float theta)
+{
+	m_theta = theta;
+}
+
+void Camera::setPhi(float phi)
+{
+	m_phi = phi;
+}

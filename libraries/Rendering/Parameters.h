@@ -41,6 +41,8 @@ struct Parameters
 	float gamma;
 	float exposure;
 	float maxRange; //range of voxel grid
+	glm::vec3 cameraPos;
+	float phi, theta; //for camera direction
 
 };
 
@@ -56,7 +58,9 @@ Parameters Scene{
   FOG
 	{albedo, anisotropy, scattering, absorption, density},
   HDR AND VOXEL SETTINGS
-	gamma, exposure, maxRange
+	gamma, exposure, maxRange,
+  CAMERA PARAMETERS
+    cameraPos, phi, theta
 }*/
 
 Parameters sponza{
@@ -73,7 +77,9 @@ Parameters sponza{
 	{glm::vec3(1.0f), 0.2f, 0.6f, 0.25f, 0.125f },
 	//hdr
 	2.2f, 0.25f,
-	3000.0f
+	3000.0f,
+	//camera
+	glm::vec3(-1000.0f, 222.2f, 0.0f), 1.7f, 1.7f
 };
 
 Parameters breakfast{
@@ -96,5 +102,7 @@ Parameters breakfast{
 	{ glm::vec3(1.0f), 0.35f, 0.1f, 0.1f, 0.15f },
 	//hdr
 	2.2f, 0.15f,
-	30.0f
+	30.0f,
+	//camera
+	glm::vec3(2.6f, 4.8f, 7.0f), 3.8f, 1.25f
 };

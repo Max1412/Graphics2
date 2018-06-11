@@ -60,6 +60,8 @@ public:
     glm::vec3 getDirection();
 
     void setPosition(glm::vec3 pos);
+	void setTheta(float theta);
+	void setPhi(float phi);
 
     virtual ~Camera() = default;
 

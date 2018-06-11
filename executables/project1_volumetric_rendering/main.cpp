@@ -259,6 +259,11 @@ int main()
     lightMngrVec.at(activeScene).bindLightBuffer();
 	sceneVec.at(activeScene)->bindGPUbuffers();
 
+	// set camera to starting pos and dir
+	playerCamera.setPosition(sponza.cameraPos);
+	playerCamera.setTheta(sponza.theta);
+	playerCamera.setPhi(sponza.phi);
+
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 
 	glEnable(GL_CULL_FACE);
@@ -478,7 +483,19 @@ int main()
                     sceneVec.at(activeScene)->bindGPUbuffers();
 
                     // reset camera and upload it to gpu
-					playerCamera.reset();
+					if (activeScene)
+					{
+						playerCamera.setPosition(breakfast.cameraPos);
+						playerCamera.setTheta(breakfast.theta);
+						playerCamera.setPhi(breakfast.phi);
+					}
+					else
+					{
+						playerCamera.setPosition(sponza.cameraPos);
+						playerCamera.setTheta(sponza.theta);
+						playerCamera.setPhi(sponza.phi);
+					}
+
 					matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
 					matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
                 }
