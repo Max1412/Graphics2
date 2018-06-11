@@ -44,38 +44,9 @@ layout(binding = 3, std430) buffer noiseBuffer
 	float noiseSpeed;
 };
 
-vec3 getWorldPos_old(ivec3 voxelPos) //seems to produce wrong coordinates
-{
-    vec3 centerOffset = 0.5f / gridDim; // for translation into center of voxel
-
-    float m22 = playerProjMatrix[2][2];
-    float m32 = playerProjMatrix[3][2];
-    float n = m32 / (m22 - 1.0f); // playerCameraNear
-    float f = n * (m22 - 1.0f) / (m22 + 1.0); // playerCameraFar
-
-    f = 1000;
-    n = 0.1;
-
-    vec3 uvPos = vec3(voxelPos) / gridDim + centerOffset;
-    //uvPos.z = (f + n - 2.0f * n * f / uvPos.z) / (f - n); // de-linearize depth
-
-    uvPos *= 2.0f;
-    uvPos -= vec3(1.0f);
-
-    vec4 viewSpacePos = inverse(playerProjMatrix) * vec4(uvPos, 1.0f);
-
-    //viewSpacePos.z *= exp(maxRange * viewSpacePos.z); //use exponential depth
-
-    vec4 worldSpacePos = inverse(playerViewMatrix) * viewSpacePos;
-    worldSpacePos.xyzw /= worldSpacePos.w; // perspective division
-
-
-    return worldSpacePos.xyz;
-}
-
 vec3 getWorldPos(ivec3 voxelPos)
 {
-    vec3 camView = transpose(playerViewMatrix)[2].xyz;
+    vec3 camView = normalize(transpose(playerViewMatrix)[2].xyz); //inverse better?
 
     //float m22 = playerProjMatrix[2][2];
     //float m32 = playerProjMatrix[3][2];
@@ -246,7 +217,7 @@ void main()
 
     for (int i = 0; i < lights.length(); ++i)
     {
-        LightResult lRes = getLight(i, worldPos, viewDir, vec3(1.0f), 0.0f);
+        LightResult lRes = getLight(i, worldPos, viewDir, vec3(0.0f), 0.0f);
 		if(length(lRes.diffuse) >= 0.001f)
 		{
 			float shadowFactor = calculateShadow(i, worldPos);

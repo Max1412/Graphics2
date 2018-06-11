@@ -38,6 +38,7 @@ LightResult getLight(int lightIndex, vec3 worldPos, vec3 viewDir, vec3 normal, f
     if (currentLight.type == 0) // D I R E C T I O N A L
     {
         vec3 lightDir = normalize(-currentLight.direction);
+        normal = normal == vec3(0.0f) ? lightDir : normal;
 
         // diffuse shading
         float diff = max(dot(normal, lightDir), 0.0);
@@ -50,14 +51,11 @@ LightResult getLight(int lightIndex, vec3 worldPos, vec3 viewDir, vec3 normal, f
         result.diffuse = currentLight.color * diff;
         result.specular = currentLight.color * spec;
         result.direction = lightDir;
-
-        //float shadowFactor = calculateShadowPCF(lightIndex, worldPos, passNormal, lightDir);
-        //vec3 thisLight = shadowFactor * (diffuse + specular);
-        //lightingColor += (diffuse + specular);
     }
     if (currentLight.type == 1) // P O I N T
     {
         vec3 lightDir = normalize(currentLight.position - worldPos);
+        normal = normal == vec3(0.0f) ? lightDir : normal;
 
         // diffuse shading
         float diff = max(dot(normal, lightDir), 0.0);
@@ -74,14 +72,11 @@ LightResult getLight(int lightIndex, vec3 worldPos, vec3 viewDir, vec3 normal, f
         result.diffuse = currentLight.color * diff * attenuation;
         result.specular = currentLight.color * spec * attenuation;
         result.direction = lightDir;
-
-        //float shadowFactor = (1.0f - calculateCubeShadow(lightIndex, worldPos, lightDir));
-        //vec3 thisLight = shadowFactor * (diffuse + specular);
-        //lightingColor += (diffuse + specular);
     }
     if (currentLight.type == 2) // S P O T
     {
         vec3 lightDir = normalize(currentLight.position - worldPos);
+        normal = normal == vec3(0.0f) ? lightDir : normal;
 
         // diffuse shading
         float diff = max(dot(normal, lightDir), 0.0);
@@ -103,10 +98,6 @@ LightResult getLight(int lightIndex, vec3 worldPos, vec3 viewDir, vec3 normal, f
         result.diffuse = currentLight.color * diff * attenuation * intensity;
         result.specular = currentLight.color * spec * attenuation * intensity;
         result.direction = lightDir;
-
-        //float shadowFactor = calculateShadowPCF(lightIndex, worldPos, passNormal, lightDir);
-        //vec3 thisLight = shadowFactor * (diffuse + specular);
-        //lightingColor += (diffuse + specular);
     }
     return result;
 }
