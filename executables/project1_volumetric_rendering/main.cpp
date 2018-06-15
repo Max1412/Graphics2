@@ -73,6 +73,9 @@ int main()
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
 
+    int curScene = 0;
+    std::array<const char*, 2> scenes = { "Sponza", "Breakfast Room" };
+
     // F B O : H D R -> L D R
     std::vector<Texture> hdrTex(1);
     hdrTex[0].initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
@@ -131,7 +134,7 @@ int main()
     auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 0);
     sp.addUniform(u_debugMode);
 
-    auto u_maxRange = std::make_shared<Uniform<float>>("maxRange", sponza.maxRange);
+    auto u_maxRange = std::make_shared<Uniform<float>>("maxRange", sceneParams.at(curScene).maxRange);
     sp.addUniform(u_maxRange);
 
     Pilotview playerCamera(screenWidth, screenHeight);
@@ -141,13 +144,13 @@ int main()
     matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
-	FogInfo fog = { sponza.fog.albedo, sponza.fog.anisotropy, sponza.fog.scattering, sponza.fog.absorption, sponza.fog.density };
+	FogInfo fog = { sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy, sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption, sceneParams.at(curScene).fog.density };
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
 
-    SimplexNoise sponzaNoise(sponza.noise.scale, sponza.noise.speed, sponza.noise.densityFactor, sponza.noise.densityHeight);
-	SimplexNoise breakfastNoise(sponza.noise.scale, sponza.noise.speed, sponza.noise.densityFactor, sponza.noise.densityHeight);
+    SimplexNoise sponzaNoise(sceneParams.at(curScene).noise.scale, sceneParams.at(curScene).noise.speed, sceneParams.at(curScene).noise.densityFactor, sceneParams.at(curScene).noise.densityHeight);
+	SimplexNoise breakfastNoise(sceneParams.at(curScene).noise.scale, sceneParams.at(curScene).noise.speed, sceneParams.at(curScene).noise.densityFactor, sceneParams.at(curScene).noise.densityHeight);
 	sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
@@ -187,9 +190,6 @@ int main()
     skyboxSP.addUniform(u_voxelGridTex);
     skyboxSP.addUniform(u_screenRes);
 
-    int activeScene = 0;
-    std::array<const char*, 2> scenes = { "Sponza", "Breakfast Room" };
-
 	std::vector<std::shared_ptr<ModelImporter>> sceneVec = { std::make_shared<ModelImporter>("sponza/sponza.obj"), std::make_shared<ModelImporter>("breakfast_room/breakfast_room.obj") };
 	//ModelImporter modelLoader("sponza/sponza.obj");
 	sceneVec.at(0)->registerUniforms(modelSp);
@@ -199,27 +199,28 @@ int main()
 	std::vector<LightManager> lightMngrVec(2);
 
 	// SPONZA LIGHTS
-	for (unsigned int i = 0; i < sponza.lights.size(); i++)
+	for (unsigned int i = 0; i < sceneParams.at(0).lights.size(); i++)
 	{
 		// spot light
-		if (sponza.lights[i].constant && sponza.lights[i].cutOff)
+		if (sceneParams.at(0).lights[i].constant && sceneParams.at(0).lights[i].cutOff)
 		{
-			auto spot = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].position, sponza.lights[i].direction, sponza.lights[i].constant, sponza.lights[i].linear, sponza.lights[i].quadratic, sponza.lights[i].cutOff, sponza.lights[i].outerCutOff);
-			spot->setPCFKernelSize(sponza.lights[i].pcfKernelSize);
+			auto spot = std::make_shared<Light>(sceneParams.at(0).lights[i].color, sceneParams.at(0).lights[i].position, sceneParams.at(0).lights[i].direction,
+                sceneParams.at(0).lights[i].constant, sceneParams.at(0).lights[i].linear, sceneParams.at(0).lights[i].quadratic, sceneParams.at(0).lights[i].cutOff, sceneParams.at(0).lights[i].outerCutOff);
+			spot->setPCFKernelSize(sceneParams.at(0).lights[i].pcfKernelSize);
             lightMngrVec.at(0).addLight(spot);
 		}
 		// point light
-		else if (sponza.lights[i].constant)
+		else if (sceneParams.at(0).lights[i].constant)
 		{
-			auto point = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].position, sponza.lights[i].constant, sponza.lights[i].linear, sponza.lights[i].quadratic);
-			point->setPCFKernelSize(sponza.lights[i].pcfKernelSize);
+			auto point = std::make_shared<Light>(sceneParams.at(0).lights[i].color, sceneParams.at(0).lights[i].position, sceneParams.at(0).lights[i].constant, sceneParams.at(0).lights[i].linear, sceneParams.at(0).lights[i].quadratic);
+			point->setPCFKernelSize(sceneParams.at(0).lights[i].pcfKernelSize);
             lightMngrVec.at(0).addLight(point);
 		}
 		// directional light
 		else
 		{
-			auto directional = std::make_shared<Light>(sponza.lights[i].color, sponza.lights[i].direction);
-			directional->setPosition(sponza.lights[i].position); // position for shadow map only
+			auto directional = std::make_shared<Light>(sceneParams.at(0).lights[i].color, sceneParams.at(0).lights[i].direction);
+			directional->setPosition(sceneParams.at(0).lights[i].position); // position for shadow map only
 			directional->recalculateLightSpaceMatrix();
             lightMngrVec.at(0).addLight(directional);
 		}
@@ -228,27 +229,28 @@ int main()
     lightMngrVec.at(0).uploadLightsToGPU();
 
     // BREAKFAST ROOM LIGHTS
-    for (unsigned int i = 0; i < breakfast.lights.size(); i++)
+    for (unsigned int i = 0; i < sceneParams.at(1).lights.size(); i++)
     {
         // spot light
-        if (breakfast.lights[i].constant && breakfast.lights[i].cutOff)
+        if (sceneParams.at(1).lights[i].constant && sceneParams.at(1).lights[i].cutOff)
         {
-            auto spot = std::make_shared<Light>(breakfast.lights[i].color, breakfast.lights[i].position, breakfast.lights[i].direction, breakfast.lights[i].constant, breakfast.lights[i].linear, breakfast.lights[i].quadratic, breakfast.lights[i].cutOff, breakfast.lights[i].outerCutOff);
-            spot->setPCFKernelSize(breakfast.lights[i].pcfKernelSize);
+            auto spot = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].direction,
+                sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic, sceneParams.at(1).lights[i].cutOff, sceneParams.at(1).lights[i].outerCutOff);
+            spot->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
             lightMngrVec.at(1).addLight(spot);
         }
         // point light
-        else if (breakfast.lights[i].constant)
+        else if (sceneParams.at(curScene).lights[i].constant)
         {
-            auto point = std::make_shared<Light>(breakfast.lights[i].color, breakfast.lights[i].position, breakfast.lights[i].constant, breakfast.lights[i].linear, breakfast.lights[i].quadratic);
-            point->setPCFKernelSize(breakfast.lights[i].pcfKernelSize);
+            auto point = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic);
+            point->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
             lightMngrVec.at(1).addLight(point);
         }
         // directional light
         else
         {
-            auto directional = std::make_shared<Light>(breakfast.lights[i].color, breakfast.lights[i].direction);
-            directional->setPosition(breakfast.lights[i].position); // position for shadow map only
+            auto directional = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].direction);
+            directional->setPosition(sceneParams.at(1).lights[i].position); // position for shadow map only
             directional->recalculateLightSpaceMatrix();
             lightMngrVec.at(1).addLight(directional);
         }
@@ -257,13 +259,13 @@ int main()
     lightMngrVec.at(1).uploadLightsToGPU();
 
 	// set the active scene
-    lightMngrVec.at(activeScene).bindLightBuffer();
-	sceneVec.at(activeScene)->bindGPUbuffers();
+    lightMngrVec.at(curScene).bindLightBuffer();
+	sceneVec.at(curScene)->bindGPUbuffers();
 
 	// set camera to starting pos and dir
-	playerCamera.setPosition(sponza.cameraPos);
-	playerCamera.setTheta(sponza.theta);
-	playerCamera.setPhi(sponza.phi);
+	playerCamera.setPosition(sceneParams.at(curScene).cameraPos);
+	playerCamera.setTheta(sceneParams.at(curScene).theta);
+	playerCamera.setPhi(sceneParams.at(curScene).phi);
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 
@@ -293,7 +295,7 @@ int main()
             matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
             matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
 		}
-        lightMngrVec.at(activeScene).renderShadowMapsCulled(*sceneVec.at(activeScene));
+        lightMngrVec.at(curScene).renderShadowMapsCulled(*sceneVec.at(curScene));
 
         // render to fbo
         hdrFBO.bind();
@@ -324,7 +326,7 @@ int main()
 
         if (!dbgrndr)
         {
-            sceneVec.at(activeScene)->multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
+            sceneVec.at(curScene)->multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
             // render skybox last
             glDepthFunc(GL_LEQUAL);
@@ -391,9 +393,9 @@ int main()
                 //Density
             case 1:
             {
-				if(activeScene == 0)
+				if(curScene == 0)
 					sponzaNoise.showNoiseGUIContent();
-				else if (activeScene == 1)
+				else if (curScene == 1)
 					breakfastNoise.showNoiseGUIContent();
                 break;
             }
@@ -434,7 +436,7 @@ int main()
             case 4:
             {
                 ImGui::Text("Light Settings");
-				lightMngrVec.at(activeScene).showLightGUIsContent();
+				lightMngrVec.at(curScene).showLightGUIsContent();
                 break;
             }
             //Fog
@@ -480,39 +482,31 @@ int main()
             case 8:
             {
                 ImGui::Text("Scene selection");
-                if(ImGui::Combo("Scenes", &activeScene, scenes.data(), scenes.size()))
+                if(ImGui::Combo("Scenes", &curScene, scenes.data(), scenes.size()))
                 {
                     // bind active GPU light buffer
-                    lightMngrVec.at(activeScene).bindLightBuffer();
+                    lightMngrVec.at(curScene).bindLightBuffer();
 
                     // bind active buffers from the scene
-                    sceneVec.at(activeScene)->bindGPUbuffers();
+                    sceneVec.at(curScene)->bindGPUbuffers();
 
                     // reset camera and upload it to gpu
-					if (activeScene == 1)
+
+                    playerCamera.setPosition(sceneParams.at(curScene).cameraPos);
+                    playerCamera.setTheta(sceneParams.at(curScene).theta);
+                    playerCamera.setPhi(sceneParams.at(curScene).phi);
+
+                    u_maxRange->setContent(sceneParams.at(curScene).maxRange);
+
+                    FogInfo fog = { sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy, sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption, sceneParams.at(curScene).fog.density };
+                    fogSSBO.setContentSubData(fog, 0);
+
+					if (curScene == 1)
 					{
-						playerCamera.setPosition(breakfast.cameraPos);
-						playerCamera.setTheta(breakfast.theta);
-						playerCamera.setPhi(breakfast.phi);
-
-						u_maxRange->setContent(breakfast.maxRange);
-
-						FogInfo fog = { breakfast.fog.albedo, breakfast.fog.anisotropy, breakfast.fog.scattering, breakfast.fog.absorption, breakfast.fog.density };
-						fogSSBO.setContentSubData(fog, 0);
-
 						breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 					}
-					else if(activeScene == 0)
+					else if(curScene == 0)
 					{
-						playerCamera.setPosition(sponza.cameraPos);
-						playerCamera.setTheta(sponza.theta);
-						playerCamera.setPhi(sponza.phi);
-
-						u_maxRange->setContent(sponza.maxRange);
-
-						FogInfo fog = { sponza.fog.albedo, sponza.fog.anisotropy, sponza.fog.scattering, sponza.fog.absorption, sponza.fog.density };
-						fogSSBO.setContentSubData(fog, 0);
-
 						sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 					}
 					else
