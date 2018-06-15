@@ -32,9 +32,9 @@ constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
 constexpr float screenNear = 0.1f;
 constexpr float screenFar = 10000.f;
-constexpr int gridWidth = 190;
-constexpr int gridHeight = 90;
-constexpr int gridDepth = 64;
+constexpr int gridWidth = 320;
+constexpr int gridHeight = 180;
+constexpr int gridDepth = 256;
 constexpr int groupSize = 4;
 
 constexpr bool renderimgui = true;
@@ -146,8 +146,9 @@ int main()
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
 
-    SimplexNoise noise(sponza.noise.scale, sponza.noise.speed, sponza.noise.densityFactor, sponza.noise.densityHeight);
-    noise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
+    SimplexNoise sponzaNoise(sponza.noise.scale, sponza.noise.speed, sponza.noise.densityFactor, sponza.noise.densityHeight);
+	SimplexNoise breakfastNoise(sponza.noise.scale, sponza.noise.speed, sponza.noise.densityFactor, sponza.noise.densityHeight);
+	sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
     glBindImageTexture(0, voxelGrid.getName(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
@@ -300,7 +301,9 @@ int main()
 
         voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
-        noise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
+        sponzaNoise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
+		breakfastNoise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
+
         sp.use();
         glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
             static_cast<GLint>(std::ceil(gridHeight / static_cast<float>(groupSize))),
@@ -388,7 +391,10 @@ int main()
                 //Density
             case 1:
             {
-                noise.showNoiseGUIContent();
+				if(activeScene == 0)
+					sponzaNoise.showNoiseGUIContent();
+				else if (activeScene == 1)
+					breakfastNoise.showNoiseGUIContent();
                 break;
             }
             //Camera
@@ -483,17 +489,35 @@ int main()
                     sceneVec.at(activeScene)->bindGPUbuffers();
 
                     // reset camera and upload it to gpu
-					if (activeScene)
+					if (activeScene == 1)
 					{
 						playerCamera.setPosition(breakfast.cameraPos);
 						playerCamera.setTheta(breakfast.theta);
 						playerCamera.setPhi(breakfast.phi);
+
+						u_maxRange->setContent(breakfast.maxRange);
+
+						FogInfo fog = { breakfast.fog.albedo, breakfast.fog.anisotropy, breakfast.fog.scattering, breakfast.fog.absorption, breakfast.fog.density };
+						fogSSBO.setContentSubData(fog, 0);
+
+						breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 					}
-					else
+					else if(activeScene == 0)
 					{
 						playerCamera.setPosition(sponza.cameraPos);
 						playerCamera.setTheta(sponza.theta);
 						playerCamera.setPhi(sponza.phi);
+
+						u_maxRange->setContent(sponza.maxRange);
+
+						FogInfo fog = { sponza.fog.albedo, sponza.fog.anisotropy, sponza.fog.scattering, sponza.fog.absorption, sponza.fog.density };
+						fogSSBO.setContentSubData(fog, 0);
+
+						sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
+					}
+					else
+					{
+						playerCamera.reset();
 					}
 
 					matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
