@@ -91,8 +91,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
             float hasSpec = -1.0f;
 
             aiString reltexPath;
-            // TODO height, opacity, normal, emissive, ... (use texture count and switch/case to take all of them)
-            for (aiTextureType type : {aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_OPACITY})
+            // TODO emissive, ... (use texture count and switch/case to take all of them)
+            for (aiTextureType type : {aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_OPACITY, aiTextureType_HEIGHT, aiTextureType_NORMALS})
             {
                 if (mat->GetTextureCount(type) == 0)
                 {
@@ -126,9 +126,13 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                     {
                         tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, 4);
                     }
-                    else if(type == aiTextureType_OPACITY)
+                    else if(type == aiTextureType_OPACITY || type == aiTextureType_HEIGHT)
                     {
                         tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1);
+                    }
+                    else if (type == aiTextureType_NORMALS)
+                    {
+                        tex->loadFromFile(absTexPath, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, 3);
                     }
                     else
                     {
@@ -158,6 +162,14 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         {
                             hasSpec = 0.0f;
                         }
+                        break;
+                    case aiTextureType_HEIGHT:
+                        gpuMat.bumpTexture = texID;
+                        gpuMat.bumpType = 2;
+                        break;
+                    case aiTextureType_NORMALS:
+                        gpuMat.bumpTexture = texID;
+                        gpuMat.bumpType = 1;
                         break;
                     case aiTextureType_OPACITY:
                         gpuMat.opacityTexture = texID;
