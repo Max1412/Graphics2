@@ -52,8 +52,9 @@ int main()
 
 
     Shader modelVertexShader("modelVertMultiDraw.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
-    Shader modelFragmentShader("modelFragMD.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
-    ShaderProgram sp(modelVertexShader, modelFragmentShader);
+    Shader modelGeometryShader("tangentSpace.geom", GL_GEOMETRY_SHADER, BufferBindings::g_definitions);
+    Shader modelFragmentShader("modelFragMDBump.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+    ShaderProgram sp({ modelVertexShader, modelGeometryShader, modelFragmentShader });
     sp.addUniform(projUniform);
     sp.addUniform(viewUniform);
     sp.addUniform(cameraPosUniform);

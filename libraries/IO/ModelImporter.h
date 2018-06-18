@@ -26,6 +26,9 @@ struct PhongGPUMaterial
     glm::vec4 diffColor;
     glm::vec4 specColor;
     glm::vec4 emissiveColor;
+    uint64_t bumpTexture = -1;
+    int bumpType = 0; //0 = no bump, 1 = normal map, 2 = height map
+    float pad1 = 0.f;
 };
 
 struct Indirect
