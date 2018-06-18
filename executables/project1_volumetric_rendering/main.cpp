@@ -269,33 +269,33 @@ int main()
     lightMngrVec.at(1).uploadLightsToGPU();
 
     // SAN MIGUEL LIGHTS
-    for (unsigned int i = 0; i < sceneParams.at(1).lights.size(); i++)
+    for (unsigned int i = 0; i < sceneParams.at(2).lights.size(); i++)
     {
         // spot light
-        if (sceneParams.at(1).lights[i].constant && sceneParams.at(1).lights[i].cutOff)
+        if (sceneParams.at(2).lights[i].constant && sceneParams.at(2).lights[i].cutOff)
         {
-            auto spot = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].direction,
-                sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic, sceneParams.at(1).lights[i].cutOff, sceneParams.at(1).lights[i].outerCutOff);
-            spot->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
+            auto spot = std::make_shared<Light>(sceneParams.at(2).lights[i].color, sceneParams.at(2).lights[i].position, sceneParams.at(2).lights[i].direction,
+                sceneParams.at(2).lights[i].constant, sceneParams.at(2).lights[i].linear, sceneParams.at(2).lights[i].quadratic, sceneParams.at(2).lights[i].cutOff, sceneParams.at(2).lights[i].outerCutOff);
+            spot->setPCFKernelSize(sceneParams.at(2).lights[i].pcfKernelSize);
             lightMngrVec.at(2).addLight(spot);
         }
         // point light
         else if (sceneParams.at(curScene).lights[i].constant)
         {
-            auto point = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic);
-            point->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
+            auto point = std::make_shared<Light>(sceneParams.at(2).lights[i].color, sceneParams.at(2).lights[i].position, sceneParams.at(2).lights[i].constant, sceneParams.at(2).lights[i].linear, sceneParams.at(2).lights[i].quadratic);
+            point->setPCFKernelSize(sceneParams.at(2).lights[i].pcfKernelSize);
             lightMngrVec.at(2).addLight(point);
         }
         // directional light
         else
         {
-            auto directional = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].direction);
-            directional->setPosition(sceneParams.at(1).lights[i].position); // position for shadow map only
+            auto directional = std::make_shared<Light>(sceneParams.at(2).lights[i].color, sceneParams.at(2).lights[i].direction);
+            directional->setPosition(sceneParams.at(2).lights[i].position); // position for shadow map only
             directional->recalculateLightSpaceMatrix();
             lightMngrVec.at(2).addLight(directional);
         }
     }
-    lightMngrVec.at(2).setOuterSceneBoundingBoxToAllLights(sceneVec.at(1)->getOuterBoundingBox());
+    lightMngrVec.at(2).setOuterSceneBoundingBoxToAllLights(sceneVec.at(2)->getOuterBoundingBox());
     lightMngrVec.at(2).uploadLightsToGPU();
 
 	// set the active scene

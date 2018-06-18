@@ -115,7 +115,7 @@ Parameters{
 Parameters{
     {
         //global directional light
-        { glm::vec3(4.0f), glm::vec3(12.0f, 10.0f, 0.0f), glm::vec3(-1.0f, -1.0f, -0.2f), 2 },
+        { glm::vec3(20.0f), glm::vec3(0.0f, 25.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), 2 },
         //lamp 1
 { glm::vec3(2.0f, 2.0f, 1.3f), glm::vec3(1.0f, 4.15f, -1.92f), glm::vec3(0.001f, -1.0f, 0.0f), 1,
 0.025f, 0.01f, 0.0f, 1.055f, 0.72f },
