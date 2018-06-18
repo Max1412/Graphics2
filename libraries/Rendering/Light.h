@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <glbinding/gl/gl.h>
 #include <glm/glm.hpp>
 #include "Buffer.h"
@@ -85,6 +86,8 @@ public:
 
     LightType getType() const;
 
+    void setOuterBoundingBox(const glm::mat2x4& outerBoundingBox);
+
 private:
     void checkParameters();
 
@@ -100,6 +103,8 @@ private:
     std::shared_ptr<Texture> m_shadowTexture;
     FrameBuffer m_shadowMapFBO;
     ShaderProgram m_genShadowMapProgram;
+
+    std::optional<glm::mat2x4> m_outerSceneBoundingBox;
 
     std::shared_ptr<Uniform<glm::mat4>> m_modelUniform;
     std::shared_ptr<Uniform<glm::mat4>> m_lightSpaceUniform;

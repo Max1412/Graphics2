@@ -5,6 +5,7 @@
 #include <sstream>
 #include "Cubemap.h"
 #include "IO/ModelImporter.h"
+#include <glm/gtx/component_wise.inl>
 
 using namespace gl;
 
@@ -226,7 +227,14 @@ void Light::recalculateLightSpaceMatrix()
 
     if (m_type == LightType::directional)
     {
-        m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
+        if(!m_outerSceneBoundingBox.has_value())
+            m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
+        else
+        {
+            glm::mat2x4 b = m_outerSceneBoundingBox.value();
+            glm::vec2 bb = glm::vec2(glm::compMin(b[0]), glm::compMax(b[1]));
+            m_lightProjection = glm::ortho(bb.x - abs(bb.x), bb.y + abs(bb.y), bb.x - abs(bb.x), bb.y + abs(bb.y), 0.1f, m_smFar);
+        }
     }
     else if (m_type == LightType::spot) 
     {
@@ -348,6 +356,11 @@ LightType Light::getType() const
     return m_type;
 }
 
+void Light::setOuterBoundingBox(const glm::mat2x4& outerBoundingBox)
+{
+    m_outerSceneBoundingBox = std::make_optional(outerBoundingBox);
+}
+
 glm::vec3 Light::getDirection() const
 {
     return m_gpuLight.direction;
@@ -396,13 +409,13 @@ bool Light::showLightGUIContent(const std::string& name)
         {
             lightChanged = true;
 			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
-				m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001;
+				m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001f;
         }
         if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
         {
             lightChanged = true;
 			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
-				m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001;
+				m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001f;
         }
     }
     if (m_type == LightType::spot || m_type == LightType::point)

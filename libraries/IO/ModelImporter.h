@@ -57,6 +57,8 @@ public:
     void registerUniforms(ShaderProgram& sp) const;
     void resetIndirectDrawParams();
 
+    glm::mat2x4 getOuterBoundingBox() const;
+
 private:
     Assimp::Importer m_importer;
     const aiScene* m_scene;
@@ -88,6 +90,8 @@ private:
     Buffer m_multiDrawNormalBuffer;
     Buffer m_multiDrawTexCoordBuffer;
     VertexArray m_multiDrawVao;
+
+    glm::mat2x4 m_outerBoundingBox;
 
     // culling stuff
     std::vector<glm::mat2x4> m_boundingBoxes;

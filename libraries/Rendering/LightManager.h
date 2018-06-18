@@ -29,6 +29,8 @@ public:
     void updateLightParams();
     void updateLightParams(std::shared_ptr<Light> light);
 
+    void setOuterSceneBoundingBoxToAllLights(const glm::mat2x4& outerSceneBoundingBox);
+
     void addLight(std::shared_ptr<Light> light);
 
     std::vector<std::shared_ptr<Light>> getLights() const;

@@ -43,7 +43,7 @@ struct PlayerCameraInfo
 {
     glm::mat4 playerViewMatrix;
     glm::mat4 playerProjMatrix;
-    glm::vec3 camPos; float pad;
+    glm::vec3 camPos; float pad = 0.0f;
 };
 
 struct FogInfo
@@ -53,7 +53,7 @@ struct FogInfo
     float fogScatteringCoeff;
     float fogAbsorptionCoeff;
     float fogDensity;
-    float pad1;
+    float pad1 = 0.0f;
 };
 
 int main()
@@ -74,7 +74,7 @@ int main()
     ImGui_ImplGlfwGL3_Init(window, true);
 
     int curScene = 0;
-    std::array<const char*, 2> scenes = { "Sponza", "Breakfast Room" };
+    std::array<const char*, 3> scenes = { "Sponza", "Breakfast Room", "San Miguel" };
 
     // F B O : H D R -> L D R
     std::vector<Texture> hdrTex(1);
@@ -138,13 +138,17 @@ int main()
     sp.addUniform(u_maxRange);
 
     Pilotview playerCamera(screenWidth, screenHeight);
-    glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
+    const glm::mat4 playerProj = glm::perspective(glm::radians(60.0f), screenWidth / static_cast<float>(screenHeight), screenNear, screenFar);
 
     Buffer matrixSSBO(GL_SHADER_STORAGE_BUFFER);
-    matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>{ {playerCamera.getView(), playerProj, playerCamera.getPosition()}}, GL_DYNAMIC_STORAGE_BIT);
+    matrixSSBO.setStorage(std::array<PlayerCameraInfo, 1>( {playerCamera.getView(), playerProj, playerCamera.getPosition(), 0} ), GL_DYNAMIC_STORAGE_BIT);
     matrixSSBO.bindBase(BufferBindings::Binding::cameraParameters);
 
-	FogInfo fog = { sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy, sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption, sceneParams.at(curScene).fog.density };
+	FogInfo fog = {
+	    sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy,
+	    sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption,
+	    sceneParams.at(curScene).fog.density
+	};
     Buffer fogSSBO(GL_SHADER_STORAGE_BUFFER);
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
@@ -190,13 +194,19 @@ int main()
     skyboxSP.addUniform(u_voxelGridTex);
     skyboxSP.addUniform(u_screenRes);
 
-	std::vector<std::shared_ptr<ModelImporter>> sceneVec = { std::make_shared<ModelImporter>("sponza/sponza.obj"), std::make_shared<ModelImporter>("breakfast_room/breakfast_room.obj") };
-	//ModelImporter modelLoader("sponza/sponza.obj");
-	sceneVec.at(0)->registerUniforms(modelSp);
-    sceneVec.at(1)->registerUniforms(modelSp);
+	std::vector<std::shared_ptr<ModelImporter>> sceneVec = {
+	    std::make_shared<ModelImporter>("sponza/sponza.obj"),
+	    std::make_shared<ModelImporter>("breakfast_room/breakfast_room.obj"),
+	    std::make_shared<ModelImporter>("San_Miguel/san-miguel.obj")
+	};
+
+    // not needed for multidraw
+	// sceneVec.at(0)->registerUniforms(modelSp);
+    // sceneVec.at(1)->registerUniforms(modelSp);
+    // sceneVec.at(2)->registerUniforms(modelSp);
 
 	// lights (parameters intended for sponza)
-	std::vector<LightManager> lightMngrVec(2);
+	std::vector<LightManager> lightMngrVec(3);
 
 	// SPONZA LIGHTS
 	for (unsigned int i = 0; i < sceneParams.at(0).lights.size(); i++)
@@ -225,7 +235,7 @@ int main()
             lightMngrVec.at(0).addLight(directional);
 		}
 	}
-
+    lightMngrVec.at(0).setOuterSceneBoundingBoxToAllLights(sceneVec.at(0)->getOuterBoundingBox());
     lightMngrVec.at(0).uploadLightsToGPU();
 
     // BREAKFAST ROOM LIGHTS
@@ -255,8 +265,38 @@ int main()
             lightMngrVec.at(1).addLight(directional);
         }
     }
-    
+    lightMngrVec.at(1).setOuterSceneBoundingBoxToAllLights(sceneVec.at(1)->getOuterBoundingBox());
     lightMngrVec.at(1).uploadLightsToGPU();
+
+    // SAN MIGUEL LIGHTS
+    for (unsigned int i = 0; i < sceneParams.at(1).lights.size(); i++)
+    {
+        // spot light
+        if (sceneParams.at(1).lights[i].constant && sceneParams.at(1).lights[i].cutOff)
+        {
+            auto spot = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].direction,
+                sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic, sceneParams.at(1).lights[i].cutOff, sceneParams.at(1).lights[i].outerCutOff);
+            spot->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
+            lightMngrVec.at(2).addLight(spot);
+        }
+        // point light
+        else if (sceneParams.at(curScene).lights[i].constant)
+        {
+            auto point = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic);
+            point->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
+            lightMngrVec.at(2).addLight(point);
+        }
+        // directional light
+        else
+        {
+            auto directional = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].direction);
+            directional->setPosition(sceneParams.at(1).lights[i].position); // position for shadow map only
+            directional->recalculateLightSpaceMatrix();
+            lightMngrVec.at(2).addLight(directional);
+        }
+    }
+    lightMngrVec.at(2).setOuterSceneBoundingBoxToAllLights(sceneVec.at(1)->getOuterBoundingBox());
+    lightMngrVec.at(2).uploadLightsToGPU();
 
 	// set the active scene
     lightMngrVec.at(curScene).bindLightBuffer();
@@ -482,7 +522,7 @@ int main()
             case 8:
             {
                 ImGui::Text("Scene selection");
-                if(ImGui::Combo("Scenes", &curScene, scenes.data(), scenes.size()))
+                if(ImGui::Combo("Scenes", &curScene, scenes.data(), static_cast<int>(scenes.size())))
                 {
                     // bind active GPU light buffer
                     lightMngrVec.at(curScene).bindLightBuffer();
@@ -498,7 +538,7 @@ int main()
 
                     u_maxRange->setContent(sceneParams.at(curScene).maxRange);
 
-                    FogInfo fog = { sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy, sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption, sceneParams.at(curScene).fog.density };
+                    fog = { sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy, sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption, sceneParams.at(curScene).fog.density };
                     fogSSBO.setContentSubData(fog, 0);
 
 					if (curScene == 1)
@@ -509,6 +549,12 @@ int main()
 					{
 						sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 					}
+                    else if(curScene == 2)
+                    {
+                        // use breakfast room noise here too for now
+                        breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
+                        playerCamera.reset();
+                    }
 					else
 					{
 						playerCamera.reset();

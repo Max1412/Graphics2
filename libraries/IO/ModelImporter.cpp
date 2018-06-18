@@ -242,6 +242,10 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         baseVertexOffset += static_cast<unsigned>(mesh->getVertices().size());
     }
 
+    m_outerBoundingBox = std::reduce(std::execution::par, m_boundingBoxes.begin(), m_boundingBoxes.end(),
+        glm::mat2x4(glm::vec4(std::numeric_limits<float>::max()), glm::vec4(std::numeric_limits<float>::lowest())),
+        [](glm::mat2x4 b1, glm::mat2x4 b2) {return glm::mat2x4(glm::min(b1[0], b2[0]), glm::max(b1[1], b2[1])); });
+
     m_gpuMaterialIndices.shrink_to_fit();
     m_boundingBoxes.shrink_to_fit();
     m_allTheIndices.shrink_to_fit();
@@ -337,6 +341,11 @@ void ModelImporter::registerUniforms(ShaderProgram& sp) const
 void ModelImporter::resetIndirectDrawParams()
 {
     m_indirectDrawBuffer.setContentToContainerSubData(m_indirectDrawParams, 0);
+}
+
+glm::mat2x4 ModelImporter::getOuterBoundingBox() const
+{
+    return m_outerBoundingBox;
 }
 
 void ModelImporter::draw(const ShaderProgram& sp) const
