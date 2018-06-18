@@ -10,6 +10,8 @@ struct Material
     vec4 diffColor;
     vec4 specColor;
     vec4 emissiveColor;
+    sampler2D bumpTexture;
+    int bumpType; //0 = no bump, 1 = normal map, 2 = height map
 };
 
 layout(std430, binding = MATERIAL_BINDING) readonly buffer MaterialBuffer
