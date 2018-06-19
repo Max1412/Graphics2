@@ -4,7 +4,7 @@
 #include <numeric>
 #include <execution>
 
-Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_texCoordBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
+Mesh::Mesh(aiMesh* assimpMesh, bool useOwnBuffers) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer(GL_ARRAY_BUFFER), m_texCoordBuffer(GL_ARRAY_BUFFER), m_indexBuffer(GL_ELEMENT_ARRAY_BUFFER)
 {
     if (!assimpMesh->HasNormals() || /* !assimpMesh->HasTextureCoords(0)  || */ !assimpMesh->HasFaces())
     {
@@ -45,17 +45,20 @@ Mesh::Mesh(aiMesh* assimpMesh) : m_vertexBuffer(GL_ARRAY_BUFFER), m_normalBuffer
 
     m_materialIndex = assimpMesh->mMaterialIndex;
 
-    m_vertexBuffer.setStorage(m_vertices, GL_DYNAMIC_STORAGE_BIT);
-    m_normalBuffer.setStorage(m_normals, GL_DYNAMIC_STORAGE_BIT);
-    m_texCoordBuffer.setStorage(m_texCoords, GL_DYNAMIC_STORAGE_BIT);
-    m_indexBuffer.setStorage(m_indices, GL_DYNAMIC_STORAGE_BIT);
-    m_vao.connectBuffer(m_vertexBuffer, BufferBindings::VertexAttributeLocation::vertices, 3, GL_FLOAT, GL_FALSE);
-    m_vao.connectBuffer(m_normalBuffer, BufferBindings::VertexAttributeLocation::normals, 3, GL_FLOAT, GL_FALSE);
+    if(useOwnBuffers)
+    {
+        m_vertexBuffer.setStorage(m_vertices, GL_DYNAMIC_STORAGE_BIT);
+        m_normalBuffer.setStorage(m_normals, GL_DYNAMIC_STORAGE_BIT);
+        m_texCoordBuffer.setStorage(m_texCoords, GL_DYNAMIC_STORAGE_BIT);
+        m_indexBuffer.setStorage(m_indices, GL_DYNAMIC_STORAGE_BIT);
+        m_vao.connectBuffer(m_vertexBuffer, BufferBindings::VertexAttributeLocation::vertices, 3, GL_FLOAT, GL_FALSE);
+        m_vao.connectBuffer(m_normalBuffer, BufferBindings::VertexAttributeLocation::normals, 3, GL_FLOAT, GL_FALSE);
 
-    if (assimpMesh->HasTextureCoords(0))
-        m_vao.connectBuffer(m_texCoordBuffer, BufferBindings::VertexAttributeLocation::texCoords, 3, GL_FLOAT, GL_FALSE);
+        if (assimpMesh->HasTextureCoords(0))
+            m_vao.connectBuffer(m_texCoordBuffer, BufferBindings::VertexAttributeLocation::texCoords, 3, GL_FLOAT, GL_FALSE);
 
-    m_vao.connectIndexBuffer(m_indexBuffer);
+        m_vao.connectIndexBuffer(m_indexBuffer);
+    }
 
     calculateBoundingBox();
 }

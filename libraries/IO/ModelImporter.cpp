@@ -23,6 +23,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();
+    
+    std::cout << "Loading model from " << filename.string() << std::endl;
 
     m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices);
 
@@ -31,7 +33,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         const std::string err = m_importer.GetErrorString();
         throw std::runtime_error("Assimp import failed: " + err);
     }
-    std::cout << "Loading model from " << filename.string() << std::endl;
+
+    std::cout << "Assimp import complete. Processing Model..." << std::endl;
 
     if (m_scene->HasMeshes())
     {
@@ -40,7 +43,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         m_modelMatrices = std::vector<glm::mat4>(numMeshes, glm::mat4(1.0f));
         for (unsigned i = 0; i < numMeshes; i++)
         {
-            m_meshes.emplace_back(std::make_shared<Mesh>(m_scene->mMeshes[i]));
+            m_meshes.emplace_back(std::make_shared<Mesh>(m_scene->mMeshes[i], false));
         }
     }
 
@@ -232,8 +235,6 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 	}
 	m_meshes.insert(m_meshes.end(), transparentMeshes.begin(), transparentMeshes.end());
 
-    std::cout << "Loading complete: " << filename.string() << std::endl;
-
 	unsigned start = 0;
     unsigned baseVertexOffset = 0;
     for (const auto& mesh : m_meshes)
@@ -287,6 +288,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     m_multiDrawVao.connectBuffer(m_multiDrawTexCoordBuffer, BufferBindings::VertexAttributeLocation::texCoords, 3, GL_FLOAT, GL_FALSE);
 
     m_multiDrawVao.connectIndexBuffer(m_multiDrawIndexBuffer);
+
+    std::cout << "Loading complete: " << filename.string() << std::endl;
 }
 
 void ModelImporter::bindGPUbuffers() const

@@ -41,7 +41,7 @@ class Light
 {
 public:
 
-    Light(glm::vec3 color, glm::vec3 direction, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // DIRECTIONAL
+    Light(glm::vec3 color, glm::vec3 direction, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(8192, 8192)); // DIRECTIONAL
     Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // POINT
     Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // SPOT
 
