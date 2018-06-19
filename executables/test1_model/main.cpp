@@ -81,6 +81,7 @@ int main()
     //auto point = std::make_shared<Light>(glm::vec3(1.0f, 0.3f, 1.0f), glm::vec3(-100.0f, 170.0f, -230.0f) , 0.05f, 0.006f, 0.0f);
     //lightMngr.addLight(point);
 
+    lightMngr.setOuterSceneBoundingBoxToAllLights(modelLoader.getOuterBoundingBox());
     lightMngr.uploadLightsToGPU();
 
     Shader lightDebugVS("lightDebug.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);

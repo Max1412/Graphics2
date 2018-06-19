@@ -153,8 +153,8 @@ int main()
     fogSSBO.setStorage(std::array<FogInfo, 1>{ fog }, GL_DYNAMIC_STORAGE_BIT);
     fogSSBO.bindBase(static_cast<BufferBindings::Binding>(2));
 
-    SimplexNoise sponzaNoise(sceneParams.at(curScene).noise.scale, sceneParams.at(curScene).noise.speed, sceneParams.at(curScene).noise.densityFactor, sceneParams.at(curScene).noise.densityHeight);
-	SimplexNoise breakfastNoise(sceneParams.at(curScene).noise.scale, sceneParams.at(curScene).noise.speed, sceneParams.at(curScene).noise.densityFactor, sceneParams.at(curScene).noise.densityHeight);
+    SimplexNoise sponzaNoise(sceneParams.at(0).noise.scale, sceneParams.at(0).noise.speed, sceneParams.at(0).noise.densityFactor, sceneParams.at(0).noise.densityHeight);
+	SimplexNoise breakfastNoise(sceneParams.at(1).noise.scale, sceneParams.at(1).noise.speed, sceneParams.at(1).noise.densityFactor, sceneParams.at(1).noise.densityHeight);
 	sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
     VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
@@ -335,7 +335,7 @@ int main()
         hdrFBO.bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
+        //voxelGrid.clearTexture(GL_RGBA, GL_FLOAT, glm::vec4(-1.0f), 0);
 
         sponzaNoise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
 		breakfastNoise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
@@ -431,6 +431,8 @@ int main()
 					sponzaNoise.showNoiseGUIContent();
 				else if (curScene == 1)
 					breakfastNoise.showNoiseGUIContent();
+                if(curScene == 2)
+                    breakfastNoise.showNoiseGUIContent();
                 break;
             }
             //Camera
