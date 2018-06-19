@@ -230,8 +230,6 @@ int main()
 		else
 		{
 			auto directional = std::make_shared<Light>(sceneParams.at(0).lights[i].color, sceneParams.at(0).lights[i].direction);
-			directional->setPosition(sceneParams.at(0).lights[i].position); // position for shadow map only
-			directional->recalculateLightSpaceMatrix();
             lightMngrVec.at(0).addLight(directional);
 		}
 	}
@@ -260,8 +258,6 @@ int main()
         else
         {
             auto directional = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].direction);
-            directional->setPosition(sceneParams.at(1).lights[i].position); // position for shadow map only
-            directional->recalculateLightSpaceMatrix();
             lightMngrVec.at(1).addLight(directional);
         }
     }
@@ -290,8 +286,6 @@ int main()
         else
         {
             auto directional = std::make_shared<Light>(sceneParams.at(2).lights[i].color, sceneParams.at(2).lights[i].direction);
-            directional->setPosition(sceneParams.at(2).lights[i].position); // position for shadow map only
-            directional->recalculateLightSpaceMatrix();
             lightMngrVec.at(2).addLight(directional);
         }
     }

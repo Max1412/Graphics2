@@ -14,7 +14,6 @@ Light::Light(glm::vec3 color, glm::vec3 direction, float smFar ,glm::ivec2 shado
 m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
 m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
-    // TODO USE POSITION TOO, FOR SHADOW MAPS
     checkParameters();
 
     // init shadowMap
@@ -221,19 +220,22 @@ void Light::recalculateLightSpaceMatrix()
     {
         up = glm::vec3(1.0f, 0.0f, 0.0f);
     }
-    m_lightView = glm::lookAt(m_gpuLight.position,
-        m_gpuLight.position + m_gpuLight.direction, // aimed at the center
-        up);
 
     if (m_type == LightType::directional)
     {
-        if(!m_outerSceneBoundingBox.has_value())
+        if (!m_outerSceneBoundingBox.has_value())
+        {
             m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
+            m_gpuLight.position = glm::vec3(0.0f, 2000.0f, 0.0f);
+        }
         else
         {
             glm::mat2x4 b = m_outerSceneBoundingBox.value();
-            glm::vec2 bb = glm::vec2(glm::compMin(b[0]), glm::compMax(b[1]));
+            const glm::vec2 bb = glm::vec2(glm::compMin(b[0]), glm::compMax(b[1]));
             m_lightProjection = glm::ortho(bb.x - abs(bb.x), bb.y + abs(bb.y), bb.x - abs(bb.x), bb.y + abs(bb.y), 0.1f, m_smFar);
+
+            const float bboxSize = glm::length(b[1] - b[0]);
+            m_gpuLight.position = bboxSize * m_gpuLight.direction;
         }
     }
     else if (m_type == LightType::spot) 
@@ -247,6 +249,10 @@ void Light::recalculateLightSpaceMatrix()
         m_lightProjection = glm::perspective(glm::radians(90.0f), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 0.1f, m_smFar);
         m_lightView = glm::mat4(1.0f); // calculate finished matrix in shader
     }
+
+    m_lightView = glm::lookAt(m_gpuLight.position,
+        m_gpuLight.position + m_gpuLight.direction,
+        up);
 
     m_gpuLight.lightSpaceMatrix = m_lightProjection * m_lightView;
     m_lightSpaceUniform->setContent(m_gpuLight.lightSpaceMatrix);
@@ -370,11 +376,8 @@ glm::vec3 Light::getDirection() const
 bool Light::showLightGUI(const std::string& name)
 {
     ImGui::Begin("Light GUI");
-    bool lightChanged = showLightGUIContent(name);
+    const bool lightChanged = showLightGUIContent(name);
     ImGui::End();
-
-    if (lightChanged) recalculateLightSpaceMatrix();
-    // TODO only recalculate if necessary
 
     return lightChanged;
 }
@@ -387,6 +390,7 @@ bool Light::showLightGUIContent(const std::string& name)
     std::stringstream fullName;
     fullName << name << " (Type: " << lightTypeNames[static_cast<int>(m_type)] << ")";
     bool lightChanged = false;
+    bool matNeedsUpdate = false;
     ImGui::Text(fullName.str().c_str());
     if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
     {
@@ -401,6 +405,7 @@ bool Light::showLightGUIContent(const std::string& name)
         if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
         {
             lightChanged = true;
+            matNeedsUpdate = true;
         }
     }
     if (m_type == LightType::spot)
@@ -408,12 +413,14 @@ bool Light::showLightGUIContent(const std::string& name)
         if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
         {
             lightChanged = true;
+            matNeedsUpdate = true;
 			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
 				m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001f;
         }
         if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
         {
             lightChanged = true;
+            matNeedsUpdate = true;
 			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
 				m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001f;
         }
@@ -423,6 +430,7 @@ bool Light::showLightGUIContent(const std::string& name)
         if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
         {
             lightChanged = true;
+            matNeedsUpdate = true;
         }
         if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
         {
@@ -437,5 +445,8 @@ bool Light::showLightGUIContent(const std::string& name)
             lightChanged = true;
         }
     }
+
+    if (matNeedsUpdate) recalculateLightSpaceMatrix();
+
     return lightChanged;
 }
