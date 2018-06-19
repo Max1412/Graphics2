@@ -236,16 +236,18 @@ void Light::recalculateLightSpaceMatrix()
             const glm::vec3 bboxCenter = 0.5f * (b[1] + b[0]);
             m_gpuLight.position = bboxCenter + 0.5f * bboxSize * glm::normalize(-m_gpuLight.direction);
 
-            glm::vec2 lowest2D(b[0].x, b[0].z);
-            glm::vec2 highest2D(b[1].x, b[1].z);
-            glm::vec2 center((lowest2D.x + lowest2D.y) / 2.0f, (highest2D.x + highest2D.y) / 2.0f);
-            glm::vec2 lowerCorner = center - (1.5f * abs(lowest2D));
-            glm::vec2 upperCorner = center + (1.5f * abs(highest2D));
-            float min = compMin(lowerCorner);
-            float max = compMax(upperCorner);
-            //glm::vec2 bb = glm::vec2(glm::compMin(b[0]), glm::compMax(b[1]));
-            //m_lightProjection = glm::ortho(bb.x - abs(bb.x), bb.y + abs(bb.y), bb.x - abs(bb.x), bb.y + abs(bb.y), 0.1f, m_smFar);
+            //glm::vec2 lowest2D(b[0].x, b[0].z);
+            //glm::vec2 highest2D(b[1].x, b[1].z);
+            //glm::vec2 center((lowest2D.x + lowest2D.y) / 2.0f, (highest2D.x + highest2D.y) / 2.0f);
+            //glm::vec2 lowerCorner = center - (1.5f * abs(lowest2D));
+            //glm::vec2 upperCorner = center + (1.5f * abs(highest2D));
+            //float min = compMin(lowerCorner);
+            //float max = compMax(upperCorner);
 
+            const glm::vec2 bb = glm::vec2(glm::compMin(b[0]), glm::compMax(b[1]));
+            const float min = bb.x - 0.244f * abs(bb.x); //0.244 = (sqrt(3)-1)/3
+            const float max = bb.y + 0.244f * abs(bb.y);
+            
             m_lightProjection = glm::ortho(min, max, min, max, 0.1f, bboxSize);
         }
     }
