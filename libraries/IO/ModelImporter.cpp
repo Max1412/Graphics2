@@ -124,15 +124,15 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                     // TODO textures with less than 4 channels... detect automatically?
                     if (stbi_is_hdr(absTexPath.string().c_str()))
                     {
-                        tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, 4);
+                        tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, STBI_rgb_alpha);
                     }
                     else if(type == aiTextureType_OPACITY || type == aiTextureType_HEIGHT)
                     {
-                        tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1);
+                        tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, STBI_grey);
                     }
                     else if (type == aiTextureType_NORMALS)
                     {
-                        tex->loadFromFile(absTexPath, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, 3);
+                        tex->loadFromFile(absTexPath, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, STBI_rgb);
                     }
                     else
                     {
