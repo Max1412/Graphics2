@@ -15,6 +15,7 @@ public:
     void reset() override;
 
     void setDirection(glm::vec3 dir);
+    glm::vec3 getDirection() const override;
 
 private:
     glm::vec3 m_dir;

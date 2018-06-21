@@ -527,10 +527,10 @@ int main()
                     sceneVec.at(curScene)->bindGPUbuffers();
 
                     // reset camera and upload it to gpu
-
                     playerCamera.setPosition(sceneParams.at(curScene).cameraPos);
                     playerCamera.setTheta(sceneParams.at(curScene).theta);
                     playerCamera.setPhi(sceneParams.at(curScene).phi);
+                    playerCamera.setSensitivityFromBBox(sceneVec.at(curScene)->getOuterBoundingBox());
 
                     u_maxRange->setContent(sceneParams.at(curScene).maxRange);
 

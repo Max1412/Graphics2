@@ -50,7 +50,6 @@ int main()
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("viewMatrix", playerCamera.getView());
     auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", playerCamera.getPosition());
 
-
     Shader modelVertexShader("modelVertMultiDraw.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
     Shader modelGeometryShader("tangentSpace.geom", GL_GEOMETRY_SHADER, BufferBindings::g_definitions);
     Shader modelFragmentShader("modelFragMDBump.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
@@ -61,6 +60,8 @@ int main()
 
     ModelImporter modelLoader("sponza/sponza.obj");
     modelLoader.registerUniforms(sp);
+
+    playerCamera.setSensitivityFromBBox(modelLoader.getOuterBoundingBox());
 
     // "generate" lights
     LightManager lightMngr;
