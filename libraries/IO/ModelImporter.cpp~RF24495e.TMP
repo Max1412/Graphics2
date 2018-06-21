@@ -108,8 +108,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         hasSpec = 0.0f;
                         break;
                     case aiTextureType_OPACITY:
-						if(gpuMat.opacity != -2.0f)
-							gpuMat.opacity = 1.0f;
+                        gpuMat.opacity = 1.0f;
                         break;
                     default:
                         break;
@@ -121,7 +120,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                 mat->GetTexture(type, 0, &reltexPath);
                 auto absTexPath = path.parent_path() / std::experimental::filesystem::path(reltexPath.C_Str());
 
-                TextureLoadInfo loadInfo = TextureLoadInfo::None;
+				TextureLoadInfo loadInfo = TextureLoadInfo::None;
                 // texture not loaded yet
                 if (m_texturemap.count(reltexPath.C_Str()) == 0)
                 {
@@ -129,19 +128,19 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                     // TODO textures with less than 4 channels... detect automatically?
                     if (stbi_is_hdr(absTexPath.string().c_str()))
                     {
-                        loadInfo = tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, 4);
+						loadInfo = tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, 4);
                     }
                     else if(type == aiTextureType_OPACITY || type == aiTextureType_HEIGHT)
                     {
-                        tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1);
+						loadInfo = tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1);
                     }
                     else if (type == aiTextureType_NORMALS)
                     {
-                        tex->loadFromFile(absTexPath, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, 3);
+						loadInfo = tex->loadFromFile(absTexPath, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, 3);
                     }
                     else
                     {
-                        loadInfo = tex->loadFromFile(absTexPath);
+						loadInfo = tex->loadFromFile(absTexPath);
                     }
                     texID = tex->generateHandle();
                     tex->generateMipmap();
@@ -150,7 +149,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                 else // texture already loaded, store handle
                 {
                     texID = m_texturemap.at(reltexPath.C_Str())->getHandle();
-                    loadInfo = m_texturemap.at(reltexPath.C_Str())->getTextureLoadInfo();
+					loadInfo = m_texturemap.at(reltexPath.C_Str())->getTextureLoadInfo();
                 }
 
                 switch (type)
@@ -160,10 +159,6 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         if(texID == std::numeric_limits<uint64_t>::max())
                         {
                             hasDiff = 0.0f;
-                        }
-                        if (loadInfo == TextureLoadInfo::Transparent)
-                        {
-                            gpuMat.opacity = -2.0f; // encodes "I have transparency in my diff texture"
                         }
                         break;
                     case aiTextureType_SPECULAR:
@@ -183,11 +178,11 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         break;
                     case aiTextureType_OPACITY:
                         gpuMat.opacityTexture = texID;
-                        if (texID == std::numeric_limits<uint64_t>::max() && gpuMat.opacity != -2.0f)
+                        if (texID == std::numeric_limits<uint64_t>::max())
                         {
                             gpuMat.opacity = 1.0f;
                         }
-                        else if(gpuMat.opacity != 2.0f)
+                        else
                         {
                             // encode "having an opacity texture" like this
                             gpuMat.opacity = -1.0f;
@@ -207,7 +202,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
             float Ns = -1.0f;
             mat->Get(AI_MATKEY_SHININESS, Ns);
 
-            if(gpuMat.opacity != -1.0f && gpuMat.opacity != -2.0f) // only load opacity if no opacity texture exists and no opacity is in alpha
+            if(gpuMat.opacity != -1.0f) // only load opacity if no opacity texture exists
             {
                 mat->Get(AI_MATKEY_OPACITY, gpuMat.opacity);   
             }
@@ -234,16 +229,15 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 	std::vector<std::shared_ptr<Mesh>> transparentMeshes;
 	for (int i = 0; i < m_meshes.size(); i++)
 	{
-        if (PhongGPUMaterial mat = m_gpuMaterials.at(m_meshes.at(i)->getMaterialIndex());
-        (mat.opacityTexture != -1 && mat.opacity != 1) || mat.opacity == -2.0f)
-        {
-            transparentMeshes.push_back(m_meshes.at(i));
-            m_meshes.erase(m_meshes.begin() + i--);
-        }
-    }
-    m_meshes.insert(m_meshes.end(), transparentMeshes.begin(), transparentMeshes.end());
+		if (PhongGPUMaterial mat = m_gpuMaterials.at(m_meshes.at(i)->getMaterialIndex()); mat.opacityTexture != -1 && mat.opacity != 1)
+		{
+			transparentMeshes.push_back(m_meshes.at(i));
+			m_meshes.erase(m_meshes.begin() + i--);
+		}
+	}
+	m_meshes.insert(m_meshes.end(), transparentMeshes.begin(), transparentMeshes.end());
 
-    unsigned start = 0;
+	unsigned start = 0;
     unsigned baseVertexOffset = 0;
     for (const auto& mesh : m_meshes)
     {

@@ -3,12 +3,20 @@
 using namespace gl;
 #include <filesystem>
 
+enum class TextureLoadInfo
+{
+    None,
+    Transparent,
+    Opaque,
+    Other
+};
+
 class Texture
 {
 public:
     explicit Texture(GLenum target = GL_TEXTURE_2D, GLenum minFilter = GL_LINEAR, GLenum maxFilter = GL_LINEAR);
     virtual ~Texture();
-    virtual void loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4);
+    virtual TextureLoadInfo loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4);
     virtual GLuint64 generateHandle();
 
 	template<typename T, typename = decltype(std::data(std::declval<T>()))>
@@ -34,6 +42,8 @@ public:
         glClearTexImage(m_name, level, format, type, &data);
     }
 
+    TextureLoadInfo getTextureLoadInfo() const;
+
     GLuint64 getHandle() const;
     GLuint getName() const;
 
@@ -46,6 +56,8 @@ protected:
     int m_width = 0;
     int m_height = 0;
     int m_depth = 0;
+
+    TextureLoadInfo m_textureLoadInfo = TextureLoadInfo::None;
 };
 
 template<typename T, typename>

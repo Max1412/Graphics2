@@ -35,7 +35,7 @@ void Cubemap::initWithoutData(int width, int height, GLenum internalFormat, GLen
     //}
 }
 
-void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
+TextureLoadInfo Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
     // load the first image to get the width, height
     std::string path(texturePath.string());
@@ -95,4 +95,7 @@ void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePat
         // let the cpu data of the image go
         stbi_image_free(imageData);
     }
+
+    m_textureLoadInfo = TextureLoadInfo::Other;
+    return m_textureLoadInfo;
 }

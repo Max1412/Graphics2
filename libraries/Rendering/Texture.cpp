@@ -26,7 +26,7 @@ Texture::~Texture()
     std::cout << "texture destructor called" << std::endl;
 }
 
-void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
+TextureLoadInfo Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
     glEnable(GL_TEXTURE_2D);
     int imageWidth, imageHeight, numChannels;
@@ -37,6 +37,11 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
 
         if (!imageData)
             throw std::runtime_error("Image couldn't be loaded");
+
+        if (numChannels == 4 && imageData[3] != 255)
+            m_textureLoadInfo = TextureLoadInfo::Transparent;
+        else
+            m_textureLoadInfo = TextureLoadInfo::Opaque;
 
         glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
         glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageData);
@@ -52,6 +57,8 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
         if (!imageFloat)
             throw std::runtime_error("Image couldn't be loaded");
 
+        m_textureLoadInfo = TextureLoadInfo::Other;
+
         glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
         glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageFloat);
 
@@ -62,6 +69,8 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
 
     m_width = imageWidth;
     m_height = imageHeight;
+
+    return m_textureLoadInfo;
 }
 
 GLuint64 Texture::generateHandle()
@@ -122,6 +131,11 @@ void Texture::setMinMagFilter(GLenum minFilter, GLenum magFilter) const
 void Texture::generateMipmap() const
 {
     glGenerateTextureMipmap(m_name);
+}
+
+TextureLoadInfo Texture::getTextureLoadInfo() const
+{
+	return m_textureLoadInfo;
 }
 
 GLuint64 Texture::getHandle() const
