@@ -361,14 +361,14 @@ int main()
         if (!dbgrndr)
         {
             // render skybox first
-            glDepthMask(GL_FALSE);
-            glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
+			glDisable(GL_DEPTH_TEST);
             glDisable(GL_CULL_FACE);
             skyboxSP.use();
             cube.draw();
             glEnable(GL_CULL_FACE);
             glEnable(GL_DEPTH_TEST);
-            glDepthMask(GL_TRUE);
+			glDepthMask(GL_TRUE);
 
             sceneVec.at(curScene)->multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
         }
@@ -529,10 +529,10 @@ int main()
                     sceneVec.at(curScene)->bindGPUbuffers();
 
                     // reset camera and upload it to gpu
+
                     playerCamera.setPosition(sceneParams.at(curScene).cameraPos);
                     playerCamera.setTheta(sceneParams.at(curScene).theta);
                     playerCamera.setPhi(sceneParams.at(curScene).phi);
-                    playerCamera.setSensitivityFromBBox(sceneVec.at(curScene)->getOuterBoundingBox());
 
                     u_maxRange->setContent(sceneParams.at(curScene).maxRange);
 

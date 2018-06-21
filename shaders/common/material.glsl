@@ -43,3 +43,9 @@ vec3 getSpecColor(int materialIndex)
     else
         return currentMaterial.specColor.rgb;
 }
+
+float getDiffTextureAlpha(int materialIndex)
+{
+    Material currentMaterial = materials[materialIndex];
+    return texture(currentMaterial.diffTexture, passTexCoord.rg).a;
+}

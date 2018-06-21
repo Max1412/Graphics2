@@ -47,12 +47,10 @@ void main()
 
     if (currentMaterial.opacity == -1.0f) // has opacity texture instead of opacity
         col.a = texture(currentMaterial.opacityTexture, passTexCoord.rg).r;
+    else if (currentMaterial.opacity == -2.0f)
+        col.a = getDiffTextureAlpha(materialIndex);
     else
         col.a = currentMaterial.opacity;
-
-    // SPONZA HACK
-    // if (col.a <= 0.9f)
-    //     discard;
 
     fragColor = col;
 }
