@@ -404,61 +404,62 @@ bool Light::showLightGUIContent(const std::string& name)
     fullName << name << " (Type: " << lightTypeNames[static_cast<int>(m_type)] << ")";
     bool lightChanged = false;
     bool matNeedsUpdate = false;
-    ImGui::Text(fullName.str().c_str());
-    if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
-    {
-        lightChanged = true;
-    }
-    if (ImGui::SliderInt((std::string("PCF Kernel Size ") + name).c_str(), &m_gpuLight.pcfKernelSize, 0, 10))
-    {
-        lightChanged = true;
-    }
-    if (m_type == LightType::directional || m_type == LightType::spot)
-    {
-        if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
-        {
-            lightChanged = true;
-            matNeedsUpdate = true;
-        }
-    }
-    if (m_type == LightType::spot)
-    {
-        if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
-        {
-            lightChanged = true;
-            matNeedsUpdate = true;
-			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
-				m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001f;
-        }
-        if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
-        {
-            lightChanged = true;
-            matNeedsUpdate = true;
-			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
-				m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001f;
-        }
-    }
-    if (m_type == LightType::spot || m_type == LightType::point)
-    {
-        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
-        {
-            lightChanged = true;
-            matNeedsUpdate = true;
-        }
-        if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 0.25f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 0.1f))
-        {
-            lightChanged = true;
-        }
-    }
-
+	if (ImGui::CollapsingHeader(fullName.str().c_str()))
+	{
+		if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
+		{
+			lightChanged = true;
+		}
+		if (ImGui::SliderInt((std::string("PCF Kernel Size ") + name).c_str(), &m_gpuLight.pcfKernelSize, 0, 10))
+		{
+			lightChanged = true;
+		}
+		if (m_type == LightType::directional || m_type == LightType::spot)
+		{
+			if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+			}
+		}
+		if (m_type == LightType::spot)
+		{
+			if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+				if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+					m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001f;
+			}
+			if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+				if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+					m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001f;
+			}
+		}
+		if (m_type == LightType::spot || m_type == LightType::point)
+		{
+			if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+			}
+			if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
+			{
+				lightChanged = true;
+			}
+			if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 0.25f))
+			{
+				lightChanged = true;
+			}
+			if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 0.1f))
+			{
+				lightChanged = true;
+			}
+		}
+	}
     if (matNeedsUpdate) recalculateLightSpaceMatrix();
 
     return lightChanged;
