@@ -104,7 +104,7 @@ int main()
 
     Shader fxaaShader("fxaa.frag", GL_FRAGMENT_SHADER);
     ShaderProgram fxaaSP(fboVS, fxaaShader);
-    int fxaaIterations = 2;
+    int fxaaIterations = 8;
     auto u_fxaaIterations = std::make_shared<Uniform<int>>("iterations", fxaaIterations);
     auto u_fxaaTexHandle = std::make_shared<Uniform<GLuint64>>("screenTexture", fxaaTex[0].generateHandle());
     fxaaSP.addUniform(u_fxaaIterations);
@@ -134,9 +134,6 @@ int main()
     sp.addUniform(u_gridDim);
     accumSp.addUniform(u_gridDim);
 
-    auto u_debugMode = std::make_shared<Uniform<int>>("debugMode", 0);
-    sp.addUniform(u_debugMode);
-
     auto u_maxRange = std::make_shared<Uniform<float>>("maxRange", sceneParams.at(curScene).maxRange);
     sp.addUniform(u_maxRange);
 
@@ -160,9 +157,6 @@ int main()
 	SimplexNoise breakfastNoise(sceneParams.at(1).noise.scale, sceneParams.at(1).noise.speed, sceneParams.at(1).noise.densityFactor, sceneParams.at(1).noise.densityHeight);
 	sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
-    VoxelDebugRenderer vdbgr({ gridWidth, gridHeight, gridDepth }, ScreenInfo{ screenWidth, screenHeight, screenNear, screenFar });
-    glBindImageTexture(0, voxelGrid.getName(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F);
-
     // skybox stuff
     const Shader skyboxVS("cubemap2.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
     const Shader skyboxFS("cubemap2.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
@@ -178,8 +172,6 @@ int main()
     skyboxSP.addUniform(u_skyboxTexHandle);
 
     Timer timer;
-    int dbgcActive = 0;
-	bool dbgrndr = false;
 
 	// R E N D E R I N G
 
@@ -303,6 +295,7 @@ int main()
 	playerCamera.setPosition(sceneParams.at(curScene).cameraPos);
 	playerCamera.setTheta(sceneParams.at(curScene).theta);
 	playerCamera.setPhi(sceneParams.at(curScene).phi);
+    playerCamera.setSensitivityFromBBox(sceneVec.at(curScene)->getOuterBoundingBox());
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 
@@ -320,18 +313,10 @@ int main()
 
         glfwPollEvents();
 
-		vdbgr.updateCamera(window);
+        playerCamera.update(window);
+        matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
+        matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
 
-        if (dbgcActive)
-        {
-            //vdbgr.updateCamera(window);
-        }
-        else
-        {
-            playerCamera.update(window);
-            matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
-            matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
-		}
         lightMngrVec.at(curScene).renderShadowMapsCulled(*sceneVec.at(curScene));
 
         // render to fbo
@@ -359,22 +344,17 @@ int main()
 
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        //vdbgr.draw();
+        // render skybox first
+        glDepthMask(GL_FALSE);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        skyboxSP.use();
+        cube.draw();
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
 
-        if (!dbgrndr)
-        {
-            // render skybox first
-            glDepthMask(GL_FALSE);
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
-            skyboxSP.use();
-            cube.draw();
-            glEnable(GL_CULL_FACE);
-            glEnable(GL_DEPTH_TEST);
-            glDepthMask(GL_TRUE);
-
-            sceneVec.at(curScene)->multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
-        }
+        sceneVec.at(curScene)->multiDrawCulled(modelSp, playerProj * playerCamera.getView()); //modelLoader.multiDraw(modelSp);
 
         // render to fxaa fbo now
         hdrFBO.unbind();
@@ -498,8 +478,6 @@ int main()
                 ImGui::Text("Camera Settings");
                 ImGui::Separator();
 				ImGui::Text("Camera Position: (%.1f,%.1f,%.1f)", playerCamera.getPosition().x, playerCamera.getPosition().y, playerCamera.getPosition().z);
-                ImGui::RadioButton("Player Camera", &dbgcActive, 0); ImGui::SameLine();
-                ImGui::RadioButton("Debug Camera", &dbgcActive, 1);
                 ImGui::SliderFloat("Camera max voxel range", &u_maxRange->getContentRef(), 10.0f, screenFar);
                 if (ImGui::Button("Reset Player Camera"))
                 {
@@ -507,22 +485,14 @@ int main()
                     matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
                     matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
 				}
-                vdbgr.drawCameraGuiContent();
                 break;
             }
-            //Voxel debug renderer and shaders
+            //Shader GUIs
             case 3:
             {
-                vdbgr.drawGuiContent();
                 sp.showReloadShaderGUIContent({ scatterLightShader }, "Voxel");
                 accumSp.showReloadShaderGUIContent({ accumShader }, "Accumulation");
 				modelSp.showReloadShaderGUIContent({ modelVertexShader, modelFragmentShader }, "Forward Rendering");
-				ImGui::Checkbox("Render Debug Renderer", &dbgrndr);
-				if (dbgrndr)
-				{
-					dbgcActive = true;
-					vdbgr.draw();
-				}
                 break;
             }
             //Light
@@ -549,19 +519,8 @@ int main()
                     fogSSBO.setContentSubData(fog.fogDensity, offsetof(FogInfo, fogDensity));
                 break;
             }
-
-            case 6:
-            {
-                ImGui::Text("Image content settings");
-				ImGui::Separator();
-                ImGui::RadioButton("Full volumetric values (outColor)", &u_debugMode->getContentRef(), 0);
-                ImGui::RadioButton("worldPos, density", &u_debugMode->getContentRef(), 1);
-                ImGui::RadioButton("worldPos, outColor.r", &u_debugMode->getContentRef(), 2);
-                ImGui::RadioButton("lighting, density", &u_debugMode->getContentRef(), 3);
-                break;
-            }
             
-            case 7:
+            case 6:
             {
                 ImGui::Text("FBO settings");
 				ImGui::Separator();
