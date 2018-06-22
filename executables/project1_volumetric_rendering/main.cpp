@@ -72,6 +72,9 @@ int main()
     // set up imgui
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.PopupBorderSize = 0.0f;
+	style.WindowRounding = 2.0f;
 
     int curScene = 0;
     std::array<const char*, 3> scenes = { "Sponza", "Breakfast Room", "San Miguel" };
@@ -263,7 +266,7 @@ int main()
     }
     lightMngrVec.at(1).setOuterSceneBoundingBoxToAllLights(sceneVec.at(1)->getOuterBoundingBox());
     lightMngrVec.at(1).uploadLightsToGPU();
-
+	
     // SAN MIGUEL LIGHTS
     for (unsigned int i = 0; i < sceneParams.at(2).lights.size(); i++)
     {
@@ -291,7 +294,7 @@ int main()
     }
     lightMngrVec.at(2).setOuterSceneBoundingBoxToAllLights(sceneVec.at(2)->getOuterBoundingBox());
     lightMngrVec.at(2).uploadLightsToGPU();
-
+	
 	// set the active scene
     lightMngrVec.at(curScene).bindLightBuffer();
 	sceneVec.at(curScene)->bindGPUbuffers();
@@ -398,33 +401,79 @@ int main()
         {	//imgui window
             ImGui_ImplGlfwGL3_NewFrame();
             static int tab = 0;
-            ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize);
             //Menu
-            if (ImGui::BeginMenuBar())
-            {
-                if (ImGui::MenuItem("Density"))
-                    tab = 1;
-                if (ImGui::MenuItem("Camera"))
-                    tab = 2;
-                if (ImGui::MenuItem("Renderer"))
-                    tab = 3;
-                if (ImGui::MenuItem("Light"))
-                    tab = 4;
-                if (ImGui::MenuItem("Fog"))
-                    tab = 5;
-                if (ImGui::MenuItem("Image"))
-                    tab = 6;
-                if (ImGui::MenuItem("FBO"))
-                    tab = 7;
-                if (ImGui::MenuItem("Scene"))
-                    tab = 8;
-                ImGui::MenuItem("     ");
-                //ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20);
-                if (ImGui::MenuItem("x"))
-                    tab = 0;
-                ImGui::EndMenuBar();
-            }
+			if (ImGui::BeginMainMenuBar())
+			{
+				if (ImGui::MenuItem("Density"))
+					tab = 1;
+				if (ImGui::MenuItem("Camera"))
+					tab = 2;
+				if (ImGui::MenuItem("Renderer"))
+					tab = 3;
+				if (ImGui::MenuItem("Light"))
+					tab = 4;
+				if (ImGui::MenuItem("Fog"))
+					tab = 5;
+				if (ImGui::MenuItem("Image"))
+					tab = 6;
+				if (ImGui::MenuItem("FBO"))
+					tab = 7;
+				if (ImGui::BeginMenu("Scene"))
+				{
+					//list all scenes to select
+					for (int i = 0; i < static_cast<int>(scenes.size()); i++)
+					{
+						if (ImGui::Selectable(scenes[i], curScene == i))
+						{
+							curScene = i;
+							// bind active GPU light buffer
+							lightMngrVec.at(curScene).bindLightBuffer();
+
+							// bind active buffers from the scene
+							sceneVec.at(curScene)->bindGPUbuffers();
+
+							// reset camera and upload it to gpu
+							playerCamera.setPosition(sceneParams.at(curScene).cameraPos);
+							playerCamera.setTheta(sceneParams.at(curScene).theta);
+							playerCamera.setPhi(sceneParams.at(curScene).phi);
+							playerCamera.setSensitivityFromBBox(sceneVec.at(curScene)->getOuterBoundingBox());
+
+							u_maxRange->setContent(sceneParams.at(curScene).maxRange);
+
+							fog = { sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy, sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption, sceneParams.at(curScene).fog.density };
+							fogSSBO.setContentSubData(fog, 0);
+
+							if (curScene == 1)
+							{
+								breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
+							}
+							else if (curScene == 0)
+							{
+								sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
+							}
+							else if (curScene == 2)
+							{
+								// use breakfast room noise here too for now
+								breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
+								playerCamera.reset();
+							}
+							else
+							{
+								playerCamera.reset();
+							}
+
+							matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
+							matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
+						}
+					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::MenuItem("close"))
+					tab = 0;
+				ImGui::EndMainMenuBar();
+			}
             //Body
+			ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
             switch (tab) {
                 //Density
             case 1:
@@ -481,6 +530,7 @@ int main()
             case 5:
             {
                 ImGui::Text("Fog Settings");
+				ImGui::Separator();
                 if (ImGui::SliderFloat3("Albedo", value_ptr(fog.fogAlbedo), 0.0f, 1.0f))
                     fogSSBO.setContentSubData(fog.fogAlbedo, offsetof(FogInfo, fogAlbedo));
                 if (ImGui::SliderFloat("Anisotropy", &fog.fogAnisotropy, 0.0f, 1.0f))
@@ -497,6 +547,7 @@ int main()
             case 6:
             {
                 ImGui::Text("Image content settings");
+				ImGui::Separator();
                 ImGui::RadioButton("Full volumetric values (outColor)", &u_debugMode->getContentRef(), 0);
                 ImGui::RadioButton("worldPos, density", &u_debugMode->getContentRef(), 1);
                 ImGui::RadioButton("worldPos, outColor.r", &u_debugMode->getContentRef(), 2);
@@ -507,6 +558,7 @@ int main()
             case 7:
             {
                 ImGui::Text("FBO settings");
+				ImGui::Separator();
                 fboHDRtoLDRSP.showReloadShaderGUIContent({fboVS, fboHDRtoLDRFS});
                 if (ImGui::SliderFloat("Gamma", &gamma, 0.0f, 5.0f))
                     u_gamma->setContent(gamma);
@@ -517,52 +569,6 @@ int main()
                 break;
             }
 
-            case 8:
-            {
-                ImGui::Text("Scene selection");
-                if(ImGui::Combo("Scenes", &curScene, scenes.data(), static_cast<int>(scenes.size())))
-                {
-                    // bind active GPU light buffer
-                    lightMngrVec.at(curScene).bindLightBuffer();
-
-                    // bind active buffers from the scene
-                    sceneVec.at(curScene)->bindGPUbuffers();
-
-                    // reset camera and upload it to gpu
-                    playerCamera.setPosition(sceneParams.at(curScene).cameraPos);
-                    playerCamera.setTheta(sceneParams.at(curScene).theta);
-                    playerCamera.setPhi(sceneParams.at(curScene).phi);
-                    playerCamera.setSensitivityFromBBox(sceneVec.at(curScene)->getOuterBoundingBox());
-
-                    u_maxRange->setContent(sceneParams.at(curScene).maxRange);
-
-                    fog = { sceneParams.at(curScene).fog.albedo, sceneParams.at(curScene).fog.anisotropy, sceneParams.at(curScene).fog.scattering, sceneParams.at(curScene).fog.absorption, sceneParams.at(curScene).fog.density };
-                    fogSSBO.setContentSubData(fog, 0);
-
-					if (curScene == 1)
-					{
-						breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
-					}
-					else if(curScene == 0)
-					{
-						sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
-					}
-                    else if(curScene == 2)
-                    {
-                        // use breakfast room noise here too for now
-                        breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
-                        playerCamera.reset();
-                    }
-					else
-					{
-						playerCamera.reset();
-					}
-
-					matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
-					matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
-                }
-                break;
-            }
             default:
                 break;
 
