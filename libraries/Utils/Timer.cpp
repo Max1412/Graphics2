@@ -40,27 +40,12 @@ void Timer::drawGuiWindow(GLFWwindow* window)
 {
     ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Performance");
-    ImGui::PlotLines("Frametime", m_ftimes.data(), static_cast<int>(m_ftimes.size()), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
-    auto flaccTime = 0.0f;
-    if (m_ftimes.size() > 21)
-    {
-        for (auto i = m_ftimes.size() - 21; i < m_ftimes.size(); ++i)
-        {
-            flaccTime += m_ftimes.at(i);
-        }
-        flaccTime /= 20.0f;
-    }
-    ImGui::Value("Frametime (milliseconds)", flaccTime);
-    if (ImGui::Button("Save FBO"))
-    {
-        util::saveFBOtoFile("demo1", window);
-    }
+	drawGuiContent(window);
     ImGui::End();
 }
 
-void Timer::drawGuiContent(GLFWwindow* window)
+void Timer::drawGuiContent(GLFWwindow* window, bool compact)
 {
-	ImGui::PlotLines("Frametime", m_ftimes.data(), static_cast<int>(m_ftimes.size()), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
 	auto flaccTime = 0.0f;
 	if (m_ftimes.size() > 21)
 	{
@@ -70,10 +55,29 @@ void Timer::drawGuiContent(GLFWwindow* window)
 		}
 		flaccTime /= 20.0f;
 	}
-	ImGui::Value("Frametime (milliseconds)", flaccTime);
-	ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 65);
-	if (ImGui::Button("Save FBO"))
+	if (compact)
 	{
-		util::saveFBOtoFile("demo1", window);
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		ImGui::Text("%.3f ms", flaccTime);
+		if (ImGui::IsItemClicked()) util::saveFBOtoFile("demo1", window);
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("Click to save FBO");
+			ImGui::EndTooltip();
+		}
+		ImGui::SameLine();
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth() + 8);
+		ImGui::PlotLines("", m_ftimes.data(), static_cast<int>(m_ftimes.size()), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
+	}
+	else
+	{
+		ImGui::PlotLines("Frametime", m_ftimes.data(), static_cast<int>(m_ftimes.size()), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
+		if (ImGui::Button("Save FBO"))
+		{
+			util::saveFBOtoFile("demo1", window);
+		}
+		ImGui::SameLine();
+		ImGui::Value("Frametime (milliseconds)", flaccTime);
 	}
 }

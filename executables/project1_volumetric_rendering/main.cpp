@@ -470,10 +470,16 @@ int main()
 				}
 				if (ImGui::MenuItem("close"))
 					tab = 0;
+				if (!tab)
+				{
+					ImGui::SameLine((ImGui::GetWindowContentRegionWidth() - ImGui::GetContentRegionAvailWidth() * 0.3f));
+					timer.drawGuiContent(window, true);
+				}
 				ImGui::EndMainMenuBar();
 			}
             //Body
-			ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+			if (tab)
+				ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
             switch (tab) {
                 //Density
             case 1:
@@ -573,9 +579,12 @@ int main()
                 break;
 
             }
-            if (tab) ImGui::Separator();
-            timer.drawGuiContent(window);
-            ImGui::End();
+			if (tab)
+			{
+				ImGui::Separator();
+				timer.drawGuiContent(window);
+				ImGui::End();
+			}
             ImGui::Render();
             ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
         }

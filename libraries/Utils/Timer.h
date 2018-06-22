@@ -31,8 +31,9 @@ public:
 	/**
 	* \brief returns conent for imgui with the frametime and a graph
 	* \param window
+	* \param compact show compact gui in one line
 	*/
-	void drawGuiContent(GLFWwindow* window);
+	void drawGuiContent(GLFWwindow* window, bool compact = false);
 
 private:
     std::vector<float> m_ftimes;
