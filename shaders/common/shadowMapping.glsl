@@ -32,6 +32,11 @@ float calculateShadowPCF(in int lightIndex, in vec3 worldPos, in vec3 worldNorma
 
     float shadow = 0.0f;
 
+    //gaussian stuff
+    float twoSigmaSq = max(1.0f, l.pcfKernelSize) * 2.0f;
+    float preFactor = 1.0f / (3.14159265f * twoSigmaSq);
+    float kernelSum = 0.0f;
+
     sampler2DShadow sm = sampler2DShadow(l.shadowMap);
     vec2 texelSize = 1.0f / textureSize(sm, 0);
     int kernelSize = l.pcfKernelSize * 2 + 1;
@@ -41,10 +46,12 @@ float calculateShadowPCF(in int lightIndex, in vec3 worldPos, in vec3 worldNorma
         for (int y = -go; y <= go; ++y)
         {
             vec4 tcOffset = vec4(vec2(x, y) * texelSize * worldPosLightSpace.w, 0.f, 0.f);
-            shadow += textureProj(sm, worldPosLightSpace + tcOffset);
+            float weight = preFactor * exp(-((x * x + y * y) / twoSigmaSq));
+            shadow += weight * textureProj(sm, worldPosLightSpace + tcOffset);
+            kernelSum += weight;
         }
     }
-    shadow /= kernelSize * kernelSize;
+    shadow /= kernelSum;
 
     return shadow;
 }
