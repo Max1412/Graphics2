@@ -25,6 +25,7 @@ using namespace gl;
 #include "Rendering/LightManager.h"
 #include "Rendering/Parameters.h"
 
+#include "IO/GuiFont.cpp"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
@@ -73,8 +74,17 @@ int main()
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
 	ImGuiStyle& style = ImGui::GetStyle();
+	style.WindowBorderSize = 0.0f;
 	style.PopupBorderSize = 0.0f;
 	style.WindowRounding = 2.0f;
+	ImGuiIO& io = ImGui::GetIO();
+	ImFont* font = io.Fonts->AddFontFromMemoryCompressedBase85TTF(GuiFont_compressed_data_base85, 16.0f);
+	ImFont* fontMono = io.Fonts->AddFontDefault();
+	fontMono->DisplayOffset.y = 2.0f;
+	ImVec4* colors = ImGui::GetStyle().Colors;
+	colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.94f);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+	colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 
     int curScene = 0;
     std::array<const char*, 3> scenes = { "Sponza", "Breakfast Room", "San Miguel" };
@@ -384,20 +394,18 @@ int main()
             //Menu
 			if (ImGui::BeginMainMenuBar())
 			{
-				if (ImGui::MenuItem("Density"))
-					tab = 1;
-				if (ImGui::MenuItem("Camera"))
-					tab = 2;
-				if (ImGui::MenuItem("Renderer"))
-					tab = 3;
 				if (ImGui::MenuItem("Light"))
-					tab = 4;
+					tab = tab == 4 ? 0 : 4;
+				if (ImGui::MenuItem("Density"))
+					tab = tab == 1 ? 0 : 1;
 				if (ImGui::MenuItem("Fog"))
-					tab = 5;
-				if (ImGui::MenuItem("Image"))
-					tab = 6;
+					tab = tab == 5 ? 0 : 5;
+				if (ImGui::MenuItem("Camera"))
+					tab = tab == 2 ? 0 : 2;
+				if (ImGui::MenuItem("Shader"))
+					tab = tab == 3 ? 0 : 3;
 				if (ImGui::MenuItem("FBO"))
-					tab = 7;
+					tab = tab == 6 ? 0 : 6;
 				if (ImGui::BeginMenu("Scene"))
 				{
 					//list all scenes to select
@@ -448,20 +456,21 @@ int main()
 					}
 					ImGui::EndMenu();
 				}
-				if (ImGui::MenuItem("close"))
-					tab = 0;
-				if (!tab)
-				{
-					ImGui::SameLine((ImGui::GetWindowContentRegionWidth() - ImGui::GetContentRegionAvailWidth() * 0.3f));
-					timer.drawGuiContent(window, true);
-				}
+
+				//change to monospaced font for timer
+				ImGui::PushFont(fontMono);
+				colors[ImGuiCol_FrameBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+				timer.drawGuiContent(window, true);
+				colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.29f, 0.48f, 0.54f);
+				ImGui::PopFont();
+
 				ImGui::EndMainMenuBar();
 			}
             //Body
 			if (tab)
 				ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
             switch (tab) {
-                //Density
+            //Density
             case 1:
             {
 				if(curScene == 0)
@@ -493,6 +502,7 @@ int main()
                 sp.showReloadShaderGUIContent({ scatterLightShader }, "Voxel");
                 accumSp.showReloadShaderGUIContent({ accumShader }, "Accumulation");
 				modelSp.showReloadShaderGUIContent({ modelVertexShader, modelFragmentShader }, "Forward Rendering");
+				fboHDRtoLDRSP.showReloadShaderGUIContent({ fboVS, fboHDRtoLDRFS }, "FBO: HDR to LDR");
                 break;
             }
             //Light
@@ -524,7 +534,6 @@ int main()
             {
                 ImGui::Text("FBO settings");
 				ImGui::Separator();
-                fboHDRtoLDRSP.showReloadShaderGUIContent({fboVS, fboHDRtoLDRFS});
                 if (ImGui::SliderFloat("Gamma", &gamma, 0.0f, 5.0f))
                     u_gamma->setContent(gamma);
                 if (ImGui::SliderFloat("Exposure", &exposure, 0.0f, 1.0f))
@@ -538,10 +547,8 @@ int main()
                 break;
 
             }
-			if (tab)
-			{
-				ImGui::Separator();
-				timer.drawGuiContent(window);
+			if (tab) {
+				ImGui::SetWindowPos(ImVec2(0, 22), ImGuiCond_Once);
 				ImGui::End();
 			}
             ImGui::Render();

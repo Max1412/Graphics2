@@ -55,9 +55,16 @@ void Timer::drawGuiContent(GLFWwindow* window, bool compact)
 		}
 		flaccTime /= 20.0f;
 	}
+	//show everything in one line
 	if (compact)
 	{
-		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+		float availableWidth = ImGui::GetContentRegionAvailWidth();
+		if (availableWidth >= 300)
+			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 300); 
+		else if (availableWidth >= 70)
+			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 70);
+
+		ImGui::PushItemWidth(70);
 		ImGui::Text("%.3f ms", flaccTime);
 		if (ImGui::IsItemClicked()) util::saveFBOtoFile("demo1", window);
 		if (ImGui::IsItemHovered())
@@ -66,9 +73,14 @@ void Timer::drawGuiContent(GLFWwindow* window, bool compact)
 			ImGui::Text("Click to save FBO");
 			ImGui::EndTooltip();
 		}
-		ImGui::SameLine();
-		ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth() + 8);
-		ImGui::PlotLines("", m_ftimes.data(), static_cast<int>(m_ftimes.size()), 0, nullptr, 0.0f, std::numeric_limits<float>::max());
+		//don't show plot if not enough space
+		if (availableWidth >= 300)
+		{
+			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 230);
+			ImGui::PushItemWidth(240);
+			int offset = m_ftimes.size() <= 240 ? m_ftimes.size() - 1 : 240;
+			ImGui::PlotLines("", &m_ftimes.back() - offset, offset, 0, nullptr, 0.0f, std::numeric_limits<float>::max());
+		}
 	}
 	else
 	{
