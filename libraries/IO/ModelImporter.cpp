@@ -144,7 +144,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         loadInfo = tex->loadFromFile(absTexPath);
                     }
                     texID = tex->generateHandle();
-                    tex->generateMipmap();
+                    //tex->generateMipmap();
                     m_texturemap.emplace(reltexPath.C_Str(), tex);
                 }
                 else // texture already loaded, store handle

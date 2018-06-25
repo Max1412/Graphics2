@@ -3,10 +3,9 @@
 #include "stb/stb_image.h"
 
 #include "Utils/UtilCollection.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.inl>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
 {
@@ -43,7 +42,8 @@ TextureLoadInfo Texture::loadFromFile(const std::experimental::filesystem::path&
         else
             m_textureLoadInfo = TextureLoadInfo::Opaque;
 
-        glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+        const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(imageWidth, imageHeight)))));
+        glTextureStorage2D(m_name, numLevels, internalFormat, imageWidth, imageHeight);
         glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageData);
 
         // let the cpu data of the image go
@@ -59,7 +59,8 @@ TextureLoadInfo Texture::loadFromFile(const std::experimental::filesystem::path&
 
         m_textureLoadInfo = TextureLoadInfo::Other;
 
-        glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+        const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(imageWidth, imageHeight)))));
+        glTextureStorage2D(m_name, numLevels, internalFormat, imageWidth, imageHeight);
         glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageFloat);
 
         // let the cpu data of the image go
@@ -69,6 +70,8 @@ TextureLoadInfo Texture::loadFromFile(const std::experimental::filesystem::path&
 
     m_width = imageWidth;
     m_height = imageHeight;
+
+    generateMipmap();
 
     return m_textureLoadInfo;
 }
@@ -85,7 +88,8 @@ GLuint64 Texture::generateHandle()
 void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 {
     glEnable(GL_TEXTURE_2D);
-    glTextureStorage2D(m_name, 1, internalFormat, width, height);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(width, height)))));
+    glTextureStorage2D(m_name, numLevels, internalFormat, width, height);
     m_width = width;
     m_height = height;
 }
@@ -93,7 +97,8 @@ void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 void Texture::initWithoutData3D(int width, int height, int depth, GLenum internalFormat)
 {
     glEnable(GL_TEXTURE_3D);
-	glTextureStorage3D(m_name, 1, internalFormat, width, height, depth);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(glm::max(width, height), depth)))));
+	glTextureStorage3D(m_name, numLevels, internalFormat, width, height, depth);
 	m_width = width;
 	m_height = height;
 	m_depth = depth;

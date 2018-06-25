@@ -2,6 +2,7 @@
 #include <glbinding/gl/gl.h>
 using namespace gl;
 #include <filesystem>
+#include <glm/glm.hpp>
 
 enum class TextureLoadInfo
 {
@@ -14,7 +15,7 @@ enum class TextureLoadInfo
 class Texture
 {
 public:
-    explicit Texture(GLenum target = GL_TEXTURE_2D, GLenum minFilter = GL_LINEAR, GLenum maxFilter = GL_LINEAR);
+    explicit Texture(GLenum target = GL_TEXTURE_2D, GLenum minFilter = GL_LINEAR_MIPMAP_LINEAR, GLenum maxFilter = GL_LINEAR);
     virtual ~Texture();
     virtual TextureLoadInfo loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, int desiredChannels = 4);
     virtual GLuint64 generateHandle();
@@ -64,8 +65,10 @@ template<typename T, typename>
 void Texture::initWithData1D(const T& container, GLint width, GLenum internalFormat, GLenum format, GLenum type)
 {
     glEnable(GL_TEXTURE_1D);
-	glTextureStorage1D(m_name, 1, internalFormat, width);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(width)));
+	glTextureStorage1D(m_name, numLevels, internalFormat, width);
 	glTextureSubImage1D(m_name, 0, 0, width, format, type, container.data());
+    generateMipmap();
 	m_width = width;
 }
 
@@ -73,8 +76,10 @@ template<typename T, typename>
 void Texture::initWithData2D(const T& container, GLint width, GLint height, GLenum internalFormat, GLenum format, GLenum type)
 {
     glEnable(GL_TEXTURE_2D);
-	glTextureStorage2D(m_name, 1, internalFormat, width, height);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(glm::max(width, height))));
+	glTextureStorage2D(m_name, numLevels, internalFormat, width, height);
 	glTextureSubImage2D(m_name, 0, 0, 0, width, height, format, type, container.data());
+    generateMipmap();
 	m_width = width;
 	m_height = height;
 }
@@ -83,8 +88,10 @@ template<typename T, typename>
 void Texture::initWithData3D(const T& container, GLint width, GLint height, GLint depth, GLenum internalFormat, GLenum format, GLenum type)
 {
     glEnable(GL_TEXTURE_3D);
-	glTextureStorage3D(m_name, 1, internalFormat, width, height, depth);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(glm::max(glm::max(width, height), depth))));
+	glTextureStorage3D(m_name, numLevels, internalFormat, width, height, depth);
 	glTextureSubImage3D(m_name, 0, 0, 0, 0, width, height, depth, format, type, container.data());
+    generateMipmap();
 	m_width = width;
 	m_height = height;
 	m_depth = depth;
