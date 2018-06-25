@@ -90,9 +90,9 @@ int main()
     std::array<const char*, 3> scenes = { "Sponza", "Breakfast Room", "San Miguel" };
 
     // F B O : H D R -> L D R
-    std::vector<Texture> hdrTex(1);
-    hdrTex[0].initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
-    FrameBuffer hdrFBO(hdrTex);
+    auto hdrTex = std::make_shared<Texture>();
+    hdrTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    FrameBuffer hdrFBO({ hdrTex });
 
     Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
     Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER);
@@ -100,23 +100,23 @@ int main()
     float exposure = 0.1f, gamma = 2.2f;
     auto u_exposure = std::make_shared<Uniform<float>>("exposure", exposure);
     auto u_gamma = std::make_shared<Uniform<float>>("gamma", gamma);
-    auto u_hdrTexHandle = std::make_shared<Uniform<GLuint64>>("inputTexture", hdrTex[0].generateHandle());
+    auto u_hdrTexHandle = std::make_shared<Uniform<GLuint64>>("inputTexture", hdrTex->generateHandle());
     fboHDRtoLDRSP.addUniform(u_exposure);
     fboHDRtoLDRSP.addUniform(u_gamma);
     fboHDRtoLDRSP.addUniform(u_hdrTexHandle);
 
     // F B O : F X A A
-    std::vector<Texture> fxaaTex(1);
-    fxaaTex[0].setMinMagFilter(GL_LINEAR, GL_LINEAR);
-    fxaaTex[0].setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-    fxaaTex[0].initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
-    FrameBuffer fxaaFBO(fxaaTex);
+    auto fxaaTex = std::make_shared<Texture>();
+    fxaaTex->setMinMagFilter(GL_LINEAR, GL_LINEAR);
+    fxaaTex->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+    fxaaTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    FrameBuffer fxaaFBO({ fxaaTex });
 
     Shader fxaaShader("fxaa.frag", GL_FRAGMENT_SHADER);
     ShaderProgram fxaaSP(fboVS, fxaaShader);
     int fxaaIterations = 8;
     auto u_fxaaIterations = std::make_shared<Uniform<int>>("iterations", fxaaIterations);
-    auto u_fxaaTexHandle = std::make_shared<Uniform<GLuint64>>("screenTexture", fxaaTex[0].generateHandle());
+    auto u_fxaaTexHandle = std::make_shared<Uniform<GLuint64>>("screenTexture", fxaaTex->generateHandle());
     fxaaSP.addUniform(u_fxaaIterations);
     fxaaSP.addUniform(u_fxaaTexHandle);
 

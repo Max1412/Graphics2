@@ -65,7 +65,7 @@ template<typename T, typename>
 void Texture::initWithData1D(const T& container, GLint width, GLenum internalFormat, GLenum format, GLenum type)
 {
     glEnable(GL_TEXTURE_1D);
-    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(width)));
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(width))));
 	glTextureStorage1D(m_name, numLevels, internalFormat, width);
 	glTextureSubImage1D(m_name, 0, 0, width, format, type, container.data());
     generateMipmap();
@@ -76,7 +76,7 @@ template<typename T, typename>
 void Texture::initWithData2D(const T& container, GLint width, GLint height, GLenum internalFormat, GLenum format, GLenum type)
 {
     glEnable(GL_TEXTURE_2D);
-    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(glm::max(width, height))));
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(width, height)))));
 	glTextureStorage2D(m_name, numLevels, internalFormat, width, height);
 	glTextureSubImage2D(m_name, 0, 0, 0, width, height, format, type, container.data());
     generateMipmap();

@@ -58,7 +58,7 @@ void Timer::drawGuiContent(GLFWwindow* window, bool compact)
 	//show everything in one line
 	if (compact)
 	{
-		float availableWidth = ImGui::GetContentRegionAvailWidth();
+		const float availableWidth = ImGui::GetContentRegionAvailWidth();
 		if (availableWidth >= 300)
 			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 300); 
 		else if (availableWidth >= 70)
@@ -78,7 +78,7 @@ void Timer::drawGuiContent(GLFWwindow* window, bool compact)
 		{
 			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 230);
 			ImGui::PushItemWidth(240);
-			int offset = m_ftimes.size() <= 240 ? m_ftimes.size() - 1 : 240;
+			const auto offset = static_cast<int>(m_ftimes.size() <= 240 ? m_ftimes.size() - 1 : 240);
 			ImGui::PlotLines("", &m_ftimes.back() - offset, offset, 0, nullptr, 0.0f, std::numeric_limits<float>::max());
 		}
 	}

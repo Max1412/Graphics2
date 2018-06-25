@@ -2,14 +2,14 @@
 #include <GLFW/glfw3.h>
 #include "Utils/UtilCollection.h"
 
-FrameBuffer::FrameBuffer(const std::vector<Texture>& rendertargets, const bool useDepthStencil, const GLenum renderbufferFormat)
+FrameBuffer::FrameBuffer(const std::vector<std::shared_ptr<Texture>>& rendertargets, const bool useDepthStencil, const GLenum renderbufferFormat)
 {
     glCreateFramebuffers(1, &m_name);
     bind();
     int attachmentNumber = 0;
     for (const auto& texture : rendertargets)
     {
-        glNamedFramebufferTexture(m_name, GL_COLOR_ATTACHMENT0 + attachmentNumber, texture.getName(), 0);
+        glNamedFramebufferTexture(m_name, GL_COLOR_ATTACHMENT0 + attachmentNumber, texture->getName(), 0);
         attachmentNumber++;
     }
     auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -17,7 +17,7 @@ FrameBuffer::FrameBuffer(const std::vector<Texture>& rendertargets, const bool u
         throw std::runtime_error("Framebuffer is not complete!");
     if (useDepthStencil)
     {
-        attachDepthStencil(rendertargets.at(0).getWidth(), rendertargets.at(0).getHeight(), renderbufferFormat);
+        attachDepthStencil(rendertargets.at(0)->getWidth(), rendertargets.at(0)->getHeight(), renderbufferFormat);
     }
     fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (fboStatus != GL_FRAMEBUFFER_COMPLETE)

@@ -4,7 +4,7 @@
 class FrameBuffer
 {
 public:
-    explicit FrameBuffer(const std::vector<Texture>& rendertargets, const bool useDepthStencil = true, const GLenum renderbufferFormat = GL_DEPTH24_STENCIL8);
+    explicit FrameBuffer(const std::vector<std::shared_ptr<Texture>>& rendertargets, const bool useDepthStencil = true, const GLenum renderbufferFormat = GL_DEPTH24_STENCIL8);
 
     // CAUTION: This constructor is only for rendering exclusively to a depth attachment
     FrameBuffer(GLenum attachmentType, const Texture& depthAttachment);
