@@ -1,67 +1,67 @@
 {
-  "configurations": [
-    {
-      "name": "x64-Debug",
-      "generator": "Visual Studio 15 2017 Win64",
-      "configurationType": "Debug",
-      "inheritEnvironments": [
-        "msvc_x64_x64"
-      ],
-      "buildRoot": "${projectDir}\\CMakeBuild\\${name}",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "-m -v:minimal",
-      "variables": [
-        {
-          "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": ""
-        },
-        {
-          "name": "VCPKG_TARGET_TRIPLET",
-          "value": "x64-windows"
-        }
-      ]
-    },
-    {
-      "name": "x64-Release",
-      "generator": "Visual Studio 15 2017 Win64",
-      "configurationType": "Release",
-      "inheritEnvironments": [
-        "msvc_x64_x64"
-      ],
-      "buildRoot": "${projectDir}\\CMakeBuild\\${name}",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "-m -v:minimal",
-      "variables": [
-        {
-          "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": ""
-        },
-        {
-          "name": "VCPKG_TARGET_TRIPLET",
-          "value": "x64-windows"
-        }
-      ]
-    },
-    {
-      "name": "x64-RelWithDebInfo",
-      "generator": "Visual Studio 15 2017 Win64",
-      "configurationType": "RelWithDebInfo",
-      "inheritEnvironments": [
-        "msvc_x64_x64"
-      ],
-      "buildRoot": "${projectDir}\\CMakeBuild\\${name}",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "-m -v:minimal",
-      "variables": [
-        {
-          "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": ""
-        },
-        {
-          "name": "VCPKG_TARGET_TRIPLET",
-          "value": "x64-windows"
-        }
-      ]
-    }
-  ]
+    "configurations":  [
+       {
+           "name":  "Debug-x64",
+           "generator":  "Visual Studio 15 2017 Win64",
+           "configurationType":  "Debug",
+           "inheritEnvironments":  [
+                                       "msvc_x64_x64"
+                                   ],
+           "buildRoot":  "${projectDir}\\CMakeBuild\\${name}",
+           "cmakeCommandArgs":  "",
+           "buildCommandArgs":  "-m -v:minimal",
+           "variables":  [
+                             {
+                                 "name":  "CMAKE_TOOLCHAIN_FILE",
+                                 "value":  ""
+                             },
+                             {
+                                 "name":  "VCPKG_TARGET_TRIPLET",
+                                 "value":  "x64-windows"
+                             }
+                         ]
+       },
+      {
+        "name": "Release-x64",
+        "generator": "Visual Studio 15 2017 Win64",
+        "configurationType": "Release",
+        "inheritEnvironments": [
+          "msvc_x64_x64"
+        ],
+        "buildRoot": "${projectDir}\\CMakeBuild\\${name}",
+        "cmakeCommandArgs": "",
+        "buildCommandArgs": "-m -v:minimal",
+        "variables": [
+          {
+            "name": "CMAKE_TOOLCHAIN_FILE",
+            "value": ""
+          },
+          {
+            "name": "VCPKG_TARGET_TRIPLET",
+            "value": "x64-windows"
+          }
+        ]
+      },
+      {
+        "name": "RelWithDebInfox64",
+        "generator": "Visual Studio 15 2017 Win64",
+        "configurationType": "RelWithDebInfo",
+        "inheritEnvironments": [
+          "msvc_x64_x64"
+        ],
+        "buildRoot": "${projectDir}\\CMakeBuild\\${name}",
+        "cmakeCommandArgs": "",
+        "buildCommandArgs": "-m -v:minimal",
+        "variables": [
+          {
+            "name": "CMAKE_TOOLCHAIN_FILE",
+            "value": ""
+          },
+          {
+            "name": "VCPKG_TARGET_TRIPLET",
+            "value": "x64-windows"
+          }
+        ]
+      }
+                       ]
 }

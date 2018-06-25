@@ -65,14 +65,16 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         // TODO what to do with missing transformation
 
         // assign transformation to meshes
-        for (unsigned i = 0; i < node->mNumMeshes; i++)
+#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(node->mNumMeshes); ++i)
         {
             m_meshes.at(node->mMeshes[i])->setModelMatrix(trans);
             m_modelMatrices.at(node->mMeshes[i]) = trans;
         }
 
         // recursively work on the child nodes
-        for (unsigned i = 0; i < node->mNumChildren; i++)
+#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(node->mNumChildren); ++i)
         {
             traverseChildren(node->mChildren[i], trans);
         }
