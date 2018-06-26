@@ -11,11 +11,11 @@ layout(binding = CAMERA_BINDING, std430) buffer cameraBuffer
     vec3 camPos;
 };
 
-out vec3 passNormal;
-out vec3 passTexCoord;
-out vec3 passWorldPos;
-out vec3 passViewPos;
-flat out uint passDrawID;
+layout(location = 0) out vec3 passFragPos;
+layout(location = 1) out vec3 passTexCoord;
+layout(location = 2) out vec3 passNormal;
+layout(location = 3) out vec3 passViewPos;
+layout(location = 4) flat out uint passDrawID;
 
 layout (std430, binding = MODELMATRICES_BINDING) buffer ModelMatrixBuffer
 {
@@ -28,7 +28,7 @@ void main()
     passDrawID = gl_DrawID;
 
     vec4 worldPos = modelMatrix * vec4(vertexPosition, 1.0f);
-    passWorldPos = worldPos.xyz;
+    passFragPos = worldPos.xyz;
 
     vec4 viewPos = viewMatrix * worldPos;
     passViewPos = viewPos.xyz;

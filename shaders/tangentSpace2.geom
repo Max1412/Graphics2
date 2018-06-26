@@ -4,16 +4,18 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
 layout(location = 0) in vec3 passFragPos[];
-layout(location = 1) in vec3 passNormal[];
-layout(location = 2) in vec3 passTexCoord[];
-layout(location = 3) flat in uint passDrawID[];
+layout(location = 1) in vec3 passTexCoord[];
+layout(location = 2) in vec3 passNormal[];
+layout(location = 3) in vec3 passViewPos[];
+layout(location = 4) flat in uint passDrawID[];
 
 layout(location = 0) out vec3 pos;
 layout(location = 1) out vec3 texCoord;
 layout(location = 2) out vec3 normal;
-layout(location = 3) flat out uint drawID;
-layout(location = 4) out vec3 tangent;
-layout(location = 5) out vec3 bitangent;
+layout(location = 3) out vec3 viewPos;
+layout(location = 4) flat out uint drawID;
+layout(location = 5) out vec3 tangent;
+layout(location = 6) out vec3 bitangent;
 
 void main() {
 
@@ -41,6 +43,7 @@ void main() {
         texCoord = passTexCoord[i];
         pos = passFragPos[i];
 		normal = normalize(passNormal[i]);
+		viewPos = passViewPos[i];
         EmitVertex();
 	}
 	EndPrimitive();

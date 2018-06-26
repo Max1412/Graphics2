@@ -186,8 +186,9 @@ int main()
 	// R E N D E R I N G
 
 	Shader modelVertexShader("modelVertVolumetricMD.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
-	Shader modelFragmentShader("modelFragVolumetricMD.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
-	ShaderProgram modelSp(modelVertexShader, modelFragmentShader);
+    Shader modelGeometryShader("tangentSpace2.geom", GL_GEOMETRY_SHADER, BufferBindings::g_definitions);
+	Shader modelFragmentShader("modelFragVolumetricMDBump.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
+    ShaderProgram modelSp({ modelVertexShader, modelGeometryShader, modelFragmentShader });
 
     auto u_voxelGridTex = std::make_shared<Uniform<GLuint64>>("voxelGrid", voxelGrid.generateHandle());
     auto u_screenRes = std::make_shared<Uniform<glm::vec2>>("screenRes", glm::vec2(screenWidth, screenHeight));

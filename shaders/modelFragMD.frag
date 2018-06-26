@@ -6,11 +6,10 @@ layout(early_fragment_tests) in;
 uniform vec3 cameraPos;
 uniform mat4 viewMatrix;
 
-in vec3 passNormal;
-in vec3 passTexCoord;
-in vec3 passFragPos;
-
-flat in uint passDrawID;
+layout(location = 0) in vec3 passFragPos;
+layout(location = 1) in vec3 passNormal;
+layout(location = 2) in vec3 passTexCoord;
+layout(location = 3) flat in uint passDrawID;
 
 #include "common/light.glsl"
 #include "common/material.glsl"
