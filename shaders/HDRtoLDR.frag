@@ -23,8 +23,6 @@ vec3 Uncharted2Tonemap(vec3 x)
    return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
-#define SAMPLE_COUNT 4
-
 void main() 
 {
     vec3 hdrColor = vec3(0.0f);

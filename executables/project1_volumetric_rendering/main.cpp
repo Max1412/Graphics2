@@ -97,7 +97,7 @@ int main()
     FrameBuffer hdrFBO({ hdrTex }, true, GL_DEPTH24_STENCIL8, samples);
 
     Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
-    Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER);
+    Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER, { glsp::definition("SAMPLE_COUNT", samples) });
     ShaderProgram fboHDRtoLDRSP(fboVS, fboHDRtoLDRFS);
     float exposure = 0.1f, gamma = 2.2f;
     auto u_exposure = std::make_shared<Uniform<float>>("exposure", exposure);
