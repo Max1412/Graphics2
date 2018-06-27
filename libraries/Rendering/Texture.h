@@ -30,6 +30,7 @@ public:
 	void initWithData3D(const T& container, GLint width, GLint height, GLint depth, GLenum internalFormat = GL_RGBA8, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
 	
 	virtual void initWithoutData(int width, int height, GLenum internalFormat);
+    virtual void initWithoutDataMultiSample(int width, int height, GLenum internalFormat, GLsizei samples, GLboolean fixedSampleLocations);
     virtual void initWithoutData3D(int width, int height, int depth, GLenum internalFormat);
 
     void setWrap(GLenum wrapS, GLenum wrapT) const;

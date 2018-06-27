@@ -10,9 +10,12 @@
 Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
 {
     glCreateTextures(target, 1, &m_name);
-    glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
-    glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, maxFilter);
-    glObjectLabel(GL_TEXTURE, m_name, 1, "test");
+    glObjectLabel(GL_TEXTURE, m_name, -1, "test");
+    if(target != GLenum::GL_TEXTURE_2D_MULTISAMPLE)
+    {
+        glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
+        glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, maxFilter);
+    }
 }
 
 Texture::~Texture()
@@ -90,6 +93,14 @@ void Texture::initWithoutData(int width, int height, GLenum internalFormat)
     glEnable(GL_TEXTURE_2D);
     const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(width, height)))));
     glTextureStorage2D(m_name, numLevels, internalFormat, width, height);
+    m_width = width;
+    m_height = height;
+}
+
+void Texture::initWithoutDataMultiSample(int width, int height, GLenum internalFormat, GLsizei samples, GLboolean fixedSampleLocations)
+{
+    glEnable(GL_TEXTURE_2D);
+    glTextureStorage2DMultisample(m_name, samples, internalFormat, width, height, fixedSampleLocations);
     m_width = width;
     m_height = height;
 }

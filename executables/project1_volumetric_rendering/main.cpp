@@ -90,9 +90,11 @@ int main()
     std::array<const char*, 3> scenes = { "Sponza", "Breakfast Room", "San Miguel" };
 
     // F B O : H D R -> L D R
-    auto hdrTex = std::make_shared<Texture>();
-    hdrTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
-    FrameBuffer hdrFBO({ hdrTex });
+    auto hdrTex = std::make_shared<Texture>(GL_TEXTURE_2D_MULTISAMPLE);
+    //hdrTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    constexpr int samples = 4;
+    hdrTex->initWithoutDataMultiSample(screenWidth, screenHeight, GL_RGBA32F, samples, true);
+    FrameBuffer hdrFBO({ hdrTex }, true, GL_DEPTH24_STENCIL8, samples);
 
     Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
     Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER);
@@ -203,7 +205,7 @@ int main()
 	std::vector<std::shared_ptr<ModelImporter>> sceneVec = {
 	    std::make_shared<ModelImporter>("sponza/sponza.obj"),
 	    std::make_shared<ModelImporter>("breakfast_room/breakfast_room.obj"),
-	    std::make_shared<ModelImporter>("San_Miguel/san-miguel.obj")
+	    std::make_shared<ModelImporter>("San_Miguel/san-miguel-low-poly.obj")
 	};
 
     // not needed for multidraw
