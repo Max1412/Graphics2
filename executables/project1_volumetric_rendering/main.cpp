@@ -167,6 +167,8 @@ int main()
 
     SimplexNoise sponzaNoise(sceneParams.at(0).noise.scale, sceneParams.at(0).noise.speed, sceneParams.at(0).noise.densityFactor, sceneParams.at(0).noise.densityHeight);
 	SimplexNoise breakfastNoise(sceneParams.at(1).noise.scale, sceneParams.at(1).noise.speed, sceneParams.at(1).noise.densityFactor, sceneParams.at(1).noise.densityHeight);
+	SimplexNoise miguelNoise(sceneParams.at(2).noise.scale, sceneParams.at(2).noise.speed, sceneParams.at(2).noise.densityFactor, sceneParams.at(2).noise.densityHeight);
+
 	sponzaNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
 
     // skybox stuff
@@ -341,6 +343,7 @@ int main()
 
         sponzaNoise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
 		breakfastNoise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
+		miguelNoise.getNoiseBuffer().setContentSubData(static_cast<float>(glfwGetTime()), offsetof(GpuNoiseInfo, time));
 
         sp.use();
         glDispatchCompute(static_cast<GLint>(std::ceil(gridWidth / static_cast<float>(groupSize))),
@@ -403,18 +406,15 @@ int main()
 					lightMngrVec.at(curScene).showLightGUIsContent();
 					ImGui::EndMenu();
 				}
-				if (ImGui::BeginMenu("Density"))
+				if (ImGui::BeginMenu("Density/Fog"))
 				{
 					if (curScene == 0)
 						sponzaNoise.showNoiseGUIContent();
 					else if (curScene == 1)
 						breakfastNoise.showNoiseGUIContent();
-					if (curScene == 2)
-						breakfastNoise.showNoiseGUIContent();
-					ImGui::EndMenu();
-				}
-				if (ImGui::BeginMenu("Fog"))
-				{
+					else if (curScene == 2)
+						miguelNoise.showNoiseGUIContent();
+					ImGui::Separator();
 					ImGui::Text("Fog Settings");
 					ImGui::Separator();
 					if (ImGui::SliderFloat3("Albedo", value_ptr(fog.fogAlbedo), 0.0f, 1.0f))
@@ -499,8 +499,8 @@ int main()
 							else if (curScene == 2)
 							{
 								// use breakfast room noise here too for now
-								breakfastNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
-								playerCamera.reset();
+								miguelNoise.bindNoiseBuffer(static_cast<BufferBindings::Binding>(3));
+								//playerCamera.reset();
 							}
 							else
 							{

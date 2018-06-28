@@ -406,7 +406,7 @@ bool Light::showLightGUIContent(const std::string& name)
     bool matNeedsUpdate = false;
 	if (ImGui::CollapsingHeader(fullName.str().c_str()))
 	{
-		if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
+		if (ImGui::DragFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color)))
 		{
 			lightChanged = true;
 		}
@@ -441,7 +441,7 @@ bool Light::showLightGUIContent(const std::string& name)
 		}
 		if (m_type == LightType::spot || m_type == LightType::point)
 		{
-			if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
+			if (ImGui::DragFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position)))
 			{
 				lightChanged = true;
 				matNeedsUpdate = true;
