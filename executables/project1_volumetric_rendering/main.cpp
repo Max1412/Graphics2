@@ -198,6 +198,7 @@ int main()
 	modelSp.addUniform(u_maxRange);
     modelSp.addUniform(u_voxelGridTex);
     modelSp.addUniform(u_screenRes);
+    modelSp.addUniform(u_skyboxTexHandle);
     skyboxSP.addUniform(u_maxRange);
     skyboxSP.addUniform(u_voxelGridTex);
     skyboxSP.addUniform(u_screenRes);

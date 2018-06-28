@@ -50,7 +50,8 @@ TextureLoadInfo Cubemap::loadFromFile(const std::experimental::filesystem::path&
     m_width = imageWidth;
     m_height = imageHeight;
 
-    glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(imageWidth, imageHeight)))));
+    glTextureStorage2D(m_name, numLevels, internalFormat, imageWidth, imageHeight);
 
     glTextureParameteri(m_name, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(m_name, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -95,6 +96,8 @@ TextureLoadInfo Cubemap::loadFromFile(const std::experimental::filesystem::path&
         // let the cpu data of the image go
         stbi_image_free(imageData);
     }
+
+    glGenerateTextureMipmap(m_name);
 
     m_textureLoadInfo = TextureLoadInfo::Other;
     return m_textureLoadInfo;

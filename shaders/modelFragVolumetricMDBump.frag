@@ -23,6 +23,8 @@ layout(location = 6) in vec3 bitangent;
 #include "common/shadowMapping.glsl"
 #include "common/volumetricLighting.glsl"
 
+layout(bindless_sampler) uniform samplerCube skybox;
+
 out vec4 fragColor;
 
 void main()
@@ -64,7 +66,8 @@ void main()
 		normal = normalize(passNormal);
 	}
 
-    vec3 lightingColor = ambient;
+    vec3 lightingColor = ambient * diffCol;
+	vec3 reflection = 2.0f * textureLod(skybox, reflect(-viewDir, normal), 5).rgb;
 
     for (int i = 0; i < lights.length(); i++)
     {
@@ -72,6 +75,8 @@ void main()
         float shadowFactor = calculateShadowPCF(i, passWorldPos, normal, lRes.direction);
         lightingColor += shadowFactor * (diffCol * lRes.diffuse + specCol * lRes.specular);
     }
+	if(dot(diffCol, diffCol) < 0.1f && currentMaterial.Ns > 50.0f)
+		lightingColor = mix(lightingColor, reflection, clamp(currentMaterial.Ns / 100.0f, 0.0f, 1.0f));
     lightingColor = applyVolumetricLightingManual(lightingColor, passViewPos.z);
     vec4 col = vec4(lightingColor, 1.0);
 
