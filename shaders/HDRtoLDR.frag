@@ -8,7 +8,7 @@ out vec4 fragColor;
 uniform float exposure;
 uniform float gamma;
 
-layout(bindless_sampler) uniform sampler2D inputTexture;
+layout(bindless_sampler) uniform sampler2DMS inputTexture;
 
 float A = 0.15;
 float B = 0.50;
@@ -25,7 +25,13 @@ vec3 Uncharted2Tonemap(vec3 x)
 
 void main() 
 {
-    vec3 hdrColor = texture(inputTexture, passTexCoord).rgb;
+    vec3 hdrColor = vec3(0.0f);
+
+    for (int i = 0; i < SAMPLE_COUNT; i++)
+        hdrColor += texelFetch(inputTexture, ivec2(gl_FragCoord.xy), i).rgb;
+
+    hdrColor /= SAMPLE_COUNT;
+
     // R E I N H A R D
     // Exposure tone mapping
     vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);

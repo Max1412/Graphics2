@@ -2,22 +2,26 @@
 #include <GLFW/glfw3.h>
 #include "Utils/UtilCollection.h"
 
-FrameBuffer::FrameBuffer(const std::vector<Texture>& rendertargets, const bool useDepthStencil, const GLenum renderbufferFormat)
+FrameBuffer::FrameBuffer(const std::vector<std::shared_ptr<Texture>>& rendertargets, const bool useDepthStencil, const GLenum renderbufferFormat, int samples)
 {
     glCreateFramebuffers(1, &m_name);
     bind();
     int attachmentNumber = 0;
     for (const auto& texture : rendertargets)
     {
-        glNamedFramebufferTexture(m_name, GL_COLOR_ATTACHMENT0 + attachmentNumber, texture.getName(), 0);
+        glNamedFramebufferTexture(m_name, GL_COLOR_ATTACHMENT0 + attachmentNumber, texture->getName(), 0);
         attachmentNumber++;
     }
     auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
         throw std::runtime_error("Framebuffer is not complete!");
-    if (useDepthStencil)
+    if (useDepthStencil && samples == 0)
     {
-        attachDepthStencil(rendertargets.at(0).getWidth(), rendertargets.at(0).getHeight(), renderbufferFormat);
+        attachDepthStencil(rendertargets.at(0)->getWidth(), rendertargets.at(0)->getHeight(), renderbufferFormat);
+    }
+    else if (useDepthStencil && samples > 0)
+    {
+        attachDepthStencilMultiSample(rendertargets.at(0)->getWidth(), rendertargets.at(0)->getHeight(), samples, renderbufferFormat);
     }
     fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
@@ -76,7 +80,17 @@ void FrameBuffer::attachDepthStencil(const int width, const int height, const GL
     glCreateRenderbuffers(1, &m_rbo);
     glNamedRenderbufferStorage(m_rbo, renderbufferFormat, width, height);
     if (renderbufferFormat == GL_DEPTH_COMPONENT16 || renderbufferFormat == GL_DEPTH_COMPONENT24 || renderbufferFormat == GL_DEPTH_COMPONENT32)
-    glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+        glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
     else
-    glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+        glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+}
+
+void FrameBuffer::attachDepthStencilMultiSample(const int width, const int height, const int samples, const GLenum renderbufferFormat)
+{
+    glCreateRenderbuffers(1, &m_rbo);
+    glNamedRenderbufferStorageMultisample(m_rbo, 4, renderbufferFormat, width, height);
+    if (renderbufferFormat == GL_DEPTH_COMPONENT16 || renderbufferFormat == GL_DEPTH_COMPONENT24 || renderbufferFormat == GL_DEPTH_COMPONENT32)
+        glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+    else
+        glNamedFramebufferRenderbuffer(m_name, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
 }

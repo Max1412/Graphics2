@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <glbinding/gl/gl.h>
 #include <glm/glm.hpp>
 #include "Buffer.h"
@@ -40,7 +41,7 @@ class Light
 {
 public:
 
-    Light(glm::vec3 color, glm::vec3 direction, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // DIRECTIONAL
+    Light(glm::vec3 color, glm::vec3 direction, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(8192, 8192)); // DIRECTIONAL
     Light(glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // POINT
     Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, float smFar = 3000.0f, glm::ivec2 shadowMapRes = glm::ivec2(1024, 1024)); // SPOT
 
@@ -85,6 +86,8 @@ public:
 
     LightType getType() const;
 
+    void setOuterBoundingBox(const glm::mat2x4& outerBoundingBox);
+
 private:
     void checkParameters();
 
@@ -100,6 +103,8 @@ private:
     std::shared_ptr<Texture> m_shadowTexture;
     FrameBuffer m_shadowMapFBO;
     ShaderProgram m_genShadowMapProgram;
+
+    std::optional<glm::mat2x4> m_outerSceneBoundingBox;
 
     std::shared_ptr<Uniform<glm::mat4>> m_modelUniform;
     std::shared_ptr<Uniform<glm::mat4>> m_lightSpaceUniform;

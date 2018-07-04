@@ -55,11 +55,15 @@ public:
      */
     glm::mat4& getView();
 
-    glm::vec3 getPosition();
-    glm::vec3 getCenter();
-    glm::vec3 getDirection();
+    virtual glm::vec3 getPosition() const;
+    virtual glm::vec3 getCenter() const;
+    virtual glm::vec3 getDirection() const;
 
     void setPosition(glm::vec3 pos);
+	void setTheta(float theta);
+	void setPhi(float phi);
+    void setSensitivity(float sensitivity);
+    void setSensitivityFromBBox(glm::mat2x4 bbox);
 
     virtual ~Camera() = default;
 

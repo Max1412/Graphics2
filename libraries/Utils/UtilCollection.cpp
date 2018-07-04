@@ -29,6 +29,11 @@ namespace util
 
         if constexpr (debugmode)
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+        else
+        {
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 0);
+            glfwWindowHint(GLFW_CONTEXT_NO_ERROR, 1);
+        }            
 
         glfwWindowHint(GLFW_SAMPLES, 8);
 

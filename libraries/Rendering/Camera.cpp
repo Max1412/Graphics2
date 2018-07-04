@@ -32,8 +32,8 @@ void Camera::update(GLFWwindow* window)
         glfwGetCursorPos(window, &x, &y);
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
-            float changeX = (static_cast<float>(x) - m_oldX) * m_sensitivity * 0.1f;
-            float changeY = (static_cast<float>(y) - m_oldY) * m_sensitivity * 0.1f;
+            const float changeX = (static_cast<float>(x) - m_oldX) * 0.01f;
+            const float changeY = (static_cast<float>(y) - m_oldY) * 0.01f;
 
             m_theta -= changeY;
             if (m_theta < 0.01f)
@@ -71,17 +71,17 @@ glm::mat4& Camera::getView()
     return m_viewMatrix;
 }
 
-glm::vec3 Camera::getPosition()
+glm::vec3 Camera::getPosition() const
 {
     return m_pos;
 }
 
-glm::vec3 Camera::getCenter()
+glm::vec3 Camera::getCenter() const
 {
     return m_center;
 }
 
-glm::vec3 Camera::getDirection()
+glm::vec3 Camera::getDirection() const
 {
     return glm::normalize(m_center - m_pos);
 }
@@ -89,4 +89,24 @@ glm::vec3 Camera::getDirection()
 void Camera::setPosition(glm::vec3 pos)
 {
     m_pos = pos;
+}
+
+void Camera::setTheta(float theta)
+{
+	m_theta = theta;
+}
+
+void Camera::setPhi(float phi)
+{
+	m_phi = phi;
+}
+
+void Camera::setSensitivity(float sensitivity)
+{
+    m_sensitivity = sensitivity;
+}
+
+void Camera::setSensitivityFromBBox(glm::mat2x4 bbox)
+{
+    m_sensitivity = 0.001f * glm::length(bbox[1] - bbox[0]);
 }

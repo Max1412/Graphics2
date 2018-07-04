@@ -5,15 +5,15 @@
 #include <sstream>
 #include "Cubemap.h"
 #include "IO/ModelImporter.h"
+#include <glm/gtx/component_wise.inl>
 
 using namespace gl;
 
 Light::Light(glm::vec3 color, glm::vec3 direction, float smFar ,glm::ivec2 shadowMapRes) // DIRECTIONAL
 : m_type(LightType::directional), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
 m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
-m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
+m_genShadowMapProgram("lightTransform.vert", "smAlpha.frag", BufferBindings::g_definitions)
 {
-    // TODO USE POSITION TOO, FOR SHADOW MAPS
     checkParameters();
 
     // init shadowMap
@@ -220,13 +220,36 @@ void Light::recalculateLightSpaceMatrix()
     {
         up = glm::vec3(1.0f, 0.0f, 0.0f);
     }
-    m_lightView = glm::lookAt(m_gpuLight.position,
-        m_gpuLight.position + m_gpuLight.direction, // aimed at the center
-        up);
 
     if (m_type == LightType::directional)
     {
-        m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
+        if (!m_outerSceneBoundingBox.has_value())
+        {
+            m_lightProjection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, 0.1f, m_smFar);
+            m_gpuLight.position = glm::vec3(0.0f, 2000.0f, 0.0f);
+        }
+        else
+        {
+            glm::mat2x4 b = m_outerSceneBoundingBox.value();
+
+            const float bboxSize = glm::length(b[1] - b[0]);
+            const glm::vec3 bboxCenter = 0.5f * (b[1] + b[0]);
+            m_gpuLight.position = bboxCenter + 0.5f * bboxSize * glm::normalize(-m_gpuLight.direction);
+
+            //glm::vec2 lowest2D(b[0].x, b[0].z);
+            //glm::vec2 highest2D(b[1].x, b[1].z);
+            //glm::vec2 center((lowest2D.x + lowest2D.y) / 2.0f, (highest2D.x + highest2D.y) / 2.0f);
+            //glm::vec2 lowerCorner = center - (1.5f * abs(lowest2D));
+            //glm::vec2 upperCorner = center + (1.5f * abs(highest2D));
+            //float min = compMin(lowerCorner);
+            //float max = compMax(upperCorner);
+
+            const glm::vec2 bb = glm::vec2(glm::compMin(b[0]), glm::compMax(b[1]));
+            const float min = bb.x - 0.244f * abs(bb.x); //0.244 = (sqrt(3)-1)/3
+            const float max = bb.y + 0.244f * abs(bb.y);
+            
+            m_lightProjection = glm::ortho(min, max, min, max, 0.1f, bboxSize);
+        }
     }
     else if (m_type == LightType::spot) 
     {
@@ -239,6 +262,10 @@ void Light::recalculateLightSpaceMatrix()
         m_lightProjection = glm::perspective(glm::radians(90.0f), static_cast<float>(m_shadowMapRes.x) / static_cast<float>(m_shadowMapRes.y), 0.1f, m_smFar);
         m_lightView = glm::mat4(1.0f); // calculate finished matrix in shader
     }
+
+    m_lightView = glm::lookAt(m_gpuLight.position,
+        m_gpuLight.position + m_gpuLight.direction,
+        up);
 
     m_gpuLight.lightSpaceMatrix = m_lightProjection * m_lightView;
     m_lightSpaceUniform->setContent(m_gpuLight.lightSpaceMatrix);
@@ -348,6 +375,11 @@ LightType Light::getType() const
     return m_type;
 }
 
+void Light::setOuterBoundingBox(const glm::mat2x4& outerBoundingBox)
+{
+    m_outerSceneBoundingBox = std::make_optional(outerBoundingBox);
+}
+
 glm::vec3 Light::getDirection() const
 {
     return m_gpuLight.direction;
@@ -357,11 +389,8 @@ glm::vec3 Light::getDirection() const
 bool Light::showLightGUI(const std::string& name)
 {
     ImGui::Begin("Light GUI");
-    bool lightChanged = showLightGUIContent(name);
+    const bool lightChanged = showLightGUIContent(name);
     ImGui::End();
-
-    if (lightChanged) recalculateLightSpaceMatrix();
-    // TODO only recalculate if necessary
 
     return lightChanged;
 }
@@ -374,55 +403,64 @@ bool Light::showLightGUIContent(const std::string& name)
     std::stringstream fullName;
     fullName << name << " (Type: " << lightTypeNames[static_cast<int>(m_type)] << ")";
     bool lightChanged = false;
-    ImGui::Text(fullName.str().c_str());
-    if (ImGui::SliderFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color), 0.0f, 1.0f))
-    {
-        lightChanged = true;
-    }
-    if (ImGui::SliderInt((std::string("PCF Kernel Size ") + name).c_str(), &m_gpuLight.pcfKernelSize, 0, 10))
-    {
-        lightChanged = true;
-    }
-    if (m_type == LightType::directional || m_type == LightType::spot)
-    {
-        if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
-        {
-            lightChanged = true;
-        }
-    }
-    if (m_type == LightType::spot)
-    {
-        if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
-        {
-            lightChanged = true;
-			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
-				m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001;
-        }
-        if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
-        {
-            lightChanged = true;
-			if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
-				m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001;
-        }
-    }
-    if (m_type == LightType::spot || m_type == LightType::point)
-    {
-        if (ImGui::SliderFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position), -500.0f, 500.0f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 0.25f))
-        {
-            lightChanged = true;
-        }
-        if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 0.1f))
-        {
-            lightChanged = true;
-        }
-    }
+    bool matNeedsUpdate = false;
+	if (ImGui::CollapsingHeader(fullName.str().c_str()))
+	{
+		if (ImGui::DragFloat3((std::string("Color ") + name).c_str(), value_ptr(m_gpuLight.color)))
+		{
+			lightChanged = true;
+		}
+		if (ImGui::SliderInt((std::string("PCF Kernel Size ") + name).c_str(), &m_gpuLight.pcfKernelSize, 0, 10))
+		{
+			lightChanged = true;
+		}
+		if (m_type == LightType::directional || m_type == LightType::spot)
+		{
+			if (ImGui::SliderFloat3((std::string("Direction ") + name).c_str(), value_ptr(m_gpuLight.direction), -1.0f, 1.0f))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+			}
+		}
+		if (m_type == LightType::spot)
+		{
+			if (ImGui::SliderFloat((std::string("Cutoff ") + name).c_str(), &m_gpuLight.cutOff, 0.0f, glm::radians(90.0f)))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+				if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+					m_gpuLight.outerCutOff = m_gpuLight.cutOff - 0.001f;
+			}
+			if (ImGui::SliderFloat((std::string("Outer cutoff ") + name).c_str(), &m_gpuLight.outerCutOff, 0.0f, glm::radians(90.0f)))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+				if (m_gpuLight.cutOff < m_gpuLight.outerCutOff)
+					m_gpuLight.cutOff = m_gpuLight.outerCutOff + 0.001f;
+			}
+		}
+		if (m_type == LightType::spot || m_type == LightType::point)
+		{
+			if (ImGui::DragFloat3((std::string("Position ") + name).c_str(), value_ptr(m_gpuLight.position)))
+			{
+				lightChanged = true;
+				matNeedsUpdate = true;
+			}
+			if (ImGui::SliderFloat((std::string("Constant ") + name).c_str(), &m_gpuLight.constant, 0.0f, 1.0f))
+			{
+				lightChanged = true;
+			}
+			if (ImGui::SliderFloat((std::string("Linear ") + name).c_str(), &m_gpuLight.linear, 0.0f, 0.25f))
+			{
+				lightChanged = true;
+			}
+			if (ImGui::SliderFloat((std::string("Quadratic ") + name).c_str(), &m_gpuLight.quadratic, 0.0f, 0.1f))
+			{
+				lightChanged = true;
+			}
+		}
+	}
+    if (matNeedsUpdate) recalculateLightSpaceMatrix();
+
     return lightChanged;
 }

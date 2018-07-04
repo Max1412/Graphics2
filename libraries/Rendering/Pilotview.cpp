@@ -24,6 +24,11 @@ void Pilotview::setDirection(glm::vec3 dir)
     m_dir = dir;
 }
 
+glm::vec3 Pilotview::getDirection() const
+{
+    return m_dir;
+}
+
 void Pilotview::update(GLFWwindow* window)
 {
     Camera::update(window);
@@ -33,11 +38,11 @@ void Pilotview::update(GLFWwindow* window)
     m_dir.z = sin(m_theta) * cos(m_phi);
     m_dir = glm::normalize(m_dir);
 
-    float old_sensitivity = m_sensitivity;
+    const float old_sensitivity = m_sensitivity;
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
-        m_sensitivity *= 100; // fast mode
+        m_sensitivity *= 10; // fast mode
     }
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)

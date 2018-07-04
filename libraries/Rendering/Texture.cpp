@@ -3,17 +3,19 @@
 #include "stb/stb_image.h"
 
 #include "Utils/UtilCollection.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.inl>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
 {
     glCreateTextures(target, 1, &m_name);
-    glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
-    glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, maxFilter);
-    glObjectLabel(GL_TEXTURE, m_name, 1, "test");
+    glObjectLabel(GL_TEXTURE, m_name, -1, "test");
+    if(target != GLenum::GL_TEXTURE_2D_MULTISAMPLE)
+    {
+        glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
+        glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, maxFilter);
+    }
 }
 
 Texture::~Texture()
@@ -26,7 +28,7 @@ Texture::~Texture()
     std::cout << "texture destructor called" << std::endl;
 }
 
-void Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
+TextureLoadInfo Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
     glEnable(GL_TEXTURE_2D);
     int imageWidth, imageHeight, numChannels;
@@ -38,7 +40,13 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
         if (!imageData)
             throw std::runtime_error("Image couldn't be loaded");
 
-        glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+        if (numChannels == 4 && imageData[3] != 255)
+            m_textureLoadInfo = TextureLoadInfo::Transparent;
+        else
+            m_textureLoadInfo = TextureLoadInfo::Opaque;
+
+        const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(imageWidth, imageHeight)))));
+        glTextureStorage2D(m_name, numLevels, internalFormat, imageWidth, imageHeight);
         glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageData);
 
         // let the cpu data of the image go
@@ -52,7 +60,10 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
         if (!imageFloat)
             throw std::runtime_error("Image couldn't be loaded");
 
-        glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+        m_textureLoadInfo = TextureLoadInfo::Other;
+
+        const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(imageWidth, imageHeight)))));
+        glTextureStorage2D(m_name, numLevels, internalFormat, imageWidth, imageHeight);
         glTextureSubImage2D(m_name, 0, 0, 0, imageWidth, imageHeight, format, type, imageFloat);
 
         // let the cpu data of the image go
@@ -62,6 +73,10 @@ void Texture::loadFromFile(const std::experimental::filesystem::path& texturePat
 
     m_width = imageWidth;
     m_height = imageHeight;
+
+    generateMipmap();
+
+    return m_textureLoadInfo;
 }
 
 GLuint64 Texture::generateHandle()
@@ -76,7 +91,16 @@ GLuint64 Texture::generateHandle()
 void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 {
     glEnable(GL_TEXTURE_2D);
-    glTextureStorage2D(m_name, 1, internalFormat, width, height);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(width, height)))));
+    glTextureStorage2D(m_name, numLevels, internalFormat, width, height);
+    m_width = width;
+    m_height = height;
+}
+
+void Texture::initWithoutDataMultiSample(int width, int height, GLenum internalFormat, GLsizei samples, GLboolean fixedSampleLocations)
+{
+    glEnable(GL_TEXTURE_2D);
+    glTextureStorage2DMultisample(m_name, samples, internalFormat, width, height, fixedSampleLocations);
     m_width = width;
     m_height = height;
 }
@@ -84,7 +108,8 @@ void Texture::initWithoutData(int width, int height, GLenum internalFormat)
 void Texture::initWithoutData3D(int width, int height, int depth, GLenum internalFormat)
 {
     glEnable(GL_TEXTURE_3D);
-	glTextureStorage3D(m_name, 1, internalFormat, width, height, depth);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(glm::max(width, height), depth)))));
+	glTextureStorage3D(m_name, numLevels, internalFormat, width, height, depth);
 	m_width = width;
 	m_height = height;
 	m_depth = depth;
@@ -122,6 +147,11 @@ void Texture::setMinMagFilter(GLenum minFilter, GLenum magFilter) const
 void Texture::generateMipmap() const
 {
     glGenerateTextureMipmap(m_name);
+}
+
+TextureLoadInfo Texture::getTextureLoadInfo() const
+{
+	return m_textureLoadInfo;
 }
 
 GLuint64 Texture::getHandle() const

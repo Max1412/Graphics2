@@ -50,7 +50,6 @@ int main()
     auto viewUniform = std::make_shared<Uniform<glm::mat4>>("viewMatrix", playerCamera.getView());
     auto cameraPosUniform = std::make_shared<Uniform<glm::vec3>>("cameraPos", playerCamera.getPosition());
 
-
     Shader modelVertexShader("modelVertMultiDraw.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);
     Shader modelGeometryShader("tangentSpace.geom", GL_GEOMETRY_SHADER, BufferBindings::g_definitions);
     Shader modelFragmentShader("modelFragMDBump.frag", GL_FRAGMENT_SHADER, BufferBindings::g_definitions);
@@ -61,6 +60,8 @@ int main()
 
     ModelImporter modelLoader("sponza/sponza.obj");
     modelLoader.registerUniforms(sp);
+
+    playerCamera.setSensitivityFromBBox(modelLoader.getOuterBoundingBox());
 
     // "generate" lights
     LightManager lightMngr;
@@ -75,14 +76,13 @@ int main()
 
     // directional light
     auto directional = std::make_shared<Light>(glm::vec3(0.15f), glm::vec3(0.0f, -1.0f, 0.0f));
-    directional->setPosition({0.0f, 2000.0f, 0.0f}); // position for shadow map only
-    directional->recalculateLightSpaceMatrix();
     lightMngr.addLight(directional);
 
     // point light
     //auto point = std::make_shared<Light>(glm::vec3(1.0f, 0.3f, 1.0f), glm::vec3(-100.0f, 170.0f, -230.0f) , 0.05f, 0.006f, 0.0f);
     //lightMngr.addLight(point);
 
+    lightMngr.setOuterSceneBoundingBoxToAllLights(modelLoader.getOuterBoundingBox());
     lightMngr.uploadLightsToGPU();
 
     Shader lightDebugVS("lightDebug.vert", GL_VERTEX_SHADER, BufferBindings::g_definitions);

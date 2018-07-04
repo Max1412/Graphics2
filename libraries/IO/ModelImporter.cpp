@@ -23,6 +23,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();
+    
+    std::cout << "Loading model from " << filename.string() << std::endl;
 
     m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices);
 
@@ -31,7 +33,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         const std::string err = m_importer.GetErrorString();
         throw std::runtime_error("Assimp import failed: " + err);
     }
-    std::cout << "Loading model from " << filename.string() << std::endl;
+
+    std::cout << "Assimp import complete. Processing Model..." << std::endl;
 
     if (m_scene->HasMeshes())
     {
@@ -40,7 +43,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         m_modelMatrices = std::vector<glm::mat4>(numMeshes, glm::mat4(1.0f));
         for (unsigned i = 0; i < numMeshes; i++)
         {
-            m_meshes.emplace_back(std::make_shared<Mesh>(m_scene->mMeshes[i]));
+            m_meshes.emplace_back(std::make_shared<Mesh>(m_scene->mMeshes[i], false));
         }
     }
 
@@ -62,14 +65,16 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         // TODO what to do with missing transformation
 
         // assign transformation to meshes
-        for (unsigned i = 0; i < node->mNumMeshes; i++)
+#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(node->mNumMeshes); ++i)
         {
             m_meshes.at(node->mMeshes[i])->setModelMatrix(trans);
             m_modelMatrices.at(node->mMeshes[i]) = trans;
         }
 
         // recursively work on the child nodes
-        for (unsigned i = 0; i < node->mNumChildren; i++)
+#pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(node->mNumChildren); ++i)
         {
             traverseChildren(node->mChildren[i], trans);
         }
@@ -105,7 +110,8 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         hasSpec = 0.0f;
                         break;
                     case aiTextureType_OPACITY:
-                        gpuMat.opacity = 1.0f;
+						if(gpuMat.opacity != -2.0f)
+							gpuMat.opacity = 1.0f;
                         break;
                     default:
                         break;
@@ -117,6 +123,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                 mat->GetTexture(type, 0, &reltexPath);
                 auto absTexPath = path.parent_path() / std::experimental::filesystem::path(reltexPath.C_Str());
 
+                TextureLoadInfo loadInfo = TextureLoadInfo::None;
                 // texture not loaded yet
                 if (m_texturemap.count(reltexPath.C_Str()) == 0)
                 {
@@ -124,27 +131,28 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                     // TODO textures with less than 4 channels... detect automatically?
                     if (stbi_is_hdr(absTexPath.string().c_str()))
                     {
-                        tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, STBI_rgb_alpha);
+                        loadInfo = tex->loadFromFile(absTexPath, GL_RGBA32F, GL_RGBA, GL_FLOAT, STBI_rgb_alpha);
                     }
                     else if(type == aiTextureType_OPACITY || type == aiTextureType_HEIGHT)
                     {
-                        tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, STBI_grey);
+                        loadInfo = tex->loadFromFile(absTexPath, GL_R8, GL_RED, GL_UNSIGNED_BYTE, STBI_grey);
                     }
                     else if (type == aiTextureType_NORMALS)
                     {
-                        tex->loadFromFile(absTexPath, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, STBI_rgb);
+                        loadInfo = tex->loadFromFile(absTexPath, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, STBI_rgb);
                     }
                     else
                     {
-                        tex->loadFromFile(absTexPath);
+                        loadInfo = tex->loadFromFile(absTexPath);
                     }
                     texID = tex->generateHandle();
-                    tex->generateMipmap();
+                    //tex->generateMipmap();
                     m_texturemap.emplace(reltexPath.C_Str(), tex);
                 }
                 else // texture already loaded, store handle
                 {
                     texID = m_texturemap.at(reltexPath.C_Str())->getHandle();
+                    loadInfo = m_texturemap.at(reltexPath.C_Str())->getTextureLoadInfo();
                 }
 
                 switch (type)
@@ -154,6 +162,10 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         if(texID == std::numeric_limits<uint64_t>::max())
                         {
                             hasDiff = 0.0f;
+                        }
+                        if (loadInfo == TextureLoadInfo::Transparent)
+                        {
+                            gpuMat.opacity = -2.0f; // encodes "I have transparency in my diff texture"
                         }
                         break;
                     case aiTextureType_SPECULAR:
@@ -173,11 +185,11 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
                         break;
                     case aiTextureType_OPACITY:
                         gpuMat.opacityTexture = texID;
-                        if (texID == std::numeric_limits<uint64_t>::max())
+                        if (texID == std::numeric_limits<uint64_t>::max() && gpuMat.opacity != -2.0f)
                         {
                             gpuMat.opacity = 1.0f;
                         }
-                        else
+                        else if(gpuMat.opacity != 2.0f)
                         {
                             // encode "having an opacity texture" like this
                             gpuMat.opacity = -1.0f;
@@ -197,7 +209,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
             float Ns = -1.0f;
             mat->Get(AI_MATKEY_SHININESS, Ns);
 
-            if(gpuMat.opacity != -1.0f) // only load opacity if no opacity texture exists
+            if(gpuMat.opacity != -1.0f && gpuMat.opacity != -2.0f) // only load opacity if no opacity texture exists and no opacity is in alpha
             {
                 mat->Get(AI_MATKEY_OPACITY, gpuMat.opacity);   
             }
@@ -224,17 +236,16 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 	std::vector<std::shared_ptr<Mesh>> transparentMeshes;
 	for (int i = 0; i < m_meshes.size(); i++)
 	{
-		if (PhongGPUMaterial mat = m_gpuMaterials.at(m_meshes.at(i)->getMaterialIndex()); mat.opacityTexture != -1 && mat.opacity != 1)
-		{
-			transparentMeshes.push_back(m_meshes.at(i));
-			m_meshes.erase(m_meshes.begin() + i--);
-		}
-	}
-	m_meshes.insert(m_meshes.end(), transparentMeshes.begin(), transparentMeshes.end());
+        if (PhongGPUMaterial mat = m_gpuMaterials.at(m_meshes.at(i)->getMaterialIndex());
+        (mat.opacityTexture != -1 && mat.opacity != 1) || mat.opacity == -2.0f)
+        {
+            transparentMeshes.push_back(m_meshes.at(i));
+            m_meshes.erase(m_meshes.begin() + i--);
+        }
+    }
+    m_meshes.insert(m_meshes.end(), transparentMeshes.begin(), transparentMeshes.end());
 
-    std::cout << "Loading complete: " << filename.string() << std::endl;
-
-	unsigned start = 0;
+    unsigned start = 0;
     unsigned baseVertexOffset = 0;
     for (const auto& mesh : m_meshes)
     {
@@ -253,6 +264,10 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
         start += static_cast<unsigned>(mesh->getIndices().size());
         baseVertexOffset += static_cast<unsigned>(mesh->getVertices().size());
     }
+
+    m_outerBoundingBox = std::reduce(std::execution::par, m_boundingBoxes.begin(), m_boundingBoxes.end(),
+        glm::mat2x4(glm::vec4(std::numeric_limits<float>::max()), glm::vec4(std::numeric_limits<float>::lowest())),
+        [](glm::mat2x4 b1, glm::mat2x4 b2) {return glm::mat2x4(glm::min(b1[0], b2[0]), glm::max(b1[1], b2[1])); });
 
     m_gpuMaterialIndices.shrink_to_fit();
     m_boundingBoxes.shrink_to_fit();
@@ -283,6 +298,17 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     m_multiDrawVao.connectBuffer(m_multiDrawTexCoordBuffer, BufferBindings::VertexAttributeLocation::texCoords, 3, GL_FLOAT, GL_FALSE);
 
     m_multiDrawVao.connectIndexBuffer(m_multiDrawIndexBuffer);
+
+    std::cout << "Loading complete: " << filename.string() << std::endl;
+}
+
+void ModelImporter::bindGPUbuffers() const
+{
+    m_gpuMaterialBuffer.bindBase(BufferBindings::Binding::materials);
+    m_gpuMaterialIndicesBuffer.bindBase(BufferBindings::Binding::materialIndices);
+    m_boundingBoxBuffer.bindBase(static_cast<BufferBindings::Binding>(6));
+    m_modelMatrixBuffer.bindBase(BufferBindings::Binding::modelMatrices);
+
 }
 
 std::vector<std::shared_ptr<Mesh>> ModelImporter::loadAllMeshesFromFile(const std::experimental::filesystem::path& filename)
@@ -340,6 +366,11 @@ void ModelImporter::registerUniforms(ShaderProgram& sp) const
 void ModelImporter::resetIndirectDrawParams()
 {
     m_indirectDrawBuffer.setContentToContainerSubData(m_indirectDrawParams, 0);
+}
+
+glm::mat2x4 ModelImporter::getOuterBoundingBox() const
+{
+    return m_outerBoundingBox;
 }
 
 void ModelImporter::draw(const ShaderProgram& sp) const

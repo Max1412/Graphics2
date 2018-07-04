@@ -1,5 +1,6 @@
 #include "LightManager.h"
 #include "imgui/imgui.h"
+#include <execution>
 
 // Light Manager
 LightManager::LightManager()
@@ -21,6 +22,11 @@ void LightManager::uploadLightsToGPU()
     });
 
     m_lightsBuffer.setStorage(gpuLights, GL_DYNAMIC_STORAGE_BIT);
+    m_lightsBuffer.bindBase(BufferBindings::Binding::lights);
+}
+
+void LightManager::bindLightBuffer() const
+{
     m_lightsBuffer.bindBase(BufferBindings::Binding::lights);
 }
 
@@ -117,4 +123,10 @@ void LightManager::addLight(std::shared_ptr<Light> light)
 std::vector<std::shared_ptr<Light>> LightManager::getLights() const
 {
     return m_lightList;
+}
+
+void LightManager::setOuterSceneBoundingBoxToAllLights(const glm::mat2x4& outerSceneBoundingBox)
+{
+    std::for_each(std::execution::par, m_lightList.begin(), m_lightList.end(),
+        [&outerSceneBoundingBox](auto& light) { light->setOuterBoundingBox(outerSceneBoundingBox); });
 }

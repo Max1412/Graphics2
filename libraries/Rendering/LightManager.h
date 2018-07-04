@@ -16,6 +16,7 @@ public:
     explicit LightManager(std::vector<std::shared_ptr<Light>> lights);
 
     void uploadLightsToGPU();
+    void bindLightBuffer() const;
 
     bool showLightGUIs();
 
@@ -27,6 +28,8 @@ public:
 
     void updateLightParams();
     void updateLightParams(std::shared_ptr<Light> light);
+
+    void setOuterSceneBoundingBoxToAllLights(const glm::mat2x4& outerSceneBoundingBox);
 
     void addLight(std::shared_ptr<Light> light);
 

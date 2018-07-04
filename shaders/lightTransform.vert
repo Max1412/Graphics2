@@ -1,8 +1,12 @@
 #version 460
-layout (location = 0) in vec3 vertexPosition;
+layout (location = VERTEX_LAYOUT) in vec3 vertexPosition;
+layout (location = TEXCOORD_LAYOUT) in vec3 vertexTexCoord;
 
 uniform mat4 lightSpaceMatrix;
 uniform mat4 ModelMatrix = mat4(1.0f);
+
+flat out uint passDrawID;
+out vec3 passTexCoord;
 
 layout(std430, binding = MODELMATRICES_BINDING) buffer ModelMatrixBuffer
 {
@@ -27,4 +31,6 @@ void main()
 {
     mat4 modelMatrix = drawMode();
     gl_Position = lightSpaceMatrix * modelMatrix * vec4(vertexPosition, 1.0);
+	passDrawID = gl_DrawID;
+	passTexCoord = vertexTexCoord;
 }

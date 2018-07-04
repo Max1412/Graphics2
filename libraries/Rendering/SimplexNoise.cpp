@@ -1,6 +1,5 @@
 #include "SimplexNoise.h"
 #include "imgui/imgui.h"
-#include <glm/detail/func_exponential.inl>
 
 SimplexNoise::SimplexNoise(float scale, float speed, float densityFactor, float densityHeight) :
 	m_noiseScale(scale), m_noiseSpeed(speed), m_densityFactor(densityFactor), m_densityHeight(densityHeight)

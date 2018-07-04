@@ -35,7 +35,7 @@ void Cubemap::initWithoutData(int width, int height, GLenum internalFormat, GLen
     //}
 }
 
-void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
+TextureLoadInfo Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
     // load the first image to get the width, height
     std::string path(texturePath.string());
@@ -50,7 +50,8 @@ void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePat
     m_width = imageWidth;
     m_height = imageHeight;
 
-    glTextureStorage2D(m_name, 1, internalFormat, imageWidth, imageHeight);
+    const auto numLevels = static_cast<GLsizei>(glm::ceil(glm::log2<float>(static_cast<float>(glm::max(imageWidth, imageHeight)))));
+    glTextureStorage2D(m_name, numLevels, internalFormat, imageWidth, imageHeight);
 
     glTextureParameteri(m_name, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(m_name, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -95,4 +96,9 @@ void Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePat
         // let the cpu data of the image go
         stbi_image_free(imageData);
     }
+
+    glGenerateTextureMipmap(m_name);
+
+    m_textureLoadInfo = TextureLoadInfo::Other;
+    return m_textureLoadInfo;
 }

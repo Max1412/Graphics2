@@ -7,10 +7,10 @@ layout (location = TEXCOORD_LAYOUT) in vec3 vertexTexCoord;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 
-out vec3 passNormal;
-out vec3 passTexCoord;
-out vec3 passFragPos;
-flat out uint passDrawID;
+layout(location = 0) out vec3 passFragPos;
+layout(location = 1) out vec3 passNormal;
+layout(location = 2) out vec3 passTexCoord;
+layout(location = 3) flat out uint passDrawID;
 
 layout (std430, binding = MODELMATRICES_BINDING) buffer ModelMatrixBuffer
 {

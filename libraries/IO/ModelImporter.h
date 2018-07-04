@@ -49,6 +49,8 @@ public:
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 
+    void bindGPUbuffers() const;
+
     void draw(const ShaderProgram& sp) const;
     void drawCulled(const ShaderProgram& sp, const glm::mat4& view, float angle, float ratio, float near, float far) const;
 
@@ -57,6 +59,8 @@ public:
 
     void registerUniforms(ShaderProgram& sp) const;
     void resetIndirectDrawParams();
+
+    glm::mat2x4 getOuterBoundingBox() const;
 
 private:
     Assimp::Importer m_importer;
@@ -89,6 +93,8 @@ private:
     Buffer m_multiDrawNormalBuffer;
     Buffer m_multiDrawTexCoordBuffer;
     VertexArray m_multiDrawVao;
+
+    glm::mat2x4 m_outerBoundingBox;
 
     // culling stuff
     std::vector<glm::mat2x4> m_boundingBoxes;
