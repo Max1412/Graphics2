@@ -21,7 +21,7 @@ layout(std430, binding = LIGHTS_BINDING) readonly buffer LightBuffer
     Light lights[];
 };
 
-uniform vec3 ambient = vec3(0.5f);
+uniform vec3 ambient = vec3(0.3f);
 
 struct LightResult
 {
