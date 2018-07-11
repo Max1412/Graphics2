@@ -78,7 +78,7 @@ m_genShadowMapProgram({
 Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, float smFar, glm::ivec2 shadowMapRes) // SPOT
     : m_type(LightType::spot), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
     m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
-   m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
+   m_genShadowMapProgram("lightTransform.vert", "smAlpha.frag", BufferBindings::g_definitions)
 {
     checkParameters();
 
