@@ -11,7 +11,7 @@ using namespace gl;
 
 Light::Light(glm::vec3 color, glm::vec3 direction, float smFar ,glm::ivec2 shadowMapRes) // DIRECTIONAL
 : m_type(LightType::directional), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
-m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
+m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
 m_genShadowMapProgram("lightTransform.vert", "smAlpha.frag", BufferBindings::g_definitions)
 {
     checkParameters();
@@ -77,7 +77,7 @@ m_genShadowMapProgram({
 
 Light::Light(glm::vec3 color, glm::vec3 position, glm::vec3 direction, float constant, float linear, float quadratic, float cutOff, float outerCutOff, float smFar, glm::ivec2 shadowMapRes) // SPOT
     : m_type(LightType::spot), m_shadowMapRes(shadowMapRes), m_smFar(smFar),
-    m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
+    m_shadowTexture(std::make_shared<Texture>(GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)), m_shadowMapFBO(GL_DEPTH_ATTACHMENT, *m_shadowTexture),
    m_genShadowMapProgram("lightTransform.vert", "nothing.frag", BufferBindings::g_definitions)
 {
     checkParameters();
@@ -141,6 +141,8 @@ void Light::renderShadowMap(const std::vector<std::shared_ptr<Mesh>>& meshes)
         mesh->draw();
     });
 
+    m_shadowTexture->generateMipmap();
+
     //restore previous rendering settings
     m_shadowMapFBO.unbind();
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
@@ -170,6 +172,8 @@ void Light::renderShadowMap(const ModelImporter& mi)
 
     //render scene
     mi.multiDraw(m_genShadowMapProgram);
+
+    m_shadowTexture->generateMipmap();
 
     //restore previous rendering settings
     m_shadowMapFBO.unbind();
@@ -206,6 +210,8 @@ void Light::renderShadowMapCulled(const ModelImporter& mi)
 
     //render scene
     mi.multiDrawCulled(m_genShadowMapProgram, m_gpuLight.lightSpaceMatrix);
+
+    m_shadowTexture->generateMipmap();
 
     //restore previous rendering settings
     m_shadowMapFBO.unbind();
