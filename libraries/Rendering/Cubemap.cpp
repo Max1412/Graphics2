@@ -41,6 +41,7 @@ TextureLoadInfo Cubemap::loadFromFile(const std::experimental::filesystem::path&
     std::string path(texturePath.string());
     path.insert(path.cbegin() + path.find_last_of('.'), 1, '0'); // image.png -> image1.png
 
+    stbi_set_flip_vertically_on_load(false);
     int imageWidth, imageHeight, numChannels;
     auto imageData = stbi_load(path.c_str(), &imageWidth, &imageHeight, &numChannels, desiredChannels);
 
