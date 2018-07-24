@@ -20,6 +20,6 @@ void main()
     else
         alpha = currentMaterial.opacity;
 
-	if(alpha <= 0.9f)
+	if(alpha <= 0.8f)
 		discard;
 }  

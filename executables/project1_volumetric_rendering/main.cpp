@@ -33,8 +33,8 @@ constexpr int screenWidth = 1600;
 constexpr int screenHeight = 900;
 constexpr float screenNear = 0.1f;
 constexpr float screenFar = 10000.f;
-constexpr int gridWidth = 240;
-constexpr int gridHeight = 135;
+constexpr int gridWidth = 320;
+constexpr int gridHeight = 180;
 constexpr int gridDepth = 256;
 constexpr int groupSize = 4;
 constexpr int msaaSamples = 1;
@@ -92,7 +92,6 @@ int main()
 
     // F B O : H D R -> L D R
     auto hdrTex = std::make_shared<Texture>(GL_TEXTURE_2D_MULTISAMPLE);
-    //hdrTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
     hdrTex->initWithoutDataMultiSample(screenWidth, screenHeight, GL_RGBA32F, msaaSamples, true);
     FrameBuffer hdrFBO({ hdrTex }, true, GL_DEPTH24_STENCIL8, msaaSamples);
 
@@ -111,7 +110,7 @@ int main()
     auto fxaaTex = std::make_shared<Texture>();
     fxaaTex->setMinMagFilter(GL_LINEAR, GL_LINEAR);
     fxaaTex->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-    fxaaTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    fxaaTex->loadFromFile(util::gs_resourcesPath / "cover2.png");
     FrameBuffer fxaaFBO({ fxaaTex });
 
     Shader fxaaShader("fxaa.frag", GL_FRAGMENT_SHADER);
@@ -124,6 +123,10 @@ int main()
 
     // S F Q
     Quad fboQuad;
+
+    fxaaSP.use();
+    fboQuad.draw();
+    glfwSwapBuffers(window);
 
 	// V O L U M E T R I C
 
@@ -519,6 +522,17 @@ int main()
 					}
 					ImGui::EndMenu();
 				}
+                if(ImGui::BeginMenu("How To"))
+                {
+                    ImGui::Text("Click and move the mouse to turn the camera.\nUse the W, A, S, D, Q, E to move the camera.\nPlay with the parameters in the menu bar and see what happens.");
+                    ImGui::Text("To change the scene, use the scene menu.");
+                    ImGui::EndMenu();
+                }
+                if(ImGui::BeginMenu("Credits"))
+                {
+                    ImGui::Text("EZR-Projekt SS 2018\n\nMaximilian Mader\nFelix Schroeder\nDarius Thies");
+                    ImGui::EndMenu();
+                }
 
 				//change to monospaced font for timer
 				ImGui::PushFont(fontMono);
@@ -526,6 +540,7 @@ int main()
 				timer.drawGuiContent(window, true);
 				colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.29f, 0.48f, 0.54f);
 				ImGui::PopFont();
+
 
 				ImGui::EndMainMenuBar();
 			}
