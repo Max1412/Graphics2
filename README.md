@@ -1,5 +1,7 @@
 # Graphics2
 
+![Volumetric Rendering](/resources/screenshots/1.png)
+
 ### Description
 OpenGL project for prototyping.
 Contains abstractions for major OpenGL features with focus on code reusability, modern OpenGL usage and ease of use.
@@ -31,6 +33,10 @@ Also contains some demos and examples.
 * Using CMake to generate makefiles might already work
 
 ### Executables
+#### Project: Volumetric Lighting
+* University Project for the Lecture 'Real-Time Rendering'
+* Uses [this approach](http://advances.realtimerendering.com/s2014/wronski/bwronski_volumetric_fog_siggraph2014.pdf)
+
 
 #### demo 1: cubemap, reflections, lighting
 * work in progress
