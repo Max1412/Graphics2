@@ -1,0 +1,58 @@
+#version 430
+#extension GL_ARB_bindless_texture : require
+//#extension GL_ARB_compute_variable_group_size : require
+
+#define Z_DIM 256
+
+uniform ivec3 gridDim;
+
+layout(bindless_image, rgba32f) uniform image3D voxelGrid;
+
+//layout(local_size_variable) in;
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+vec4 accumulateScattering(in vec4 front, in vec4 back)
+{
+    vec3 light = front.rgb + clamp(exp(-front.a), 0.0f, 1.0f) * back.rgb;
+    //vec3 light = front.rgb + front.a * back.rgb;
+    return vec4(light, front.a + back.a);
+}
+
+void writeOutputExponential(in ivec3 pos, in vec4 data)
+{
+    data.a = exp(-data.a);
+    imageStore(voxelGrid, pos, data);
+}
+
+// idea: each local group loads all z values of an x,y coordinate into shared memory
+//       the first thread of that local group accumulates the values (all in shared memory)
+//       then, each thread i the local group writes to the image 
+
+shared vec4 SMvalues[Z_DIM];
+
+void main()
+{
+	ivec3 g_ID = ivec3(gl_GlobalInvocationID);
+
+    ivec3 voxelGridPos = ivec3(gl_WorkGroupID.x, gl_WorkGroupID.y, gl_LocalInvocationIndex);
+
+	if (voxelGridPos.x < gridDim.x && voxelGridPos.y < gridDim.y)
+	{
+        SMvalues[gl_LocalInvocationIndex] = imageLoad(voxelGrid, voxelGridPos);
+        //memoryBarrierShared();
+        barrier();
+
+        if (gl_LocalInvocationIndex == 0)
+        {
+            for (int i = 1; i < Z_DIM; i++)
+            {
+                vec4 nextVal = SMvalues[i];
+                SMvalues[i] = accumulateScattering(SMvalues[i-1], nextVal);
+            }
+        }
+        //memoryBarrierShared();
+        barrier();
+
+        writeOutputExponential(voxelGridPos, SMvalues[gl_LocalInvocationIndex]);
+    }
+}

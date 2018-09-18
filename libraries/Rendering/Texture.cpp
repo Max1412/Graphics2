@@ -15,6 +15,7 @@ Texture::Texture(GLenum target, GLenum minFilter, GLenum maxFilter)
     {
         glTextureParameteri(m_name, GL_TEXTURE_MIN_FILTER, minFilter);
         glTextureParameteri(m_name, GL_TEXTURE_MAG_FILTER, maxFilter);
+        glTextureParameteri(m_name, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4);
     }
 }
 

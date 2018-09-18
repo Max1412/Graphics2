@@ -117,8 +117,8 @@ Parameters{
         //global directional light
         { glm::vec3(20.0f, 20.0f, 18.0f), glm::vec3(0.0f, 25.0f, 0.0f), glm::vec3(0.6f, -1.0f, -0.6f), 3 },
         //lamp 1 - lower floor above table
-{ glm::vec3(10.0f, 10.0f, 9.0f), glm::vec3(11.2f, 2.9f, -1.75f), glm::vec3(0.001f, -1.0f, 0.0f), 1,
-0.025f, 0.01f, 0.0f, 1.055f, 0.72f },
+//{ glm::vec3(10.0f, 10.0f, 9.0f), glm::vec3(11.2f, 2.9f, -1.75f), glm::vec3(0.001f, -1.0f, 0.0f), 1,
+//0.025f, 0.01f, 0.0f, 1.055f, 0.72f },
 //lamp 2 - above scene through trees
 { glm::vec3(10.0f, 10.0f, 8.0f), glm::vec3(15.0f, 16.5f, 11.0f), glm::vec3(0.001f, -1.0f, 0.0f), 1,
 0.025f, 0.01f, 0.0f, 0.85f, 0.55f },
@@ -129,7 +129,7 @@ Parameters{
     //noise
 { 0.008f, 3.0f, 2.0f, 0.06f },
 //fog
-{ glm::vec3(1.0f), 0.35f, 0.1f, 0.025f, 0.15f },
+{ glm::vec3(1.0f), 0.35f, 0.3f, 0.025f, 0.15f },
 //hdr
 2.2f, 0.15f,
 30.0f,

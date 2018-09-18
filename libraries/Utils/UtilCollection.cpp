@@ -35,7 +35,7 @@ namespace util
             glfwWindowHint(GLFW_CONTEXT_NO_ERROR, 1);
         }            
 
-        glfwWindowHint(GLFW_SAMPLES, 8);
+        glfwWindowHint(GLFW_SAMPLES, 1);
 
         GLFWwindow* window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(window);
@@ -80,89 +80,17 @@ namespace util
     void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                 const GLchar* message, const void* userParam)
     {
-        //ignore unbound texture warning
+        // ignore unbound texture warning
         if (id == 131204)
             return;
 
-        std::cout << "OpenGL debug callback called!" << '\n';
-        std::cout << "Source: ";
-        switch (source)
-        {
-        case GL_DEBUG_SOURCE_API:
-            std::cout << "API Call";
-            break;
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-            std::cout << "Window system";
-            break;
-        case GL_DEBUG_SOURCE_THIRD_PARTY:
-            std::cout << "Third party application";
-            break;
-        case GL_DEBUG_SOURCE_APPLICATION:
-            std::cout << "This application";
-            break;
-        case GL_DEBUG_SOURCE_OTHER:
-            std::cout << "Some other source";
-            break;
-        default:
-            std::cout << "Invaliid source";
-        }
-        std::cout << '\n';
-        std::cout << "message: " << message << '\n';
-        std::cout << "type: ";
-        // converting GLenums is tedious :(
-        switch (type)
-        {
-        case GL_DEBUG_TYPE_ERROR:
-            std::cout << "ERROR";
-            break;
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-            std::cout << "DEPRECATED_BEHAVIOR";
-            break;
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-            std::cout << "UNDEFINED_BEHAVIOR";
-            break;
-        case GL_DEBUG_TYPE_PORTABILITY:
-            std::cout << "PORTABILITY";
-            break;
-        case GL_DEBUG_TYPE_PERFORMANCE:
-            std::cout << "PERFORMANCE";
-            break;
-        case GL_DEBUG_TYPE_MARKER:
-            std::cout << "Annotation (MARKER)";
-            break;
-        case GL_DEBUG_TYPE_PUSH_GROUP:
-            std::cout << "Debug push group";
-            break;
-        case GL_DEBUG_TYPE_POP_GROUP:
-            std::cout << "Debug pop group";
-            break;
-        case GL_DEBUG_TYPE_OTHER:
-            std::cout << "OTHER";
-            break;
-        default:
-            std::cout << "Invalid debug type";
-        }
-        std::cout << '\n';
-        std::cout << "id: " << id << '\n';
-        std::cout << "severity: ";
-        switch (severity)
-        {
-        case GL_DEBUG_SEVERITY_LOW:
-            std::cout << "LOW";
-            break;
-        case GL_DEBUG_SEVERITY_MEDIUM:
-            std::cout << "MEDIUM";
-            break;
-        case GL_DEBUG_SEVERITY_HIGH:
-            std::cout << "HIGH";
-            break;
-        case GL_DEBUG_SEVERITY_NOTIFICATION:
-            std::cout << "NOTIFICATION";
-            break;
-        default:
-            std::cout << "Invalid severity";
-        }
-        std::cout << '\n';
+        std::cout << "OpenGL debug callback:\n";
+        std::cout << "Source:   " << source     << '\n';
+        std::cout << "Message:  " << message    << '\n';
+        std::cout << "Type:     " << type       << '\n';
+        std::cout << "ID:       " << id         << '\n';
+        std::cout << "severity: " << severity   << '\n';
+
         std::cout << std::endl;
     }
 

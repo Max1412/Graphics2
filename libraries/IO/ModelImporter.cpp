@@ -26,7 +26,23 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     
     std::cout << "Loading model from " << filename.string() << std::endl;
 
-    m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals | aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices);
+    m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals |
+        aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices //|
+        //aiProcess_RemoveComponent |
+        //    aiComponent_ANIMATIONS |
+        //    aiComponent_BONEWEIGHTS |
+        //    aiComponent_CAMERAS |
+        //    aiComponent_LIGHTS |
+        //    // aiComponent_TANGENTS_AND_BITANGENTS |
+        //    aiComponent_COLORS |
+        //aiProcess_SplitLargeMeshes |
+        //aiProcess_ImproveCacheLocality |
+        //aiProcess_RemoveRedundantMaterials |
+        //aiProcess_OptimizeMeshes |
+        //aiProcess_SortByPType |
+        //aiProcess_FindDegenerates |
+        //aiProcess_FindInvalidData
+    );
 
     if (!m_scene || m_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
     {

@@ -37,6 +37,7 @@ constexpr int gridWidth = 320;
 constexpr int gridHeight = 180;
 constexpr int gridDepth = 256;
 constexpr int groupSize = 4;
+constexpr int msaaSamples = 1;
 
 constexpr bool renderimgui = true;
 
@@ -91,13 +92,11 @@ int main()
 
     // F B O : H D R -> L D R
     auto hdrTex = std::make_shared<Texture>(GL_TEXTURE_2D_MULTISAMPLE);
-    //hdrTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
-    constexpr int samples = 4;
-    hdrTex->initWithoutDataMultiSample(screenWidth, screenHeight, GL_RGBA32F, samples, true);
-    FrameBuffer hdrFBO({ hdrTex }, true, GL_DEPTH24_STENCIL8, samples);
+    hdrTex->initWithoutDataMultiSample(screenWidth, screenHeight, GL_RGBA32F, msaaSamples, true);
+    FrameBuffer hdrFBO({ hdrTex }, true, GL_DEPTH24_STENCIL8, msaaSamples);
 
     Shader fboVS("texSFQ.vert", GL_VERTEX_SHADER);
-    Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER, { glsp::definition("SAMPLE_COUNT", samples) });
+    Shader fboHDRtoLDRFS("HDRtoLDR.frag", GL_FRAGMENT_SHADER, { glsp::definition("SAMPLE_COUNT", msaaSamples) });
     ShaderProgram fboHDRtoLDRSP(fboVS, fboHDRtoLDRFS);
     float exposure = 0.1f, gamma = 2.2f;
     auto u_exposure = std::make_shared<Uniform<float>>("exposure", exposure);
@@ -111,7 +110,7 @@ int main()
     auto fxaaTex = std::make_shared<Texture>();
     fxaaTex->setMinMagFilter(GL_LINEAR, GL_LINEAR);
     fxaaTex->setWrap(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-    fxaaTex->initWithoutData(screenWidth, screenHeight, GL_RGBA32F);
+    fxaaTex->loadFromFile(util::gs_resourcesPath / "cover2.png");
     FrameBuffer fxaaFBO({ fxaaTex });
 
     Shader fxaaShader("fxaa.frag", GL_FRAGMENT_SHADER);
@@ -124,6 +123,10 @@ int main()
 
     // S F Q
     Quad fboQuad;
+
+    fxaaSP.use();
+    fboQuad.draw();
+    glfwSwapBuffers(window);
 
 	// V O L U M E T R I C
 
@@ -230,13 +233,13 @@ int main()
 			spot->setPCFKernelSize(sceneParams.at(0).lights[i].pcfKernelSize);
             lightMngrVec.at(0).addLight(spot);
 		}
-		// point light
-		else if (sceneParams.at(0).lights[i].constant)
-		{
-			auto point = std::make_shared<Light>(sceneParams.at(0).lights[i].color, sceneParams.at(0).lights[i].position, sceneParams.at(0).lights[i].constant, sceneParams.at(0).lights[i].linear, sceneParams.at(0).lights[i].quadratic);
-			point->setPCFKernelSize(sceneParams.at(0).lights[i].pcfKernelSize);
-            lightMngrVec.at(0).addLight(point);
-		}
+		//// point light
+		//else if (sceneParams.at(0).lights[i].constant)
+		//{
+		//	auto point = std::make_shared<Light>(sceneParams.at(0).lights[i].color, sceneParams.at(0).lights[i].position, sceneParams.at(0).lights[i].constant, sceneParams.at(0).lights[i].linear, sceneParams.at(0).lights[i].quadratic);
+		//	point->setPCFKernelSize(sceneParams.at(0).lights[i].pcfKernelSize);
+  //          lightMngrVec.at(0).addLight(point);
+		//}
 		// directional light
 		else
 		{
@@ -258,13 +261,13 @@ int main()
             spot->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
             lightMngrVec.at(1).addLight(spot);
         }
-        // point light
-        else if (sceneParams.at(curScene).lights[i].constant)
-        {
-            auto point = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic);
-            point->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
-            lightMngrVec.at(1).addLight(point);
-        }
+        //// point light
+        //else if (sceneParams.at(curScene).lights[i].constant)
+        //{
+        //    auto point = std::make_shared<Light>(sceneParams.at(1).lights[i].color, sceneParams.at(1).lights[i].position, sceneParams.at(1).lights[i].constant, sceneParams.at(1).lights[i].linear, sceneParams.at(1).lights[i].quadratic);
+        //    point->setPCFKernelSize(sceneParams.at(1).lights[i].pcfKernelSize);
+        //    lightMngrVec.at(1).addLight(point);
+        //}
         // directional light
         else
         {
@@ -286,13 +289,13 @@ int main()
             spot->setPCFKernelSize(sceneParams.at(2).lights[i].pcfKernelSize);
             lightMngrVec.at(2).addLight(spot);
         }
-        // point light
-        else if (sceneParams.at(curScene).lights[i].constant)
-        {
-            auto point = std::make_shared<Light>(sceneParams.at(2).lights[i].color, sceneParams.at(2).lights[i].position, sceneParams.at(2).lights[i].constant, sceneParams.at(2).lights[i].linear, sceneParams.at(2).lights[i].quadratic);
-            point->setPCFKernelSize(sceneParams.at(2).lights[i].pcfKernelSize);
-            lightMngrVec.at(2).addLight(point);
-        }
+        //// point light
+        //if (sceneParams.at(curScene).lights[i].constant)
+        //{
+        //    auto point = std::make_shared<Light>(sceneParams.at(2).lights[i].color, sceneParams.at(2).lights[i].position, sceneParams.at(2).lights[i].constant, sceneParams.at(2).lights[i].linear, sceneParams.at(2).lights[i].quadratic);
+        //    point->setPCFKernelSize(sceneParams.at(2).lights[i].pcfKernelSize);
+        //    lightMngrVec.at(2).addLight(point);
+        //}
         // directional light
         else
         {
@@ -322,6 +325,8 @@ int main()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    std::array<bool, 3> rerenderSM{ true, true, true };
 	
 	while (!glfwWindowShouldClose(window))
     {
@@ -333,7 +338,11 @@ int main()
         matrixSSBO.setContentSubData(playerCamera.getView(), offsetof(PlayerCameraInfo, playerViewMatrix));
         matrixSSBO.setContentSubData(playerCamera.getPosition(), offsetof(PlayerCameraInfo, camPos));
 
-        lightMngrVec.at(curScene).renderShadowMapsCulled(*sceneVec.at(curScene));
+        if(rerenderSM.at(curScene))
+        {
+            lightMngrVec.at(curScene).renderShadowMapsCulled(*sceneVec.at(curScene));
+            rerenderSM.at(curScene) = false;
+        }
 
         // render to fbo
         hdrFBO.bind();
@@ -403,7 +412,7 @@ int main()
 				if (ImGui::BeginMenu("Light"))
 				{
 					ImGui::Text("Light Settings");
-					lightMngrVec.at(curScene).showLightGUIsContent();
+					rerenderSM.at(curScene) = lightMngrVec.at(curScene).showLightGUIsContent();
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Density/Fog"))
@@ -513,6 +522,17 @@ int main()
 					}
 					ImGui::EndMenu();
 				}
+                if(ImGui::BeginMenu("How To"))
+                {
+                    ImGui::Text("Click and move the mouse to turn the camera.\nUse the W, A, S, D, Q, E to move the camera.\nPlay with the parameters in the menu bar and see what happens.");
+                    ImGui::Text("To change the scene, use the scene menu.");
+                    ImGui::EndMenu();
+                }
+                if(ImGui::BeginMenu("Credits"))
+                {
+                    ImGui::Text("EZR-Projekt SS 2018\n\nMaximilian Mader\nFelix Schroeder\nDarius Thies");
+                    ImGui::EndMenu();
+                }
 
 				//change to monospaced font for timer
 				ImGui::PushFont(fontMono);
@@ -520,6 +540,7 @@ int main()
 				timer.drawGuiContent(window, true);
 				colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.29f, 0.48f, 0.54f);
 				ImGui::PopFont();
+
 
 				ImGui::EndMainMenuBar();
 			}
