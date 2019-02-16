@@ -27,7 +27,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
     std::cout << "Loading model from " << filename.string() << std::endl;
 
     m_scene = m_importer.ReadFile(pathString.c_str(), aiProcess_GenSmoothNormals |
-        aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices //|
+        aiProcess_Triangulate | aiProcess_GenUVCoords | aiProcess_JoinIdenticalVertices //  |
         //aiProcess_RemoveComponent |
         //    aiComponent_ANIMATIONS |
         //    aiComponent_BONEWEIGHTS |

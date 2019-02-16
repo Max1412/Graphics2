@@ -4,6 +4,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <glm/gtc/type_ptr.hpp>
+#include <glbinding-aux/Meta.h>
 
 ShaderProgram::ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath, const std::vector<glsp::definition>& definitions)
     : m_initWithShaders(true)
@@ -347,7 +348,7 @@ void ShaderProgram::showReloadShaderGUIContent(const std::vector<Shader>& shader
 	ImGui::Text(name.data());
 	for (const Shader& shader : shaders) {
 		std::stringstream ss;
-		ss << "Reload: " << shader.getShaderType() << " " << name.data()[0];
+		ss << "Reload: " << glbinding::aux::Meta::getString(shader.getShaderType()) << " " << name.data()[0];
 		if (ImGui::Button(ss.str().c_str()))
 		{
 			try

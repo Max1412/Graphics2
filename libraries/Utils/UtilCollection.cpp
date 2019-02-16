@@ -7,6 +7,7 @@
 #include <sstream>
 #include <future>
 #include <glbinding/Binding.h>
+#include <glbinding-aux/Meta.h>
 
 namespace util
 {
@@ -45,7 +46,7 @@ namespace util
     void initGL()
     {
         // init glbinding
-        glbinding::Binding::initialize();
+        glbinding::Binding::initialize(glfwGetProcAddress);
     }
 
     std::vector<std::string> getGLExtenstions()
@@ -70,7 +71,7 @@ namespace util
                 GLenum err;
                 while ((err = glGetError()) != GL_NO_ERROR)
                 {
-                    std::cout << "OpenGL Error: " << err << std::endl;
+                    std::cout << "OpenGL Error: " << glbinding::aux::Meta::getString(err) << std::endl;
                     std::cout << "Last error check in function " << function << " at line " << line << std::endl;
                 }
             }
@@ -85,11 +86,11 @@ namespace util
             return;
 
         std::cout << "OpenGL debug callback:\n";
-        std::cout << "Source:   " << source     << '\n';
-        std::cout << "Message:  " << message    << '\n';
-        std::cout << "Type:     " << type       << '\n';
-        std::cout << "ID:       " << id         << '\n';
-        std::cout << "severity: " << severity   << '\n';
+        std::cout << "Source:   " << glbinding::aux::Meta::getString(source)     << '\n';
+        std::cout << "Message:  " << glbinding::aux::Meta::getString(message  )  << '\n';
+        std::cout << "Type:     " << glbinding::aux::Meta::getString(type     )  << '\n';
+        std::cout << "ID:       " << glbinding::aux::Meta::getString(id       )  << '\n';
+        std::cout << "severity: " << glbinding::aux::Meta::getString(severity)   << '\n';
 
         std::cout << std::endl;
     }

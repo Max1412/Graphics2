@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Utils/UtilCollection.h"
+#include "glbinding-aux/Meta.h"
 
 
 Shader::Shader(const std::experimental::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions) : m_shaderType(shaderType), m_path(path), m_definitions(definitions)
@@ -65,6 +66,6 @@ GLenum Shader::getShaderType() const
 std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const
 {
     auto file = glsp::preprocess_file(fileName, { util::gs_shaderPath }, m_definitions);
-    std::cout << "Loaded " << m_shaderType << " from " << fileName << std::endl;;
+    std::cout << "Loaded " << glbinding::aux::Meta::getString(m_shaderType) << " from " << fileName << std::endl;;
     return file.contents;
 }
