@@ -86,11 +86,11 @@ namespace util
             return;
 
         std::cout << "OpenGL debug callback:\n";
-        std::cout << "Source:   " << glbinding::aux::Meta::getString(source)     << '\n';
-        std::cout << "Message:  " << glbinding::aux::Meta::getString(message  )  << '\n';
-        std::cout << "Type:     " << glbinding::aux::Meta::getString(type     )  << '\n';
-        std::cout << "ID:       " << glbinding::aux::Meta::getString(id       )  << '\n';
-        std::cout << "severity: " << glbinding::aux::Meta::getString(severity)   << '\n';
+        std::cout << "Source:   " << glbinding::aux::Meta::getString(source)   << '\n';
+        std::cout << "Message:  " << message                                         << '\n';
+        std::cout << "Type:     " << glbinding::aux::Meta::getString(type)     << '\n';
+        std::cout << "ID:       " << glbinding::aux::Meta::getString(id)      << '\n';
+        std::cout << "severity: " << glbinding::aux::Meta::getString(severity) << '\n';
 
         std::cout << std::endl;
     }
@@ -104,7 +104,7 @@ namespace util
 
             // disable notifications and memory info
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
-            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_TRUE);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, nullptr, GL_FALSE);
 
             // enable more severe errors
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, nullptr, GL_TRUE);
