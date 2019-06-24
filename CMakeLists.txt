@@ -13,7 +13,7 @@ set(G2_SHADERS_PATH				${PROJECT_SOURCE_DIR}/shaders)
 
 #find_package(GLEW REQUIRED)
 find_package(assimp REQUIRED)
-find_package(glm 0.9.8 REQUIRED)
+find_package(glm REQUIRED)
 find_package(glfw3 3.2.1 REQUIRED)
 find_package(glbinding REQUIRED)
 
