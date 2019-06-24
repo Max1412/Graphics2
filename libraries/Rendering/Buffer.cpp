@@ -14,8 +14,11 @@ Buffer::~Buffer()
     {
         glDeleteBuffers(1, &m_bufferHandle);
     }
-    util::getGLerror(__LINE__, __FUNCTION__);
-    std::cout << "buffer destructor called" << std::endl;
+    if constexpr (util::debugmode)
+    {
+        util::getGLerror(__LINE__, __FUNCTION__);
+        std::cout << "buffer destructor called" << std::endl;
+    }
 }
 
 GLuint Buffer::getHandle() const

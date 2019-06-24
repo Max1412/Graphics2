@@ -25,8 +25,11 @@ Texture::~Texture()
     {
         glDeleteTextures(1, &m_name);
     }
-    util::getGLerror(__LINE__, __FUNCTION__);
-    std::cout << "texture destructor called" << std::endl;
+    if constexpr (util::debugmode)
+    {
+        util::getGLerror(__LINE__, __FUNCTION__);
+        std::cout << "texture destructor called" << std::endl;
+    }
 }
 
 TextureLoadInfo Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
