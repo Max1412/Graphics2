@@ -32,7 +32,7 @@ Texture::~Texture()
     }
 }
 
-TextureLoadInfo Texture::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
+TextureLoadInfo Texture::loadFromFile(const std::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
     glEnable(GL_TEXTURE_2D);
     int imageWidth, imageHeight, numChannels;

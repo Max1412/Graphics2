@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <thread>
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include <glbinding/gl/gl.h>
 using namespace gl;
@@ -96,8 +96,8 @@ namespace util
     };
 
 
-    static const std::experimental::filesystem::path gs_shaderPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("shaders");
-    static const std::experimental::filesystem::path gs_resourcesPath = std::experimental::filesystem::current_path().parent_path().parent_path().append("resources");
+    static const std::filesystem::path gs_shaderPath = std::filesystem::current_path().parent_path().parent_path().append("shaders");
+    static const std::filesystem::path gs_resourcesPath = std::filesystem::current_path().parent_path().parent_path().append("resources");
 
 #ifdef _DEBUG
     static constexpr bool debugmode = true;

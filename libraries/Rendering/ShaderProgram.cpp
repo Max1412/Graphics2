@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glbinding-aux/Meta.h>
 
-ShaderProgram::ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath, const std::vector<glsp::definition>& definitions)
+ShaderProgram::ShaderProgram(const std::filesystem::path& vspath, const std::filesystem::path& fspath, const std::vector<glsp::definition>& definitions)
     : m_initWithShaders(true)
 {    
     Shader vs(vspath, GL_VERTEX_SHADER, definitions);

@@ -17,7 +17,7 @@ using namespace gl;
 class ShaderProgram
 {
 public:
-    ShaderProgram(const std::experimental::filesystem::path& vspath, const std::experimental::filesystem::path& fspath, const std::vector<glsp::definition>& definitions = {});
+    ShaderProgram(const std::filesystem::path& vspath, const std::filesystem::path& fspath, const std::vector<glsp::definition>& definitions = {});
     ShaderProgram(const Shader& shader1, const Shader& shader2);
     ShaderProgram(const std::vector<Shader>& shaders);
     ~ShaderProgram();

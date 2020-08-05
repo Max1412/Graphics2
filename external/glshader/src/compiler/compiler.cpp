@@ -192,7 +192,12 @@ namespace glshader::process
                     if (!files::exists(dep_file))
                         continue;
 
-                    if (std::chrono::system_clock::to_time_t(files::last_write_time(dep_file)) != last_write)
+                    using namespace std::chrono;
+                    // this is a really bad way of converting, see https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
+                    // but C++17 can't do it any other way it seems
+                    // maybe this breaks and it reloads all the time
+                    // TODO change with move to c++20
+                    if (system_clock::to_time_t(time_point_cast<system_clock::duration>(files::last_write_time(dep_file) - files::file_time_type::time_point::clock::now() + system_clock::now())) != last_write)
                     {
                         reload = true;
                         break;
@@ -245,7 +250,9 @@ namespace glshader::process
             std::stringstream buf;
             for (auto dep : dependencies)
             {
-                std::time_t t = std::chrono::system_clock::to_time_t(last_write_time(dep));
+                // TODO see other comment
+                using namespace std::chrono;
+                std::time_t t = system_clock::to_time_t(time_point_cast<system_clock::duration>(files::last_write_time(dep) - files::file_time_type::time_point::clock::now() + system_clock::now()));
                 auto str = dep.string();
                 uint32_t len = static_cast<uint32_t>(str.length());
                 buf.write(reinterpret_cast<const char*>(&t), sizeof(t));

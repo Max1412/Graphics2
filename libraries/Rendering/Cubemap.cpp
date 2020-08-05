@@ -35,7 +35,7 @@ void Cubemap::initWithoutData(int width, int height, GLenum internalFormat, GLen
     //}
 }
 
-TextureLoadInfo Cubemap::loadFromFile(const std::experimental::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
+TextureLoadInfo Cubemap::loadFromFile(const std::filesystem::path& texturePath, GLenum internalFormat, GLenum format, GLenum type, int desiredChannels)
 {
     // load the first image to get the width, height
     std::string path(texturePath.string());

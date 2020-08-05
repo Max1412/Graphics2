@@ -8,7 +8,7 @@
 #include "glbinding-aux/Meta.h"
 
 
-Shader::Shader(const std::experimental::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions) : m_shaderType(shaderType), m_path(path), m_definitions(definitions)
+Shader::Shader(const std::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions) : m_shaderType(shaderType), m_path(path), m_definitions(definitions)
 {
     // create shader and check for errors
     m_shaderHandle = glCreateShader(shaderType);
@@ -26,7 +26,7 @@ void Shader::init() const
         throw std::runtime_error("No path given");
     }
     // load shader file and use it
-    auto shaderCode = loadShaderFile(std::experimental::filesystem::path(util::gs_shaderPath) / m_path);
+    auto shaderCode = loadShaderFile(std::filesystem::path(util::gs_shaderPath) / m_path);
     std::array<const GLchar*, 1> codeArray{shaderCode.c_str()};
     glShaderSource(m_shaderHandle, 1, codeArray.data(), nullptr);
 
@@ -63,7 +63,7 @@ GLenum Shader::getShaderType() const
     return m_shaderType;
 }
 
-std::string Shader::loadShaderFile(const std::experimental::filesystem::path& fileName) const
+std::string Shader::loadShaderFile(const std::filesystem::path& fileName) const
 {
     auto file = glsp::preprocess_file(fileName, { util::gs_shaderPath }, m_definitions);
     std::cout << "Loaded " << glbinding::aux::Meta::getString(m_shaderType) << " from " << fileName << std::endl;;

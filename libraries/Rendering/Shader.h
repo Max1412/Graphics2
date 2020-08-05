@@ -10,7 +10,7 @@ using namespace gl;
 class Shader
 {
 public:
-    Shader(const std::experimental::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions = {});
+    Shader(const std::filesystem::path& path, GLenum shaderType, const std::vector<glsp::definition>& definitions = {});
     
     void init() const;
 
@@ -29,9 +29,9 @@ public:
 private:
     GLuint m_shaderHandle;
     GLenum m_shaderType;
-    std::experimental::filesystem::path m_path;
+    std::filesystem::path m_path;
 
     std::vector<glsp::definition> m_definitions;
 
-    std::string loadShaderFile(const std::experimental::filesystem::path& fileName) const;
+    std::string loadShaderFile(const std::filesystem::path& fileName) const;
 };

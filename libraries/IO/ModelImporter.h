@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <memory>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <unordered_map>
 
 #include <assimp/Importer.hpp>
@@ -43,9 +43,9 @@ struct Indirect
 class ModelImporter
 {
 public:
-    static std::vector<std::shared_ptr<Mesh>> loadAllMeshesFromFile(const std::experimental::filesystem::path& filename);
+    static std::vector<std::shared_ptr<Mesh>> loadAllMeshesFromFile(const std::filesystem::path& filename);
 
-    explicit ModelImporter(const std::experimental::filesystem::path& filename);
+    explicit ModelImporter(const std::filesystem::path& filename);
 
     std::vector<std::shared_ptr<Mesh>> getMeshes() const;
 

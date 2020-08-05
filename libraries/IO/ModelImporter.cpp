@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <unordered_set>
 
-ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename)
+ModelImporter::ModelImporter(const std::filesystem::path& filename)
     : m_gpuMaterialBuffer(GL_SHADER_STORAGE_BUFFER), m_gpuMaterialIndicesBuffer(GL_SHADER_STORAGE_BUFFER), m_modelMatrixBuffer(GL_SHADER_STORAGE_BUFFER),
     m_indirectDrawBuffer(GL_DRAW_INDIRECT_BUFFER), m_multiDrawIndexBuffer(GL_ELEMENT_ARRAY_BUFFER), m_multiDrawVertexBuffer(GL_ARRAY_BUFFER), 
     m_multiDrawNormalBuffer(GL_ARRAY_BUFFER), m_multiDrawTexCoordBuffer(GL_ARRAY_BUFFER), m_boundingBoxBuffer(GL_SHADER_STORAGE_BUFFER),
@@ -137,7 +137,7 @@ ModelImporter::ModelImporter(const std::experimental::filesystem::path& filename
 
                 uint64_t texID = std::numeric_limits<uint64_t>::max();
                 mat->GetTexture(type, 0, &reltexPath);
-                auto absTexPath = path.parent_path() / std::experimental::filesystem::path(reltexPath.C_Str());
+                auto absTexPath = path.parent_path() / std::filesystem::path(reltexPath.C_Str());
 
                 TextureLoadInfo loadInfo = TextureLoadInfo::None;
                 // texture not loaded yet
@@ -327,7 +327,7 @@ void ModelImporter::bindGPUbuffers() const
 
 }
 
-std::vector<std::shared_ptr<Mesh>> ModelImporter::loadAllMeshesFromFile(const std::experimental::filesystem::path& filename)
+std::vector<std::shared_ptr<Mesh>> ModelImporter::loadAllMeshesFromFile(const std::filesystem::path& filename)
 {
     const auto path = util::gs_resourcesPath / filename;
     const auto pathString = path.string();

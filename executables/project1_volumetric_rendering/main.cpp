@@ -182,7 +182,7 @@ int main()
     SkyBoxCube cube;
 
     Cubemap cubemapSkybox;
-    cubemapSkybox.loadFromFile(util::gs_resourcesPath / "/skybox/skybox.jpg");
+    cubemapSkybox.loadFromFile(util::gs_resourcesPath / "skybox/skybox.jpg");
     cubemapSkybox.generateHandle();
 
     auto u_skyboxTexHandle = std::make_shared<Uniform<GLuint64>>("skybox", cubemapSkybox.getHandle());

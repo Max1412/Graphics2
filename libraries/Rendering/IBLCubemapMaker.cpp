@@ -6,7 +6,7 @@
 #include "Quad.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-IBLCubemapMaker::IBLCubemapMaker(const std::experimental::filesystem::path& filename)
+IBLCubemapMaker::IBLCubemapMaker(const std::filesystem::path& filename)
     : m_iblSkyboxTextureBuffer(GL_SHADER_STORAGE_BUFFER),
       m_irrCalcTextureBuffer(GL_SHADER_STORAGE_BUFFER),
       m_skyBoxVS("drawIBLskybox.vert", GL_VERTEX_SHADER),
