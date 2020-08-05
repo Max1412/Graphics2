@@ -156,12 +156,12 @@ const glm::mat2x3& Mesh::getBoundingBox() const
 
 const glm::mat2x3& Mesh::calculateBoundingBox()
 {
-    auto minMaxFun = util::make_overload(
-        [](glm::mat2x3 b1, glm::mat2x3 b2) {return glm::mat2x3(glm::min(b1[0], b2[0]), glm::max(b1[1], b2[1])); },
-        [](glm::vec3 b1, glm::vec3 b2) {return glm::mat2x3(glm::min(b1, b2), glm::max(b1, b2)); },
-        [](glm::vec3 b1, glm::mat2x3 b2) {return glm::mat2x3(glm::min(b1, b2[0]), glm::max(b1, b2[1])); },
-        [](glm::mat2x3 b1, glm::vec3 b2) {return glm::mat2x3(glm::min(b1[0], b2), glm::max(b1[1], b2)); }
-    );
+    auto minMaxFun = util::overload{
+        [] (glm::mat2x3 b1, glm::mat2x3 b2) { return glm::mat2x3(glm::min(b1[0], b2[0]), glm::max(b1[1], b2[1]));   },
+        [] (glm::vec3 b1, glm::vec3 b2)     { return glm::mat2x3(glm::min(b1, b2), glm::max(b1, b2));               },
+        [] (glm::vec3 b1, glm::mat2x3 b2)   { return glm::mat2x3(glm::min(b1, b2[0]), glm::max(b1, b2[1]));         },
+        [] (glm::mat2x3 b1, glm::vec3 b2)   { return glm::mat2x3(glm::min(b1[0], b2), glm::max(b1[1], b2));         }
+    };
 
     m_boundingBox = std::reduce(std::execution::par, getVertices().begin(), getVertices().end(),
         glm::mat2x3(glm::vec3(std::numeric_limits<float>::max()), glm::vec3(std::numeric_limits<float>::lowest())), minMaxFun);

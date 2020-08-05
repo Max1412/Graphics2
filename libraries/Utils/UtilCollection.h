@@ -78,22 +78,15 @@ namespace util
     /**
     * \brief Container for overloaded functions/lambdas
     */
-    template<class... Fs>
-    struct overload : Fs...
-    {
-        overload(Fs&&... fs)
-            : Fs(std::move(fs))...
-        {}
-    };
+    template <typename... Ts>
+    struct overload : Ts... { using Ts::operator()...; };
 
     /**
     * \brief Makes an overloaded function/lambda object
     * \param fs The functions to be overloaded
     */
-    auto const make_overload = [](auto... fs)
-    {
-        return overload<decltype(fs)...>{std::move(fs)...};
-    };
+    template <typename... Ts>
+    overload(Ts...)->overload<Ts...>;
 
 
     static const std::filesystem::path gs_shaderPath = std::filesystem::current_path().parent_path().parent_path().append("shaders");
